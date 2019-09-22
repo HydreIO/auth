@@ -17,6 +17,8 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 - an AWS account with access to lambda
 - a redis cache access (Aws or external)
 - a mongoDB access
+- an SNS topic `auth_reset_pass`
+- [serverless](https://github.com/serverless/serverless) framework
 
 # Setup
 
