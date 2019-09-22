@@ -27,6 +27,9 @@ git clone git@github.com:HydreIO/hydre.auth.git
 
 - configure the needed region in `./serverless.yml`
 - deploy the lambda
+```
+sls deploy
+```
 - create all parameters in Aws SSM (or as env variables in the lambda)
 ```js
 AUTH_ALLOW_REGISTRATION // weither or not allowing registration
@@ -61,7 +64,7 @@ Retrieve the public key to verify an access token (jwt)
 ```
 { cert }
 ```
-return a `String!`
+returns a `String!`
 
 ## whoami
 infos on the user.
@@ -71,7 +74,7 @@ infos on the user.
 ```
 { whoami }
 ```
-return an `User!` :
+returns an `User!` :
 ```
 { id, sessions: { ip, browserName, osName }, emailVerified }
 ```
@@ -93,7 +96,7 @@ This is a type `query`, even though it sometimes should be a mutation
 ``` 
 specify creds if it's a email/pass sign, or sso if it's a _sign in with X_
 
-return a `String!` which is the CSRF token that must be sent on every request, a refresh token and an access token will be automatically fixed in two cookies
+returns a `String!` which is the CSRF token that must be sent on every request, a refresh token and an access token will be automatically fixed in two cookies
 
 ## accessToken
 Ask for an access token
@@ -102,4 +105,33 @@ Ask for an access token
 ```
 { accessToken }
 ```
-return a `String!` which is a new CSRF token that must be sent on every request, the access token will be automatically updated in a cookie
+returns a `String!` which is a new CSRF token that must be sent on every request, the access token will be automatically updated in a cookie
+
+## createResetCode
+Generate a code to reset the user password, the code will be forwarded to an SNS topic to be futher handler by whatever service you want (for exemple another lambda that handle email sending)
+- a code can only be used once
+
+```
+{
+	createResetCode(email)
+}
+```
+
+returns true, the server will publish a message on the SNS topic `auth_reset_pass` in the form
+```js
+{
+	to: 'user email',
+	code: 'reset code'
+}
+```
+
+## resetPassword
+Update the user hash with a new password if the provided code is valid
+
+```
+{
+	resetPassword(email, newPwd, resetCode)
+}
+```
+
+returns true
