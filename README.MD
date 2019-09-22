@@ -10,17 +10,42 @@
 [discord]: https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge
 [discordlink]: https://discord.gg/bRSpRpD
 
-Serverless Oauth2 compliant authentication for AWS
+Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
 # Requirments
 
-- An AWS account with access to lambda
-- A redis cache access (Aws or external)
-- A mongoDB access
+- an AWS account with access to lambda
+- a redis cache access (Aws or external)
+- a mongoDB access
 
 # Setup
 
+- clone the repo
+```
+git clone git@github.com:HydreIO/hydre.auth.git
+```
 
+- configure the needed region in `./serverless.yml`
+- deploy the lambda
+- create all parameters in Aws SSM (or as env variables in the lambda)
+```js
+AUTH_ALLOW_REGISTRATION // weither or not allowing registration
+AUTH_DB // mongo database name
+AUTH_DB_COLL_USERS // mongo database collection name
+AUTH_MONGO_URI // mongodb uri
+AUTH_GOOGLE_ID // google application id
+REDIS_ENDPOINT // redis uri
+AUTH_PWD_REGEX // regex used to verify passwords formats
+AUTH_EMAIL_REGEX // regex used to verify emails formats
+AUTH_CSRF_SECRET // a secret string (recommanded 32char)
+AUTH_REFRESH_SECRET // a secret string (recommanded 32char)
+AUTH_COOKIE_NAME // the name of the refreshtoken cookie
+AUTH_ACCESS_COOKIE_NAME // the name of the accesstoken cookie
+AUTH_COOKIE_DOMAIN // the cookies domain ex: '.myService.io' basically the domain where you have to access those cookies
+AUTH_PUBLIC_KEY // ES512 public key
+AUTH_PRIVATE_KEY // ES515 private key
+AUTH_RESET_PASS_DELAY // time in ms between two password reset requests
+```
 
 # Api
 
