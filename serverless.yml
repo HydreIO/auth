@@ -1,0 +1,53 @@
+service: auth
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-1
+  memorySize: 512
+  timeout: 5
+
+functions:
+  graphql:
+    handler: src/auth.graphql
+    name: "authentication/${opt:stage, 'dev'}.auth"
+    description: retrobot auth
+    reservedConcurrency: 10
+    events:
+      - http:
+          path: graphql
+          method: post
+          cors: true
+
+package:
+  individually: true
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
+    includeModules: true   # Node modules configuration for packaging
+
+resources:
+  Resources:
+      GatewayDefault4XX:
+        Type: 'AWS::ApiGateway::GatewayResponse'
+        Properties:
+          ResponseParameters:
+            gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+          ResponseType: DEFAULT_4XX
+          RestApiId:
+            Ref: 'ApiGatewayRestApi'
+      GatewayDefault5XX:
+        Type: 'AWS::ApiGateway::GatewayResponse'
+        Properties:
+          ResponseParameters:
+            gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+          ResponseType: DEFAULT_5XX
+          RestApiId:
+            Ref: 'ApiGatewayRestApi'

@@ -1,0 +1,38 @@
+directive @auth on FIELD_DEFINITION
+
+enum Provider {
+	GOOGLE
+	# TWITTER
+	# FACEBOOK
+	# GITHUB
+}
+
+input Local {
+	email: String!
+	pwd: String!
+	rememberMe: Boolean
+}
+
+input SSO {
+	provider: Provider!
+	idToken: String!
+	rememberMe: Boolean
+}
+
+type Query {
+	# Pong
+	ping: String!
+	# Hello user
+	whoami: User! @auth
+	cert: String!
+	# A refreshtoken must be kept safe and used to retrieve accessTokens
+	refreshToken(creds: Local, sso: SSO, signup: Boolean): String!
+	# An accessToken is used to access different services
+	accessToken: String! @auth
+	createResetCode(email: String!): Boolean!
+	resetPassword(email: String!, newPwd: String!, resetCode: String!): Boolean!
+}
+
+type Mutation {
+	logout: Boolean!
+}

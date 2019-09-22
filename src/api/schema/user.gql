@@ -1,0 +1,11 @@
+type Session {
+  ip: String!
+  browserName: String
+  osName: String
+}
+
+type User {
+  id: ID!
+  sessions: [Session!]!
+  emailVerified: Boolean!
+}
