@@ -9,9 +9,9 @@ provider:
 
 functions:
   graphql:
-    handler: src/auth.graphql
-    name: "authentication/${opt:stage, 'dev'}.auth"
-    description: retrobot auth
+    handler: src/index.handler
+    name: "authentication/${opt:stage, 'dev'}"
+    description: authentication services
     reservedConcurrency: 10
     events:
       - http:
@@ -25,8 +25,11 @@ package:
 plugins:
   - serverless-webpack
   - serverless-offline
+  - serverless-plugin-warmup
 
 custom:
+  warmup:
+    enabled: true
   webpack:
     webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
     includeModules: true   # Node modules configuration for packaging

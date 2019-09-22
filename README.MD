@@ -28,6 +28,7 @@ git clone git@github.com:HydreIO/hydre.auth.git
 ```
 
 - configure the needed region in `./serverless.yml`
+- you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 ```
 sls deploy
