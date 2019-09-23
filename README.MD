@@ -30,6 +30,7 @@ git clone git@github.com:HydreIO/hydre.auth.git
 - configure the needed region in `./serverless.yml`
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
+
 ```
 sls deploy
 ```
@@ -52,6 +53,15 @@ AUTH_PUBLIC_KEY // ES512 public key
 AUTH_PRIVATE_KEY // ES515 private key
 AUTH_RESET_PASS_DELAY // time in ms between two password reset requests
 ```
+
+Once the auth is online retrieve the endpoint from api gateway in your aws account or in the serverless dashboard in case you linked it.
+Send a `{ ping }` query inside a client like Graphiql, don't forget to add an user-agent in the header to act like a navigator, here is one for you
+
+```
+user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
+```
+
+You'll find any errors logged in cloudwatch logs
 
 # Api
 

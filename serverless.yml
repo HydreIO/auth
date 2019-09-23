@@ -1,3 +1,5 @@
+org: sceat
+app: hydre-auth
 service: auth
 
 provider:
@@ -6,11 +8,18 @@ provider:
   region: eu-west-1
   memorySize: 512
   timeout: 5
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'ssm:GetParameters'
+        - 'ssm:DescribeParameters'
+        - 'lambda:InvokeFunction'
+      Resource: '*'
 
 functions:
   graphql:
     handler: src/index.handler
-    name: "authentication/${opt:stage, 'dev'}"
+    name: "authentication-${opt:stage, 'dev'}"
     description: authentication services
     reservedConcurrency: 10
     events:
@@ -26,6 +35,12 @@ plugins:
   - serverless-webpack
   - serverless-offline
   - serverless-plugin-warmup
+
+modules:
+  exclude:
+    - aws-sdk
+  deepExclude: # Excluded from deep nested node_modules
+    - aws-sdk
 
 custom:
   warmup:
