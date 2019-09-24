@@ -14,7 +14,7 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
 > This doc is complete but minimal, if you need any help feel free to join the discord above to get a fast reply!
 
-# Requirments
+# Requirements
 
 - an AWS account with access to lambda
 - a redis cache access (Aws or external)
