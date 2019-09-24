@@ -44,6 +44,7 @@ AUTH_DB_COLL_USERS // mongo database collection name
 AUTH_MONGO_URI // mongodb uri
 AUTH_GOOGLE_ID // google application id
 REDIS_ENDPOINT // redis uri 
+REDIS_PASSWORD // optional
 AUTH_PWD_REGEX // regex used to verify passwords formats
 AUTH_EMAIL_REGEX // regex used to verify emails formats
 AUTH_CSRF_SECRET // a secret string (recommanded 32char)
