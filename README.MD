@@ -12,6 +12,8 @@
 
 Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
+> This doc is complete but minimal, if you need any help feel free to join the discord above to get a fast reply!
+
 # Requirments
 
 - an AWS account with access to lambda
@@ -41,7 +43,7 @@ AUTH_DB // mongo database name
 AUTH_DB_COLL_USERS // mongo database collection name
 AUTH_MONGO_URI // mongodb uri
 AUTH_GOOGLE_ID // google application id
-REDIS_ENDPOINT // redis uri
+REDIS_ENDPOINT // redis uri 
 AUTH_PWD_REGEX // regex used to verify passwords formats
 AUTH_EMAIL_REGEX // regex used to verify emails formats
 AUTH_CSRF_SECRET // a secret string (recommanded 32char)
@@ -52,8 +54,8 @@ AUTH_COOKIE_DOMAIN // the cookies domain ex: '.myService.io' basically the domai
 AUTH_PUBLIC_KEY // ES512 public key
 AUTH_PRIVATE_KEY // ES515 private key
 AUTH_RESET_PASS_DELAY // time in ms between two password reset requests
-```
 
+```
 Once the auth is online retrieve the endpoint from api gateway in your aws account or in the serverless dashboard in case you linked it.
 Send a `{ ping }` query inside a client like Graphiql, don't forget to add an user-agent in the header to act like a navigator, here is one for you
 
