@@ -28,6 +28,12 @@ functions:
             origin: 'https://exemple.com'
             headers:
               - x-csrf-token
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
             allowCredentials: true
 
 package:
