@@ -1,5 +1,3 @@
-org: sceat
-app: hydre-auth
 service: auth
 
 provider:
@@ -26,7 +24,9 @@ functions:
       - http:
           path: graphql
           method: post
-          cors: true
+          cors:
+            origin: 'https://exemple.com'
+            allowCredentials: true
 
 package:
   individually: true
@@ -55,8 +55,10 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Methods: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
           ResponseType: DEFAULT_4XX
           RestApiId:
             Ref: 'ApiGatewayRestApi'
@@ -64,8 +66,10 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Methods: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
           ResponseType: DEFAULT_5XX
           RestApiId:
             Ref: 'ApiGatewayRestApi'
