@@ -26,6 +26,8 @@ functions:
           method: post
           cors:
             origin: 'https://exemple.com'
+            headers:
+              - x-csrf-token
             allowCredentials: true
 
 package:
