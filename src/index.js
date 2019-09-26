@@ -37,7 +37,8 @@ export async function handler(event, ctx) {
 			AUTH_DB,
 			AUTH_MONGO_URI,
 			AUTH_DB_COLL_USERS,
-			REDIS_ENDPOINT,
+			REDIS_HOST,
+			REDIS_PORT,
 			REDIS_PASSWORD,
 			AUTH_PUBLIC_KEY,
 			AUTH_PRIVATE_KEY,
@@ -57,7 +58,7 @@ export async function handler(event, ctx) {
 		debug('Initializing cache')
 
 		mongo ||= await loadDB(AUTH_MONGO_URI)
-		redis ||= loadRedis(REDIS_ENDPOINT)(REDIS_PASSWORD) // unable to wait for the connection with the apollo implem
+		redis ||= loadRedis(REDIS_HOST)(+REDIS_PORT)(REDIS_PASSWORD) // unable to wait for the connection with the apollo implem
 		userColl ||= getCollection(mongo)(AUTH_DB)(AUTH_DB_COLL_USERS)
 		googleOauth2Client ||= new OAuth2Client(AUTH_GOOGLE_ID)
 
