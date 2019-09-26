@@ -29,7 +29,7 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 git clone git@github.com:HydreIO/hydre.auth.git
 ```
 
-- configure in `./serverless.yml` the needed `region` and the `functions.graphql.events.http.cors.origin` fields (to accept any origin we need a custom response template but i didn't found yet how to do it with this damn framework)
+- configure in `./serverless.yml` the needed `region` and `origin` fields (to accept any origin we need a custom response template but i didn't found yet how to do it with this damn framework)
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 

@@ -63,9 +63,9 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'true'"
-            gatewayresponse.header.Access-Control-Allow-Headers: "'true'"
-            gatewayresponse.header.Access-Control-Allow-Methods: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
           ResponseType: DEFAULT_4XX
           RestApiId:
@@ -74,9 +74,9 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'true'"
-            gatewayresponse.header.Access-Control-Allow-Headers: "'true'"
-            gatewayresponse.header.Access-Control-Allow-Methods: "'true'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'"
+            gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+            gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
           ResponseType: DEFAULT_5XX
           RestApiId:
