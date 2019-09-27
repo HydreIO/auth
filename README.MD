@@ -66,6 +66,22 @@ user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 You'll find any errors logged in cloudwatch logs
 
+# Vpc
+
+Beware when using a vpc you may need to change `src/index.js` replacing 
+
+```js
+ip: event.requestContext.identity.sourceIp
+```
+by
+```js
+ip: event.headers['CF-Connecting-IP']
+```
+
+# Debug
+
+You can access deep logging by setting the env variable `DEBUG` to `auth*`
+
 # Api
 
 ## ping
