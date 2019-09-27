@@ -54,7 +54,12 @@ const userFromGoogle = ({ findUser, registrationAllowed, partialSave, verifyGoog
 
 		debug('finding user with google id')
 		const userDatas = { sso: { google: id } }
-		return (await findUser(userDatas)) || { ...userDatas, sessions: [session] }
+		const user = await fundUser(userDatas)
+		if (!user) {
+			registrationAllowed || throw new RegistrationDisabledError()
+			return { ...userDatas, sessions: [session] }
+		}
+		return user
 	} catch (e) {
 		debug.extend('err')(e)
 		throw new SSOError()
