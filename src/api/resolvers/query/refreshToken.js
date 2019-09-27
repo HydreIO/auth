@@ -54,7 +54,7 @@ const userFromGoogle = ({ findUser, registrationAllowed, partialSave, verifyGoog
 
 		debug('finding user with google id')
 		const userDatas = { sso: { google: id } }
-		const user = await fundUser(userDatas)
+		const user = await findUser(userDatas)
 		if (!user) {
 			registrationAllowed || throw new RegistrationDisabledError()
 			return { ...userDatas, sessions: [session] }
