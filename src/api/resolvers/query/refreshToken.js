@@ -48,22 +48,17 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 }
 
 const userFromGoogle = ({ findUser, registrationAllowed, partialSave, verifyGoogleIdToken, session }) => async idToken => {
-	try {
-		debug('verifying google id_token')
-		const id = await verifyGoogleIdToken(idToken)
+	debug('verifying google id_token')
+	const id = (await verifyGoogleIdToken(idToken)) || throw new SSOError()
 
-		debug('finding user with google id')
-		const userDatas = { sso: { google: id } }
-		const user = await findUser(userDatas)
-		if (!user) {
-			registrationAllowed || throw new RegistrationDisabledError()
-			return { ...userDatas, sessions: [session] }
-		}
-		return user
-	} catch (e) {
-		debug.extend('err')(e)
-		throw new SSOError()
+	debug('finding user with google id')
+	const userDatas = { sso: { google: id } }
+	const user = await findUser(userDatas)
+	if (!user) {
+		registrationAllowed || throw new RegistrationDisabledError()
+		return { ...userDatas, sessions: [session] }
 	}
+	return user
 }
 
 const userFromSSO = ({ provider, idToken }) => signup => ctx => {
