@@ -97,29 +97,18 @@ export const buildContext = ({
 	({
 		@cache
 		async getUser() {
-			return (
-				event
-				|> eventToCookies
-				|> cookiesToAccessToken(accessCookie)
-				|> (_ => _ || throw new CookiesError())
-				|> (accessToken =>
-					event
-					|> eventToCsrfToken
-					|> (_ => _ || throw new CSRFError()) |>
-					// we ignore CSRF expiration because the auth always need to be able to provide
-					// new refreshTokens
-					verifyCSRF(csrfSecret)(accessToken)(-1)
-					|> (valid => (valid ? accessToken : throw new CSRFError()))) |>
-				// we also ignore the JWT expiration because the auth always need to know the userid
-				// accessToken have no other purposes here
-				verifyAccessToken(publicKey)(true)
-				|> (async ({ sub: userId, jti: hash }) => {
-					const user = await userIdToDabaseUser(findUser)(userId)
-					const sessionFound = user |> getSessionByHash(hash)
-					return sessionFound ? user : throw new SessionError()
-				})
-			)
+			const accessToken = event |> eventToCookies |> cookiesToAccessToken(process.env.ACCESS_COOKIE_NAME) || throw new CookiesError()
+			const csrfToken = event |> eventToCsrfToken || throw new CSRFError()
+			// we ignore CSRF expiration because the auth always need to be able to provide
+			verifyCSRF(process.env.CSRF_SECRET)(accessToken)(-1) || throw new CSRFError()
+			// we also ignore the JWT expiration because the auth always need to know the userid
+			// accessToken have no other purposes here
+			const { sub: userId, jti: hash } = verifyAccessToken(process.env.PUB_KEY)(true)(accessToken)
+			const user = await userIdToDabaseUser(findUser)(userId)
+			const sessionFound = user |> getSessionByHash(hash)
+			return sessionFound ? user : throw new SessionError()
 		},
+		
 		publicKey,
 
 		mailResetCode: to => async code => publishPassReset(JSON.stringify({ to, code })),

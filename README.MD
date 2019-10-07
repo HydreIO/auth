@@ -29,34 +29,14 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 git clone git@github.com:HydreIO/hydre.auth.git
 ```
 
-- configure in `./serverless.yml` the needed `region` and `origin` fields (to accept any origin we need a custom response template but i didn't found yet how to do it with this damn framework)
+- configure `./serverless.yml` (to accept any cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 
 ```
 sls deploy
 ```
-- create all parameters in Aws SSM (or as env variables in the lambda)
-```js
-AUTH_ALLOW_REGISTRATION // weither or not allowing registration
-AUTH_DB // mongo database name
-AUTH_DB_COLL_USERS // mongo database collection name
-AUTH_MONGO_URI // mongodb uri
-AUTH_GOOGLE_ID // google application id
-REDIS_ENDPOINT // redis uri 
-REDIS_PASSWORD // optional
-AUTH_PWD_REGEX // regex used to verify passwords formats
-AUTH_EMAIL_REGEX // regex used to verify emails formats
-AUTH_CSRF_SECRET // a secret string (recommanded 32char)
-AUTH_REFRESH_SECRET // a secret string (recommanded 32char)
-AUTH_COOKIE_NAME // the name of the refreshtoken cookie
-AUTH_ACCESS_COOKIE_NAME // the name of the accesstoken cookie
-AUTH_COOKIE_DOMAIN // the cookies domain ex: '.myService.io' basically the domain where you have to access those cookies
-AUTH_PUBLIC_KEY // ES512 public key
-AUTH_PRIVATE_KEY // ES515 private key
-AUTH_RESET_PASS_DELAY // time in ms between two password reset requests
 
-```
 Once the auth is online retrieve the endpoint from api gateway in your aws account or in the serverless dashboard in case you linked it.
 Send a `{ ping }` query inside a client like Graphiql, don't forget to add an user-agent in the header to act like a navigator, here is one for you
 
@@ -65,6 +45,17 @@ user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 ```
 
 You'll find any errors logged in cloudwatch logs
+
+# Front end
+
+To login you basically just have to query for a refreshToken, the auth will send you back a CSRF token, store this token in the localstorage and send it back in every
+request under the header `x-csrf-token`
+
+The auth will fix 2 cookie for you : 
+- an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
+will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (you get this key with the query `{ cert }` explained below)
+if the token is valid then you can trust the request
+
 
 # Vpc
 
