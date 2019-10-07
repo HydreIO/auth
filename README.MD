@@ -56,6 +56,7 @@ The auth will fix 2 cookie for you :
 will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (you get this key with the query `{ cert }` explained below)
 if the token is valid then you can trust the request
 
+- a refresh token, only used to get new accessToken (basically only query an accessToken)
 
 # Vpc
 
