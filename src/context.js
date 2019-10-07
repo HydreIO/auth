@@ -15,7 +15,8 @@ const makeAccessCookie = domain => accessCookie => rememberMe => accessToken => 
 	const payload = {
 		domain,
 		httpOnly: true,
-		secure: true
+		secure: true,
+		sameSite: 'none'
 	}
 
 	// 1 years cookie :) that's a lot of cookies
@@ -43,7 +44,8 @@ const makeRefreshCookie = domain => refreshCookie => refreshToken =>
 		domain,
 		httpOnly: true,
 		secure: true,
-		maxAge: aYear
+		maxAge: aYear,
+		sameSite: 'none'
 	})
 
 const makeExpiredRefreshCookie = domain => refreshCookie =>
@@ -51,6 +53,7 @@ const makeExpiredRefreshCookie = domain => refreshCookie =>
 		domain,
 		httpOnly: true,
 		secure: true,
+		sameSite: 'none',
 		expires: new Date(0)
 	})
 
@@ -59,6 +62,7 @@ const makeExpiredAccessCookie = domain => accessCookie =>
 		domain,
 		httpOnly: true,
 		secure: true,
+		sameSite: 'none',
 		expires: new Date(0)
 	})
 

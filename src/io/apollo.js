@@ -10,16 +10,14 @@ const formatError = error =>
 
 const caseInsensitive = object => key => object[Object.keys(object).find(k => k.toLowerCase() === key)]
 
-export const apollo = event => schema => cache => context =>
+export const apollo = event => schema => context =>
 	new Promise(
 		(res, rej) =>
 			void new ApolloServer({
 				schema,
 				formatError,
 				playground: false,
-				context,
-				cache,
-				persistedQueries: { cache }
+				context
 			}).createHandler({
 				cors: {
 					origin: caseInsensitive(event.headers)('origin'),

@@ -9,7 +9,7 @@ import { verifyGoogleIdToken } from './io/google'
 import { ApolloError } from 'apollo-server-lambda'
 import { HeadersError } from './api/errors'
 import { createTransporter } from './utils/sns'
-import { AUTH_COOKIE_DOMAIN } from './utils/constant';
+import { AUTH_COOKIE_DOMAIN } from './utils/constant'
 
 // see debug npm package
 const debug = 'auth' |> require('debug')
@@ -20,12 +20,13 @@ debug('initializing container')
 // those variable are used to keep information in the lambda container
 let mongo
 let userColl
-let redis
 let googleOauth2Client
-let transporter
 
 export async function handler(event, ctx) {
 	ctx.callbackWaitsForEmptyEventLoop = false
+
+	if (event.source === 'serverless-plugin-warmup') return 'Lambda is warm!'
+
 	debug('received event %O', event)
 	debug('initializing lambda')
 
@@ -34,49 +35,45 @@ export async function handler(event, ctx) {
 		event.headers || throw new HeadersError()
 
 		const {
-			AUTH_DB,
-			AUTH_MONGO_URI,
-			AUTH_DB_COLL_USERS,
-			REDIS_HOST,
-			REDIS_PORT,
-			REDIS_PASSWORD,
-			AUTH_PUBLIC_KEY,
-			AUTH_PRIVATE_KEY,
-			AUTH_REFRESH_SECRET,
-			AUTH_CSRF_SECRET,
-			AUTH_GOOGLE_ID,
-			AUTH_ALLOW_REGISTRATION,
-			AUTH_PWD_REGEX,
-			AUTH_EMAIL_REGEX,
-			AUTH_ACCESS_COOKIE_NAME,
-			AUTH_COOKIE_NAME,
-			AUTH_COOKIE_DOMAIN,
-			AUTH_RESET_PASS_DELAY
-		} = await loadParams()
+			DATABASE,
+			MONGO_URI,
+			COLLECTION,
+			PUB_KEY,
+			PRV_KEY,
+			REFRESH_TOKEN_SECRET,
+			CSRF_SECRET,
+			GOOGLE_ID,
+			ALLOW_REGISTRATION,
+			PWD_REGEX,
+			EMAIL_REGEX,
+			ACCESS_COOKIE_NAME,
+			REFRESH_COOKIE_NAME,
+			COOKIE_DOMAIN,
+			RESET_PASS_DELAY
+		} = process.env
 
 		debug('Parameters successfully loaded')
 		debug('Initializing cache')
 
-		mongo ||= await loadDB(AUTH_MONGO_URI)
-		redis ||= loadRedis(REDIS_HOST)(+REDIS_PORT)(REDIS_PASSWORD) // unable to wait for the connection with the apollo implem
-		userColl ||= getCollection(mongo)(AUTH_DB)(AUTH_DB_COLL_USERS)
-		googleOauth2Client ||= new OAuth2Client(AUTH_GOOGLE_ID)
+		mongo ||= await loadDB(MONGO_URI)
+		userColl ||= getCollection(mongo)(DATABASE)(COLLECTION)
+		googleOauth2Client ||= new OAuth2Client(GOOGLE_ID)
 
 		debug('Cache successfully initialized')
 
 		const securePayload = {
-			publicKey: AUTH_PUBLIC_KEY,
-			privateKey: AUTH_PRIVATE_KEY,
-			refreshTokenSecret: AUTH_REFRESH_SECRET,
-			csrfSecret: AUTH_CSRF_SECRET,
+			publicKey: PUB_KEY,
+			privateKey: PRV_KEY,
+			refreshTokenSecret: REFRESH_TOKEN_SECRET,
+			csrfSecret: CSRF_SECRET,
 			ip: event.requestContext.identity.sourceIp,
-			registrationAllowed: AUTH_ALLOW_REGISTRATION === 'TRUE',
-			pwdRule: new RegExp(AUTH_PWD_REGEX),
-			emailRule: new RegExp(AUTH_EMAIL_REGEX),
-			accessCookie: AUTH_ACCESS_COOKIE_NAME,
-			refreshCookie: AUTH_COOKIE_NAME,
-			resetCodeDelay: +AUTH_RESET_PASS_DELAY,
-			domain: AUTH_COOKIE_DOMAIN
+			registrationAllowed: ALLOW_REGISTRATION === 'TRUE',
+			pwdRule: new RegExp(PWD_REGEX),
+			emailRule: new RegExp(EMAIL_REGEX),
+			accessCookie: ACCESS_COOKIE_NAME,
+			refreshCookie: REFRESH_COOKIE_NAME,
+			resetCodeDelay: +RESET_PASS_DELAY,
+			domain: COOKIE_DOMAIN
 		}
 
 		const ioPayload = {
@@ -97,13 +94,13 @@ export async function handler(event, ctx) {
 				userColl.updateOne(filter, {
 					$set: datas
 				}),
-			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(AUTH_GOOGLE_ID)
+			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(GOOGLE_ID)
 		}
 
 		debug('ioPayload initialized')
 
 		// return await useful in a try catch statement
-		return await (event |> buildContext(securePayload)(ioPayload) |> apollo(event)(api)(redis))
+		return await (event |> buildContext(securePayload)(ioPayload) |> apollo(event)(api))
 	} catch (error) {
 		console.error(error)
 		return error instanceof ApolloError
