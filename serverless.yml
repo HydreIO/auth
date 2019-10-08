@@ -3,8 +3,8 @@ service: auth
 provider:
   name: aws
   runtime: nodejs10.x
-  region: eu-west-1
-  memorySize: 512
+  region: eu-west-1 # choose your aws region here
+  memorySize: 512 
   timeout: 5
   iamRoleStatements:
     - Effect: 'Allow'
@@ -17,7 +17,7 @@ provider:
 functions:
   graphql:
     handler: src/index.handler
-    name: "authentication-${opt:stage, 'dev'}" # beware whil changing this value, aws has naming conventions
+    name: "authentication-${opt:stage, 'dev'}" # beware while changing this value, aws has naming conventions
     description: authentication services
     reservedConcurrency: 10 # you are going to want to change this value, refer to the doc
     events:
@@ -25,7 +25,7 @@ functions:
           path: graphql
           method: post
           cors:
-            origin: 'https://exemple.com' # domain which will access the auth
+            origin: 'https://auth.exemple.com' # change the domain which will access the auth
             headers:
               - x-csrf-token
               - Content-Type
@@ -36,16 +36,16 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
     environment:
-      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # SSM parameter
+      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store
       DATABASE: 'auth' # database name
       COLLECTION: 'users' # collection name
-      MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # this mean it's a secureString SSM parameter
+      MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # this mean it's a secureString you have to create in SSM parameter
       GOOGLE_ID: 'xxxx.apps.googleusercontent.com' # change this with your google app
-      CSRF_SECRET: ${ssm:AUTH_CSRF_SECRET~true}
+      CSRF_SECRET: ${ssm:AUTH_CSRF_SECRET~true} # create all of those
       REFRESH_TOKEN_SECRET: ${ssm:AUTH_REFRESH_SECRET~true}
       REFRESH_COOKIE_NAME: 'a-cookie-name' # cookie names
       ACCESS_COOKIE_NAME: 'another-cookie-name'
-      COOKIE_DOMAIN: 'exemple.com'
+      COOKIE_DOMAIN: '.exemple.com' # the domains for cookies, basically all services with a need to verify authenticated users
       PUB_KEY: ${ssm:AUTH_PUBLIC_KEY}
       PRV_KEY: ${ssm:AUTH_PRIVATE_KEY~true}
       RESET_PASS_DELAY: ${ssm:AUTH_RESET_PASS_DELAY} # in ms
@@ -63,7 +63,7 @@ plugins:
 modules:
   exclude:
     - aws-sdk
-  deepExclude: # Excluded from deep nested node_modules
+  deepExclude:
     - aws-sdk
 
 custom:
@@ -79,7 +79,7 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # change this too
             gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
             gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
@@ -90,7 +90,7 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'"
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # also here
             gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
             gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
