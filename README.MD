@@ -17,7 +17,6 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 # Requirements
 
 - an AWS account with access to lambda
-- a redis cache access (Aws or external)
 - a mongoDB access
 - an SNS topic `auth_reset_pass`
 - [serverless](https://github.com/serverless/serverless) framework
@@ -56,7 +55,7 @@ The auth will fix 2 cookie for you :
 will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (you get this key with the query `{ cert }` explained below)
 if the token is valid then you can trust the request
 
-- a refresh token, only used to get new accessToken (basically only query an accessToken)
+- a refresh token, only used by the auth to fix a new accessToken in a cookie in case it is valid
 
 # Vpc
 
