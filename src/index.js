@@ -1,5 +1,4 @@
 import api from './api'
-import { loadParams } from './utils/params'
 import { loadDB, getCollection } from './io/mongo'
 import { apollo, forwardError } from './io/apollo'
 import { buildContext } from './context'
@@ -8,7 +7,6 @@ import { verifyGoogleIdToken } from './io/google'
 import { ApolloError } from 'apollo-server-lambda'
 import { HeadersError } from './api/errors'
 import { createTransporter } from './utils/sns'
-import { AUTH_COOKIE_DOMAIN } from './utils/constant'
 
 // see debug npm package
 const debug = 'auth' |> require('debug')
