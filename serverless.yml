@@ -25,7 +25,7 @@ functions:
           path: graphql
           method: post
           cors:
-            origin: 'https://auth.exemple.com' # change the domain which will access the auth
+            origin: 'https://exemple.com' # change the domain which will access the auth
             headers:
               - x-csrf-token
               - Content-Type
