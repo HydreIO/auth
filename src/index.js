@@ -1,7 +1,6 @@
 import api from './api'
 import { loadParams } from './utils/params'
 import { loadDB, getCollection } from './io/mongo'
-import { loadRedis } from './io/redis'
 import { apollo, forwardError } from './io/apollo'
 import { buildContext } from './context'
 import { OAuth2Client } from 'google-auth-library'
