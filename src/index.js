@@ -104,7 +104,7 @@ export async function handler(event, ctx) {
 	} catch (error) {
 		console.error(error)
 		return error instanceof ApolloError
-			? forwardError(error)
+			? forwardError(event)(error)
 			: {
 					statusCode: 503,
 					body: JSON.stringify('Oops.. something went wrong! Contact us if this error persist !')

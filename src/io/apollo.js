@@ -48,7 +48,12 @@ export const apollo = event => schema => context =>
 			)
 	)
 
-export const forwardError = apolloError => ({
+export const forwardError = event => apolloError => ({
+	headers: {
+		Vary: 'Origin',
+		['Access-Control-Allow-Origin']: caseInsensitive(event.headers)('origin'),
+		['Access-Control-Allow-Credentials']: 'true'
+	},
 	body: JSON.stringify({ errors: [formatError(apolloError)], data: null }),
 	statusCode: 200
 })
