@@ -64,7 +64,7 @@ export async function handler(event, ctx) {
 			refreshTokenSecret: REFRESH_TOKEN_SECRET,
 			csrfSecret: CSRF_SECRET,
 			ip: event.requestContext.identity.sourceIp,
-			registrationAllowed: ALLOW_REGISTRATION === 'TRUE',
+			registrationAllowed: ALLOW_REGISTRATION.toLowerCase() === 'true',
 			pwdRule: new RegExp(PWD_REGEX),
 			emailRule: new RegExp(EMAIL_REGEX),
 			accessCookie: ACCESS_COOKIE_NAME,
