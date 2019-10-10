@@ -81,6 +81,7 @@ export default async (_, { creds, sso, signup }, ctx) => {
 
 	debug('creating refresh token..')
 	const refreshToken = ctx.makeRefreshToken(id)(ctx.session.hash)
+	if (user.sessions.length > 10) user.sessions.shift()
 	const session =
 		getSessionByHash(ctx.session.hash)(user) ||
 		do {
