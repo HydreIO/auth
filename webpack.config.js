@@ -1,8 +1,10 @@
 const path = require('path')
 const nodeExternals = require('webpack-node-externals')
+const slsw = require('serverless-webpack')
 
 module.exports = {
-	externals: [nodeExternals(),'aws-sdk'],
+	externals: [nodeExternals(), 'aws-sdk'],
+	entry: slsw.lib.entries,
 	module: {
 		rules: [
 			{
@@ -20,5 +22,12 @@ module.exports = {
 				loader: 'graphql-tag/loader'
 			}
 		]
-	}
+	},
+	output: {
+		libraryTarget: 'commonjs2',
+		path: path.join(__dirname, '.webpack'),
+		filename: '[name].js',
+		sourceMapFilename: '[file].map'
+	  }
+	
 }
