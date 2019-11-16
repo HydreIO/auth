@@ -23,11 +23,14 @@ module.exports = {
 			}
 		]
 	},
+	optimization: {
+			minimize: !process.env.DEVELOPMENT
+	},
 	output: {
 		libraryTarget: 'commonjs2',
 		path: path.join(__dirname, '.webpack'),
 		filename: '[name].js',
 		sourceMapFilename: '[file].map'
 	  }
-	
+
 }

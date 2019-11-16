@@ -99,8 +99,8 @@ export const buildContext = ({
 	({
 		@cache
 		async getUser() {
-			const accessToken = event |> eventToCookies |> cookiesToAccessToken(process.env.ACCESS_COOKIE_NAME) || throw new CookiesError()
-			const csrfToken = event |> eventToCsrfToken || throw new CSRFError()
+			const accessToken = (event |> eventToCookies |> cookiesToAccessToken(process.env.ACCESS_COOKIE_NAME)) || throw new CookiesError()
+			const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
 			// we ignore CSRF expiration because the auth always need to be able to provide
 			verifyCSRF(process.env.CSRF_SECRET)(accessToken)(-1) || throw new CSRFError()
 			// we also ignore the JWT expiration because the auth always need to know the userid

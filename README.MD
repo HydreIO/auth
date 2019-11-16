@@ -72,7 +72,7 @@ ip: event.headers['CF-Connecting-IP']
 # Debug
 
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
-For local testing you can specify `DEVELOPMENT` env variable, that way cookies will be http instead of https
+For local testing you can specify `DEVELOPMENT` env variable, that way cookies will be http instead of https and webpack will not minify bundle
 
 # Api
 

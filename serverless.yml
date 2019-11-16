@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs10.x
   region: eu-west-1 # choose your aws region here
-  memorySize: 512 
+  memorySize: 512
   timeout: 5
   iamRoleStatements:
     - Effect: 'Allow'
