@@ -50,7 +50,7 @@ You'll find any errors logged in cloudwatch logs
 To login you basically just have to query for a refreshToken, the auth will send you back a CSRF token, store this token in the localstorage and send it back in every
 request under the header `x-csrf-token`
 
-The auth will fix 2 cookie for you : 
+The auth will fix 2 cookie for you :
 - an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
 will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (you get this key with the query `{ cert }` explained below)
 if the token is valid then you can trust the request
@@ -59,7 +59,7 @@ if the token is valid then you can trust the request
 
 # Vpc
 
-Beware when using a vpc you may need to change `src/index.js` replacing 
+Beware when using a vpc you may need to change `src/index.js` replacing
 
 ```js
 ip: event.requestContext.identity.sourceIp
@@ -72,6 +72,7 @@ ip: event.headers['CF-Connecting-IP']
 # Debug
 
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
+For local testing you can specify `DEVELOPMENT` env variable, that way cookies will be http instead of https
 
 # Api
 
@@ -93,7 +94,7 @@ returns a `String!`
 infos on the user.
 * The user is found by extracting an id (subject) of the jwt (access token) contained in a cookie
 * The cookie containing the token is secure and httponly, he never expire unless the user doesn't want to stay logged, in that case it's a session cookie
-* The access token (jwt) is asymmetrically signed 
+* The access token (jwt) is asymmetrically signed
 ```
 { whoami }
 ```
@@ -116,7 +117,7 @@ This is a type `query`, even though it sometimes should be a mutation
 {
 	refreshToken(creds: { email, pwd, rememberMe }, sso: { provider, idToken, rememberMe }, signup! }
 }
-``` 
+```
 specify creds if it's a email/pass sign, or sso if it's a _sign in with X_
 
 returns a `String!` which is the CSRF token that must be sent on every request, a refresh token and an access token will be automatically fixed in two cookies

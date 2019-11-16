@@ -11,12 +11,14 @@ const debug = require('debug')('auth').extend('context')
 const aYear = 60 * 60 * 24 * 365 * 1
 const min20 = 1000 * 60 * 20
 
+const runningInProduction = () => !process.env.DEVELOPMENT
+
 const makeAccessCookie = domain => accessCookie => rememberMe => accessToken => {
 	const payload = {
 		domain,
-		httpOnly: true,
+		httpOnly: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes
 		secure: true,
-		sameSite: 'none'
+		sameSite: 'strict'
 	}
 
 	// 1 years cookie :) that's a lot of cookies
@@ -42,10 +44,10 @@ const fixAccessCookie = event => cookie => fixCookie(event)('Set-cookie')(cookie
 const makeRefreshCookie = domain => refreshCookie => refreshToken =>
 	cookie.serialize(refreshCookie, refreshToken, {
 		domain,
-		httpOnly: true,
+		httpOnly: runningInProduction(),
 		secure: true,
 		maxAge: aYear,
-		sameSite: 'none'
+		sameSite: 'strict'
 	})
 
 const makeExpiredRefreshCookie = domain => refreshCookie =>
@@ -53,7 +55,7 @@ const makeExpiredRefreshCookie = domain => refreshCookie =>
 		domain,
 		httpOnly: true,
 		secure: true,
-		sameSite: 'none',
+		sameSite: 'strict',
 		expires: new Date(0)
 	})
 
@@ -62,7 +64,7 @@ const makeExpiredAccessCookie = domain => accessCookie =>
 		domain,
 		httpOnly: true,
 		secure: true,
-		sameSite: 'none',
+		sameSite: 'strict',
 		expires: new Date(0)
 	})
 
@@ -108,7 +110,7 @@ export const buildContext = ({
 			const sessionFound = user |> getSessionByHash(hash)
 			return sessionFound ? user : throw new SessionError()
 		},
-		
+
 		publicKey,
 
 		mailResetCode: to => async code => publishPassReset(JSON.stringify({ to, code })),
