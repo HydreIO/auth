@@ -45,9 +45,9 @@ user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 You'll find any errors logged in cloudwatch logs
 
-# Front end
+# Usage
 
-To login you basically just have to query for a refreshToken, the auth will send you back a CSRF token, store this token in the localstorage and send it back in every
+To login you basically just have to query (usually on the frontend side but can totally be used by another server) for a refreshToken, the auth will send you back a CSRF token, store this token wherever you want and send it back in every
 request under the header `x-csrf-token`
 
 The auth will fix 2 cookie for you :
