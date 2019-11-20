@@ -12,7 +12,7 @@
 		"@hydre/commons": "^1.0.20",
 		"apollo-server-cache-redis": "^1.1.4",
 		"apollo-server-lambda": "^2.9.9",
-		"aws-sdk": "^2.573.0",
+		"aws-sdk": "^2.575.0",
 		"bcryptjs": "^2.4.3",
 		"cookie": "^0.4.0",
 		"debug": "^4.1.1",

@@ -3,7 +3,7 @@ import { InvalidRefreshTokenError, SessionError } from '../../errors'
 
 const debug = 'accessToken' |> require('debug')('auth').extend
 
-export default async (_, { getUser, refreshToken, session, makeAccessToken, sendAccessToken, makeCsrfToken }) =>
+export default async (_, { cors, getUser, refreshToken, session, makeAccessToken, sendAccessToken, makeCsrfToken }) =>
 	(await getUser())
 	|> (_ => (debug('asking for an accessToken'), _))
 	|> (user => {
@@ -18,5 +18,6 @@ export default async (_, { getUser, refreshToken, session, makeAccessToken, send
 			})
 		debug('created [%s]', accessToken)
 		accessToken |> sendAccessToken
-		return accessToken |> makeCsrfToken
+		// we return a CSRF token in case cors are enabled
+		if (cors) return accessToken |> makeCsrfToken
 	})

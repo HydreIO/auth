@@ -25,7 +25,8 @@ functions:
           path: graphql
           method: post
           cors:
-            origin: 'https://exemple.com' # change the domain which will access the auth
+            origin: 'https://exemple.com' # This is the domain of the website which will access this authentication service, use a yaml array to support multiple domains
+            # to support a wildcard origin, we have a custom implementation not publicly released, contact us on discord or twitter
             headers:
               - x-csrf-token
               - Content-Type
@@ -36,7 +37,7 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
     environment:
-      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store
+      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store, again for any help just join the discord from the readme
       DATABASE: 'auth' # database name
       COLLECTION: 'users' # collection name
       MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # this mean it's a secureString you have to create in SSM parameter
@@ -45,9 +46,10 @@ functions:
       REFRESH_TOKEN_SECRET: ${ssm:AUTH_REFRESH_SECRET~true}
       REFRESH_COOKIE_NAME: 'a-cookie-name' # cookie names
       ACCESS_COOKIE_NAME: 'another-cookie-name'
-      COOKIE_DOMAIN: '.exemple.com' # the domains for cookies, basically all services with a need to verify authenticated users
+      COOKIE_DOMAIN: '.exemple.com' # the domains for cookies, basically all services with a need to verify authenticated users, authentication need to be under this domain too (subdomains works)
       PUB_KEY: ${ssm:AUTH_PUBLIC_KEY}
       PRV_KEY: ${ssm:AUTH_PRIVATE_KEY~true}
+      CORS: false
       RESET_PASS_DELAY: ${ssm:AUTH_RESET_PASS_DELAY} # in ms
       PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})'
       EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'

@@ -95,13 +95,9 @@ export default async (_, { creds, sso, signup }, ctx) => {
 
 	debug('fixing refresh token')
 	ctx.sendRefreshToken(refreshToken)
-	return (
-		ctx.makeAccessToken(id)({
-			email: user.email,
-			mailVerified: false
-		})(ctx.session.hash)
-		|> (_ => (debug('created accessToken [%s]', _), _))
-		|> (token => (ctx.sendAccessToken((creds || sso).rememberMe)(token), token))
-		|> ctx.makeCsrfToken
-	)
+	const accessToken = ctx.makeAccessToken(id)({ email: user.email, mailVerified: false })(ctx.session.hash)
+	debug('created accessToken [%s]', _)
+	accessToken |> ctx.sendAccessToken((creds || sso).rememberMe)
+	// we return a CSRF token in case cors are enabled
+	if (ctx.cors) ctx.makeCsrfToken(accessToken)
 }
