@@ -6,7 +6,6 @@ const CODES = {
 	UNKNOW_PROVIDER: 'UNKNOW_PROVIDER',
 	PWD_FORMAT: 'PWD_FORMAT',
 	EMAIL_FORMAT: 'EMAIL_FORMAT',
-	SSO: 'SSO',
 	REGISTRATION_DISABLED: 'REGISTRATION_DISABLED',
 	CSRF_INVALID: 'CSRF_INVALID',
 	SESSION: 'SESSION',
@@ -17,7 +16,19 @@ const CODES = {
 	ACCESS_TOKEN: 'ACCESS_TOKEN',
 	WAIT_RESET_CODE: 'WAIT_RESET_CODE',
 	RESET_CODE_MISSING: 'RESET_CODE_MISSING',
-	RESET_CODE_INVALID: 'RESET_CODE_INVALID'
+	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
+	GOOGLE_ID: 'GOOGLE_ID',
+	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED'
+}
+export class GoogleIdNotFound extends ApolloError {
+	constructor() {
+		super(`Google user id not found`, CODES.GOOGLE_ID)
+	}
+}
+export class GoogleEmailNotFound extends ApolloError {
+	constructor() {
+		super(`Google user email not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
+	}
 }
 
 export class InvalidResetCodeError extends ApolloError {
@@ -106,12 +117,6 @@ export class BadPwdFormatError extends ApolloError {
 export class BadEmailFormatError extends ApolloError {
 	constructor() {
 		super('Incorrect email format', CODES.EMAIL_FORMAT)
-	}
-}
-
-export class SSOError extends ApolloError {
-	constructor(msg) {
-		super(msg, CODES.SSO)
 	}
 }
 

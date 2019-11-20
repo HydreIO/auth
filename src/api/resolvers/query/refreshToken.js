@@ -6,7 +6,6 @@ import {
 	BadEmailFormatError,
 	EmailUsedError,
 	UnknowProviderError,
-	SSOError,
 	RegistrationDisabledError
 } from '../../errors'
 import { ObjectID } from 'mongodb'
@@ -32,6 +31,7 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 		debug('checking if the user already exist')
 		if (await userExist({ email })) throw new EmailUsedError(email)
 		debug(`user doesn't exist, creating..`)
+		// inserting the google mail only at account creation as this mail can change on the google account
 		return { email, hash: await hash(pwd), sessions: [session] }
 	}
 
@@ -41,22 +41,22 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 	const user = (await findUser({ email })) || throw new UserNotFoundError()
 
 	debug('verifying password hash')
-	// verifying password
-	;(await verify(pwd)(user.hash)) || throw new UserNotFoundError()
+		// verifying password
+		; (await verify(pwd)(user.hash)) || throw new UserNotFoundError()
 
 	return user
 }
 
 const userFromGoogle = ({ findUser, registrationAllowed, partialSave, verifyGoogleIdToken, session }) => async idToken => {
 	debug('verifying google id_token')
-	const id = (await verifyGoogleIdToken(idToken)) || throw new SSOError()
+	const { userid, email } = await verifyGoogleIdToken(idToken)
 
 	debug('finding user with google id')
-	const userDatas = { sso: { google: id } }
+	const userDatas = { sso: { google: userid } }
 	const user = await findUser(userDatas)
 	if (!user) {
 		registrationAllowed || throw new RegistrationDisabledError()
-		return { ...userDatas, sessions: [session] }
+		return { email, ...userDatas, sessions: [session] }
 	}
 	return user
 }
@@ -77,7 +77,7 @@ export default async (_, { creds, sso, signup }, ctx) => {
 	const user = await resolveUser(signup)(ctx)
 
 	debug('resolving id')
-	const id = user?._id?.toString() || (await ctx.insertUser(user)).insertedId?.toString()
+	const id = user ?._id ?.toString() || (await ctx.insertUser(user)).insertedId ?.toString()
 
 	debug('creating refresh token..')
 	const refreshToken = ctx.makeRefreshToken(id)(ctx.session.hash)
@@ -85,9 +85,9 @@ export default async (_, { creds, sso, signup }, ctx) => {
 	const session =
 		getSessionByHash(ctx.session.hash)(user) ||
 		do {
-			user.sessions.push(ctx.session)
-			return ctx.session
-		}
+		user.sessions.push(ctx.session)
+		return ctx.session
+	}
 	session.refreshToken = refreshToken
 
 	debug('upserting user')
@@ -96,7 +96,10 @@ export default async (_, { creds, sso, signup }, ctx) => {
 	debug('fixing refresh token')
 	ctx.sendRefreshToken(refreshToken)
 	return (
-		ctx.makeAccessToken(id)(false)(ctx.session.hash)
+		ctx.makeAccessToken(id)({
+			email: user.email,
+			mailVerified: false
+		})(ctx.session.hash)
 		|> (_ => (debug('created accessToken [%s]', _), _))
 		|> (token => (ctx.sendAccessToken((creds || sso).rememberMe)(token), token))
 		|> ctx.makeCsrfToken

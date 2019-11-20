@@ -144,9 +144,9 @@ export const buildContext = ({
 
 		makeCsrfToken: accessToken => signCSRF(csrfSecret)(accessToken)(),
 
-		makeAccessToken: userId => mailVerified => sessionHash => {
+		makeAccessToken: userId => payload => sessionHash => {
 			const opt = buildJwtOptions('auth::service')(userId)(sessionHash)(min20)
-			return createAccessToken(privateKey)(opt)({ mailVerified })
+			return createAccessToken(privateKey)(opt)(payload)
 		},
 
 		makeRefreshToken: userId => sessionHash => createRefreshToken(refreshTokenSecret)(sessionHash),
