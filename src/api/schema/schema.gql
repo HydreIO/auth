@@ -26,9 +26,9 @@ type Query {
 	whoami: User! @auth
 	cert: String!
 	# A refreshtoken must be kept safe and used to retrieve accessTokens
-	refreshToken(creds: Local, sso: SSO, signup: Boolean): String!
+	refreshToken(creds: Local, sso: SSO, signup: Boolean): String
 	# An accessToken is used to access different services
-	accessToken: String! @auth
+	accessToken: String @auth
 	createResetCode(email: String!): Boolean!
 	resetPassword(email: String!, newPwd: String!, resetCode: String!): Boolean!
 }

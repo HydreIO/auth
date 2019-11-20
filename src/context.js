@@ -13,12 +13,12 @@ const min20 = 1000 * 60 * 20
 
 const runningInProduction = () => !process.env.DEVELOPMENT
 
-const makeAccessCookie = domain => accessCookie => rememberMe => accessToken => {
+const makeAccessCookie = cors => domain => accessCookie => rememberMe => accessToken => {
 	const payload = {
 		domain,
 		httpOnly: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes
 		secure: true,
-		sameSite: 'strict'
+		sameSite: cors ? 'none' : 'strict'
 	}
 
 	// 1 years cookie :) that's a lot of cookies
@@ -33,7 +33,7 @@ const makeAccessCookie = domain => accessCookie => rememberMe => accessToken => 
 }
 
 const fixCookie = event => placeholder => cookie => {
-	event.cookies ||= {}
+	event.cookies ||= { }
 	event.cookies[placeholder] = cookie
 }
 
@@ -41,30 +41,30 @@ const fixRefreshCookie = event => cookie => fixCookie(event)('Set-Cookie')(cooki
 
 const fixAccessCookie = event => cookie => fixCookie(event)('Set-cookie')(cookie)
 
-const makeRefreshCookie = domain => refreshCookie => refreshToken =>
+const makeRefreshCookie = cors => domain => refreshCookie => refreshToken =>
 	cookie.serialize(refreshCookie, refreshToken, {
 		domain,
 		httpOnly: runningInProduction(),
 		secure: true,
 		maxAge: aYear,
-		sameSite: 'strict'
+		sameSite: cors ? 'none' : 'strict'
 	})
 
-const makeExpiredRefreshCookie = domain => refreshCookie =>
+const makeExpiredRefreshCookie = cors => domain => refreshCookie =>
 	cookie.serialize(refreshCookie, 'hehe boi', {
 		domain,
 		httpOnly: true,
 		secure: true,
-		sameSite: 'strict',
+		sameSite: cors ? 'none' : 'strict',
 		expires: new Date(0)
 	})
 
-const makeExpiredAccessCookie = domain => accessCookie =>
+const makeExpiredAccessCookie = cors => domain => accessCookie =>
 	cookie.serialize(accessCookie, 'hehe boi', {
 		domain,
 		httpOnly: true,
 		secure: true,
-		sameSite: 'strict',
+		sameSite: cors ? 'none' : 'strict',
 		expires: new Date(0)
 	})
 
@@ -83,6 +83,7 @@ const cookiesToRefreshToken = refreshCookie => cookies => cookies.find(c => c[re
 const userIdToDabaseUser = findUser => userId => findUser({ _id: new ObjectID(userId) })
 
 export const buildContext = ({
+	cors,
 	domain,
 	resetCodeDelay,
 	publicKey,
@@ -100,9 +101,13 @@ export const buildContext = ({
 		@cache
 		async getUser() {
 			const accessToken = (event |> eventToCookies |> cookiesToAccessToken(process.env.ACCESS_COOKIE_NAME)) || throw new CookiesError()
-			const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
-			// we ignore CSRF expiration because the auth always need to be able to provide
-			verifyCSRF(process.env.CSRF_SECRET)(accessToken)(-1) || throw new CSRFError()
+
+			// CSRF token is only used in case cors are enabled
+			if (cors) {
+				const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
+				// we ignore CSRF expiration because the auth always need to be able to provide
+				verifyCSRF(process.env.CSRF_SECRET)(accessToken)(-1)(csrfToken) || throw new CSRFError()
+			}
 			// we also ignore the JWT expiration because the auth always need to know the userid
 			// accessToken have no other purposes here
 			const { sub: userId, jti: hash } = verifyAccessToken(process.env.PUB_KEY)(true)(accessToken)
@@ -133,13 +138,15 @@ export const buildContext = ({
 
 		resetCodeDelay,
 
+		cors,
+
 		checkPwdFormat: pwd => pwd.match(pwdRule),
 
 		checkEmailFormat: mail => mail.match(emailRule),
 
 		removeCookies: () => {
-			makeExpiredAccessCookie(accessCookie) |> fixAccessCookie(event)
-			makeExpiredRefreshCookie(domain)(refreshCookie) |> fixRefreshCookie(event)
+			makeExpiredAccessCookie(cors)(accessCookie) |> fixAccessCookie(event)
+			makeExpiredRefreshCookie(cors)(domain)(refreshCookie) |> fixRefreshCookie(event)
 		},
 
 		makeCsrfToken: accessToken => signCSRF(csrfSecret)(accessToken)(),
@@ -151,7 +158,7 @@ export const buildContext = ({
 
 		makeRefreshToken: userId => sessionHash => createRefreshToken(refreshTokenSecret)(sessionHash),
 
-		sendRefreshToken: token => token |> makeRefreshCookie(domain)(refreshCookie) |> fixRefreshCookie(event),
+		sendRefreshToken: token => token |> makeRefreshCookie(cors)(domain)(refreshCookie) |> fixRefreshCookie(event),
 
-		sendAccessToken: rememberMe => token => token |> makeAccessCookie(domain)(accessCookie)(rememberMe) |> fixAccessCookie(event)
+		sendAccessToken: rememberMe => token => token |> makeAccessCookie(cors)(domain)(accessCookie)(rememberMe) |> fixAccessCookie(event)
 	} |> (_ => (debug('context built'), _)))

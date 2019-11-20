@@ -28,7 +28,10 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 git clone git@github.com:HydreIO/hydre.auth.git
 ```
 
-- configure `./serverless.yml` (to accept any cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
+- configure `./serverless.yml`
+	> the no cors mode use a cookie samesite Strict
+	> cors mode use a csrf token
+	> (to accept a wildcard cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 
@@ -47,8 +50,7 @@ You'll find any errors logged in cloudwatch logs
 
 # Usage
 
-To login you basically just have to query (usually on the frontend side but can totally be used by another server) for a refreshToken, the auth will send you back a CSRF token, store this token wherever you want and send it back in every
-request under the header `x-csrf-token`
+To login you basically just have to query (usually on the frontend side but can totally be used by another server) for a refreshToken, in case cors are enabled the auth will send you back a CSRF token, store this token wherever you want and send it back in every request under the header `x-csrf-token`, nothing else to do if you have disabled cors
 
 The auth will fix 2 cookie for you :
 - an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
@@ -56,6 +58,13 @@ will receive the token and can verify (`JWT.verify`) it asymmetrically with the 
 if the token is valid then you can trust the request
 
 - a refresh token, only used by the auth to fix a new accessToken in a cookie in case it is valid
+
+Make sure you know how cookies work, the `domain` must be your services domain, for exemple if you have
+
+- auth.foo.com
+- api.foo.com
+
+the `domain` field must be `.foo.com`, you cannot have different domains.
 
 # Vpc
 

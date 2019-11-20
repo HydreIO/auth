@@ -41,8 +41,8 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 	const user = (await findUser({ email })) || throw new UserNotFoundError()
 
 	debug('verifying password hash')
-	// verifying password
-	;(await verify(pwd)(user.hash)) || throw new UserNotFoundError()
+		// verifying password
+		; (await verify(pwd)(user.hash)) || throw new UserNotFoundError()
 
 	return user
 }
@@ -77,7 +77,7 @@ export default async (_, { creds, sso, signup }, ctx) => {
 	const user = await resolveUser(signup)(ctx)
 
 	debug('resolving id')
-	const id = user?._id?.toString() || (await ctx.insertUser(user)).insertedId?.toString()
+	const id = user ?._id ?.toString() || (await ctx.insertUser(user)).insertedId ?.toString()
 
 	debug('creating refresh token..')
 	const refreshToken = ctx.makeRefreshToken(id)(ctx.session.hash)
@@ -85,9 +85,9 @@ export default async (_, { creds, sso, signup }, ctx) => {
 	const session =
 		getSessionByHash(ctx.session.hash)(user) ||
 		do {
-			user.sessions.push(ctx.session)
-			return ctx.session
-		}
+		user.sessions.push(ctx.session)
+		return ctx.session
+	}
 	session.refreshToken = refreshToken
 
 	debug('upserting user')
@@ -95,10 +95,9 @@ export default async (_, { creds, sso, signup }, ctx) => {
 
 	debug('fixing refresh token')
 	ctx.sendRefreshToken(refreshToken)
-	return (
-		ctx.makeAccessToken(id)(false)(ctx.session.hash)
-		|> (_ => (debug('created accessToken [%s]', _), _))
-		|> (token => (ctx.sendAccessToken((creds || sso).rememberMe)(token), token))
-		|> ctx.makeCsrfToken
-	)
+	const accessToken = ctx.makeAccessToken(id)(false)(ctx.session.hash)
+	debug('created accessToken [%s]', _)
+	accessToken |> ctx.sendAccessToken((creds || sso).rememberMe)
+	// we return a CSRF token in case cors are enabled
+	if (ctx.cors) ctx.makeCsrfToken(accessToken)
 }

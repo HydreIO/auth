@@ -32,21 +32,23 @@ export async function handler(event, ctx) {
 		event.headers || throw new HeadersError()
 
 		const {
-			DATABASE,
-			MONGO_URI,
-			COLLECTION,
-			PUB_KEY,
-			PRV_KEY,
-			REFRESH_TOKEN_SECRET,
-			CSRF_SECRET,
-			GOOGLE_ID,
-			ALLOW_REGISTRATION,
-			PWD_REGEX,
-			EMAIL_REGEX,
-			ACCESS_COOKIE_NAME,
-			REFRESH_COOKIE_NAME,
-			COOKIE_DOMAIN,
-			RESET_PASS_DELAY
+			DATABASE, // db name
+			MONGO_URI, // mongo host (atlas like)
+			COLLECTION, // auth collection name
+			PUB_KEY, // PEM key
+			PRV_KEY, // prv
+			REFRESH_TOKEN_SECRET, // secret string
+			CSRF_SECRET, // secret string
+			GOOGLE_ID, // google app id (sso)
+			ALLOW_REGISTRATION, // can we register ? (TRUE, FALSE) case sensitive
+			PWD_REGEX, // accept which type of pwd
+			EMAIL_REGEX, // accept wich type of email
+			ACCESS_COOKIE_NAME, // name of the accessToken cookie (share this with your others services)
+			REFRESH_COOKIE_NAME, // refresh cookie name (only used by auth)
+			COOKIE_DOMAIN, // domain for the refresh
+			RESET_PASS_DELAY, // ms between two pwd reset request
+			CORS = false  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
+			// when cors are disabled the cookies sent become samesite Strict
 		} = process.env
 
 		debug('Parameters successfully loaded')
@@ -70,7 +72,8 @@ export async function handler(event, ctx) {
 			accessCookie: ACCESS_COOKIE_NAME,
 			refreshCookie: REFRESH_COOKIE_NAME,
 			resetCodeDelay: +RESET_PASS_DELAY,
-			domain: COOKIE_DOMAIN
+			domain: COOKIE_DOMAIN,
+			cors: CORS
 		}
 
 		const ioPayload = {
