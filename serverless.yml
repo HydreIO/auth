@@ -3,8 +3,9 @@ service: auth
 provider:
   name: aws
   runtime: nodejs10.x
-  region: eu-west-1 # choose your aws region here
-  memorySize: 512
+  stage: ${opt:stage,'dev'}
+  region: eu-west-1 # CHANGE ME: choose your aws region here
+  memorySize: 512 # change this only if you made your homework!
   timeout: 5
   iamRoleStatements:
     - Effect: 'Allow'
@@ -19,13 +20,13 @@ functions:
     handler: src/index.handler
     name: "authentication-${opt:stage, 'dev'}" # beware while changing this value, aws has naming conventions
     description: authentication services
-    reservedConcurrency: 10 # you are going to want to change this value, refer to the doc
+    reservedConcurrency: 10 # CHANGE ME: you are going to want to change this value, refer to the doc
     events:
       - http:
           path: graphql
           method: post
           cors:
-            origin: 'https://exemple.com' # This is the domain of the website which will access this authentication service, use a yaml array to support multiple domains
+            origin: 'https://exemple.com' # CHANGE ME: This is the domain of the website which will access this authentication service, use a yaml array to support multiple domains
             # to support a wildcard origin, we have a custom implementation not publicly released, contact us on discord or twitter
             headers:
               - x-csrf-token
@@ -37,22 +38,23 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
     environment:
-      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store, again for any help just join the discord from the readme
-      DATABASE: 'auth' # database name
-      COLLECTION: 'users' # collection name
-      MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # this mean it's a secureString you have to create in SSM parameter
-      GOOGLE_ID: 'xxxx.apps.googleusercontent.com' # change this with your google app
-      CSRF_SECRET: ${ssm:AUTH_CSRF_SECRET~true} # create all of those
-      REFRESH_TOKEN_SECRET: ${ssm:AUTH_REFRESH_SECRET~true}
-      REFRESH_COOKIE_NAME: 'a-cookie-name' # cookie names
-      ACCESS_COOKIE_NAME: 'another-cookie-name'
-      COOKIE_DOMAIN: '.exemple.com' # the domains for cookies, basically all services with a need to verify authenticated users, authentication need to be under this domain too (subdomains works)
-      PUB_KEY: ${ssm:AUTH_PUBLIC_KEY}
-      PRV_KEY: ${ssm:AUTH_PRIVATE_KEY~true}
-      CORS: false
-      RESET_PASS_DELAY: ${ssm:AUTH_RESET_PASS_DELAY} # in ms
-      PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})'
-      EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
+      ALLOW_REGISTRATION: ${self:custom.variables.${self:provider.stage}.ALLOW_REGISTRATION}
+      DATABASE: ${self:custom.variables.${self:provider.stage}.DATABASE}
+      COLLECTION: ${self:custom.variables.${self:provider.stage}.COLLECTION}
+      MONGO_URI: ${self:custom.variables.${self:provider.stage}.MONGO_URI}
+      GOOGLE_ID: ${self:custom.variables.${self:provider.stage}.GOOGLE_ID}
+      CSRF_SECRET: ${self:custom.variables.${self:provider.stage}.CSRF_SECRET}
+      REFRESH_TOKEN_SECRET: ${self:custom.variables.${self:provider.stage}.REFRESH_TOKEN_SECRET}
+      REFRESH_COOKIE_NAME: ${self:custom.variables.${self:provider.stage}.REFRESH_COOKIE_NAME}
+      ACCESS_COOKIE_NAME: ${self:custom.variables.${self:provider.stage}.ACCESS_COOKIE_NAME}
+      COOKIE_DOMAIN: ${self:custom.variables.${self:provider.stage}.COOKIE_DOMAIN}
+      PUB_KEY: ${self:custom.variables.${self:provider.stage}.PUB_KEY}
+      PRV_KEY: ${self:custom.variables.${self:provider.stage}.PRV_KEY}
+      CORS: ${self:custom.variables.${self:provider.stage}.CORS}
+      VPC: ${self:custom.variables.${self:provider.stage}.VPC}
+      RESET_PASS_DELAY: ${self:custom.variables.${self:provider.stage}.RESET_PASS_DELAY}
+      PWD_REGEX: ${self:custom.variables.${self:provider.stage}.PWD_REGEX}
+      EMAIL_REGEX: ${self:custom.variables.${self:provider.stage}.EMAIL_REGEX}
 
 package:
   individually: true
@@ -62,7 +64,7 @@ plugins:
   - serverless-offline
   - serverless-plugin-warmup
   - serverless-api-stage
-
+  - serverless-stage-manager
 modules:
   exclude:
     - aws-sdk
@@ -70,6 +72,46 @@ modules:
     - aws-sdk
 
 custom:
+  variables:
+    prod:
+      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store, again for any help just join the discord from the readme
+      DATABASE: 'auth' # CHANGE ME: database name
+      COLLECTION: 'users' # CHANGE ME: collection name
+      MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # <~true> this mean it's a secureString you have to create in SSM parameter
+      GOOGLE_ID: 'xxxx.apps.googleusercontent.com' # CHANGE ME: google app
+      CSRF_SECRET: ${ssm:AUTH_CSRF_SECRET~true} # 256 bit key
+      REFRESH_TOKEN_SECRET: ${ssm:AUTH_REFRESH_SECRET~true} # 256 bit key
+      REFRESH_COOKIE_NAME: 'a-cookie-name' # CHANGE ME: cookie names
+      ACCESS_COOKIE_NAME: 'another-cookie-name' # CHANGE ME:
+      COOKIE_DOMAIN: '.exemple.com' # CHANGE ME: the domains for cookies, basically all services with a need to verify authenticated users, authentication need to be under this domain too (subdomains works)
+      PUB_KEY: ${ssm:AUTH_PUBLIC_KEY} # ES512 public
+      PRV_KEY: ${ssm:AUTH_PRIVATE_KEY~true} # ES512 private
+      CORS: false # CHANGE ME: webapp not on the auth domain ?
+      VPC: false # CHANGE ME: using a VPC ?
+      RESET_PASS_DELAY: ${ssm:AUTH_RESET_PASS_DELAY} # in ms
+      PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})' # CHANGE ME:
+      EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$' # CHANGE ME:
+    dev:
+      ALLOW_REGISTRATION: 'TRUE'
+      DATABASE: 'auth'
+      COLLECTION: 'users'
+      MONGO_URI: ${env:MONGO_URI}
+      GOOGLE_ID: 'xxxx.apps.googleusercontent.com'
+      CSRF_SECRET: 'E95DC8223638D373EC2E6FEBA2596'
+      REFRESH_TOKEN_SECRET: '64339224EC7974C314EBCFC7C6441'
+      REFRESH_COOKIE_NAME: 'zongo-le-dozo'
+      ACCESS_COOKIE_NAME: 'le-mec-a-milla'
+      COOKIE_DOMAIN: '.exemple.com'
+      PUB_KEY: ${file(./local_test_key-public.pem)}
+      PRV_KEY: ${file(./local_test_key-private.pem)}
+      CORS: false
+      VPC: false
+      RESET_PASS_DELAY: 5000
+      PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})'
+      EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
+  stages:
+    - prod
+    - dev
   warmup:
     enabled: true
   webpack:
@@ -77,8 +119,8 @@ custom:
     includeModules: true   # Node modules configuration for packaging
   stageSettings:
     MethodSettings:
-      ThrottlingBurstLimit: 10 # change this as you need
-      ThrottlingRateLimit: 10
+      ThrottlingBurstLimit: 10 # CHANGE ME: change this as you need
+      ThrottlingRateLimit: 10 # CHANGE ME:
 
 resources:
   Resources:
@@ -86,7 +128,7 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # change this too
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # CHANGE ME: change this too
             gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
             gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"
@@ -97,7 +139,7 @@ resources:
         Type: 'AWS::ApiGateway::GatewayResponse'
         Properties:
           ResponseParameters:
-            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # also here
+            gatewayresponse.header.Access-Control-Allow-Origin: "'https://exemple.com'" # CHANGE ME: also here
             gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
             gatewayresponse.header.Access-Control-Allow-Methods: "'*'"
             gatewayresponse.header.Access-Control-Allow-Credentials: "'true'"

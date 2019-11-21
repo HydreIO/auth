@@ -8,7 +8,5 @@ export default makeExecutableSchema({
 	typeDefs,
 	resolvers,
 	schemaDirectives,
-	resolverValidationOptions: {
-		requireResolversForResolveType: false
-	}
+	resolverValidationOptions: { requireResolversForResolveType: false }
 })

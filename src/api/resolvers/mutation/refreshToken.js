@@ -16,7 +16,6 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 	userExist,
 	findUser,
 	registrationAllowed,
-	partialSave,
 	checkPwdFormat,
 	session,
 	checkEmailFormat
@@ -47,7 +46,7 @@ const userFromCreds = ({ email, pwd }) => signup => async ({
 	return user
 }
 
-const userFromGoogle = ({ findUser, registrationAllowed, partialSave, verifyGoogleIdToken, session }) => async idToken => {
+const userFromGoogle = ({ findUser, registrationAllowed, verifyGoogleIdToken, session }) => async idToken => {
 	debug('verifying google id_token')
 	const { userid, email } = await verifyGoogleIdToken(idToken)
 

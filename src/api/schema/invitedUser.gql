@@ -1,0 +1,4 @@
+type InvitedUser {
+  id: ID!
+  email: String!
+}

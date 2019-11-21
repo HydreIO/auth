@@ -28,7 +28,7 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 git clone git@github.com:HydreIO/hydre.auth.git
 ```
 
-- configure `./serverless.yml`
+- configure `./serverless.yml`, you'll see some *CHANGE ME: * fields, read the entire file
 	> the no cors mode use a cookie samesite Strict
 	> cors mode use a csrf token
 	> (to accept a wildcard cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
@@ -66,22 +66,13 @@ Make sure you know how cookies work, the `domain` must be your services domain, 
 
 the `domain` field must be `.foo.com`, you cannot have different domains.
 
-# Vpc
-
-Beware when using a vpc you may need to change `src/index.js` replacing
-
-```js
-ip: event.requestContext.identity.sourceIp
-```
-by
-```js
-ip: event.headers['CF-Connecting-IP']
-```
-
 # Debug
 
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
 For local testing you can specify `DEVELOPMENT` env variable, that way cookies will be http instead of https and webpack will not minify bundle
+Every env variables is defaulted to a value so you can local test out of the box, you only need a `MONGO_URI` (create a free account on mongo atlas and you're set up)
+
+run it with `MONGO_URI="xxx" DEVELOPMENT=true DEBUG="auth*" sls offline` *ignore warnings*
 
 # Api
 

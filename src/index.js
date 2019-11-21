@@ -35,9 +35,9 @@ export async function handler(event, ctx) {
 			DATABASE, // db name
 			MONGO_URI, // mongo host (atlas like)
 			COLLECTION, // auth collection name
-			PUB_KEY, // PEM key
-			PRV_KEY, // prv
-			REFRESH_TOKEN_SECRET, // secret string
+			PUB_KEY, // ES512
+			PRV_KEY, // ES512
+			REFRESH_TOKEN_SECRET, // secret string, the default value is for testing purposes only !
 			CSRF_SECRET, // secret string
 			GOOGLE_ID, // google app id (sso)
 			ALLOW_REGISTRATION, // can we register ? (TRUE, FALSE) case sensitive
@@ -47,8 +47,9 @@ export async function handler(event, ctx) {
 			REFRESH_COOKIE_NAME, // refresh cookie name (only used by auth)
 			COOKIE_DOMAIN, // domain for the refresh
 			RESET_PASS_DELAY, // ms between two pwd reset request
-			CORS = false  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
+			CORS,  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
 			// when cors are disabled the cookies sent become samesite Strict
+			VPC // When in a vpc the agw event use a different path to store caller ip adress
 		} = process.env
 
 		debug('Parameters successfully loaded')
@@ -65,7 +66,7 @@ export async function handler(event, ctx) {
 			privateKey: PRV_KEY,
 			refreshTokenSecret: REFRESH_TOKEN_SECRET,
 			csrfSecret: CSRF_SECRET,
-			ip: event.requestContext.identity.sourceIp,
+			ip: VPC ? event.headers['CF-Connecting-IP'] : event.requestContext.identity.sourceIp,
 			registrationAllowed: ALLOW_REGISTRATION.toLowerCase() === 'true',
 			pwdRule: new RegExp(PWD_REGEX),
 			emailRule: new RegExp(EMAIL_REGEX),
@@ -89,7 +90,7 @@ export async function handler(event, ctx) {
 					.limit(1)
 					.toArray()
 					.then(a => !!a.length),
-			insertUser: ::userColl.insertOne,
+			insertUser: :: userColl.insertOne,
 			updateUser: filter => async datas =>
 				userColl.updateOne(filter, {
 					$set: datas
@@ -106,8 +107,8 @@ export async function handler(event, ctx) {
 		return error instanceof ApolloError
 			? forwardError(event)(error)
 			: {
-					statusCode: 503,
-					body: JSON.stringify('Oops.. something went wrong! Contact us if this error persist !')
-			  }
+				statusCode: 503,
+				body: JSON.stringify('Oops.. something went wrong! Contact us if this error persist !')
+			}
 	}
 }
