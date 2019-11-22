@@ -3,24 +3,22 @@ import { verifyAccessToken, createAccessToken, buildJwtOptions, createRefreshTok
 import { cache } from '@hydre/commons'
 import { ObjectID } from 'mongodb'
 import { makeSession, getSessionByHash } from './user'
-import { CSRFError, SessionError, CookiesError } from './api/errors'
+import { CSRFError, SessionError, CookiesError, InvalidAccessTokenError } from './api/errors'
 import { publishPassReset } from './utils/sns'
 
 const debug = require('debug')('auth').extend('context')
 
 const aYear = 60 * 60 * 24 * 365 * 1
-const min20 = 1000 * 60 * 20
 
 const runningInProduction = () => !process.env.DEVELOPMENT
 
 const makeAccessCookie = cors => domain => accessCookie => rememberMe => accessToken => {
 	const payload = {
 		domain,
-		httpOnly: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes
-		secure: true,
+		httpOnly: true,
+		secure: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes,
 		sameSite: cors ? 'none' : 'strict'
 	}
-
 	// 1 years cookie :) that's a lot of cookies
 	// in case the user choose not be remembered, we don't set a expiration
 	// that way the client will delete the cookie after a session
@@ -29,6 +27,7 @@ const makeAccessCookie = cors => domain => accessCookie => rememberMe => accessT
 	// chrome android's sessions doesn't expires (unless manual clear)
 	// ios clear when app switch xD douch bags
 	if (rememberMe) payload.maxAge = aYear
+	if (!runningInProduction()) delete payload.domain // working in localhost we need to totally remove the field
 	return cookie.serialize(accessCookie, accessToken, payload)
 }
 
@@ -41,32 +40,42 @@ const fixRefreshCookie = event => cookie => fixCookie(event)('Set-Cookie')(cooki
 
 const fixAccessCookie = event => cookie => fixCookie(event)('Set-cookie')(cookie)
 
-const makeRefreshCookie = cors => domain => refreshCookie => refreshToken =>
-	cookie.serialize(refreshCookie, refreshToken, {
+const makeRefreshCookie = cors => domain => refreshCookie => refreshToken => {
+	const payload = {
 		domain,
-		httpOnly: runningInProduction(),
-		secure: true,
+		httpOnly: true,
+		secure: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes,
 		maxAge: aYear,
 		sameSite: cors ? 'none' : 'strict'
-	})
+	}
+	if (!runningInProduction()) delete payload.domain // working in localhost we need to totally remove the field
+	return cookie.serialize(refreshCookie, refreshToken, payload)
+}
 
-const makeExpiredRefreshCookie = cors => domain => refreshCookie =>
-	cookie.serialize(refreshCookie, 'hehe boi', {
+const makeExpiredRefreshCookie = cors => domain => refreshCookie => {
+	const payload = {
 		domain,
 		httpOnly: true,
-		secure: true,
+		secure: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes,
 		sameSite: cors ? 'none' : 'strict',
 		expires: new Date(0)
-	})
+	}
+	if (!runningInProduction()) delete payload.domain // working in localhost we need to totally remove the field
+	return cookie.serialize(refreshCookie, 'hehe boi', payload)
+}
 
-const makeExpiredAccessCookie = cors => domain => accessCookie =>
-	cookie.serialize(accessCookie, 'hehe boi', {
+const makeExpiredAccessCookie = cors => domain => accessCookie => {
+	const payload = {
 		domain,
 		httpOnly: true,
-		secure: true,
+		secure: runningInProduction(), // by specifying development env variable we allow http cookies for test purposes,
 		sameSite: cors ? 'none' : 'strict',
 		expires: new Date(0)
-	})
+	}
+	if (!runningInProduction()) delete payload.domain // working in localhost we need to totally remove the field
+	return cookie.serialize(accessCookie, 'hehe boi', payload)
+}
+
 
 const eventToCsrfToken = event => event.headers['x-csrf-token']
 
@@ -84,43 +93,43 @@ const userIdToDabaseUser = findUser => userId => findUser({ _id: new ObjectID(us
 
 export const buildContext = ({
 	cors,
-	domain,
+	COOKIE_DOMAIN,
+	ACCESS_TOKEN_EXPIRATION,
 	resetCodeDelay,
-	publicKey,
-	privateKey,
-	refreshTokenSecret,
-	csrfSecret,
+	PUB_KEY,
+	PRV_KEY,
+	REFRESH_TOKEN_SECRET,
+	CSRF_SECRET,
 	pwdRule,
 	emailRule,
 	ip,
 	registrationAllowed,
-	accessCookie,
-	refreshCookie
+	ACCESS_COOKIE_NAME,
+	REFRESH_COOKIE_NAME
 }) => ({ findUser, userExist, updateUser, insertUser, verifyGoogleIdToken }) => event =>
 	({
 		@cache
-		async getUser() {
+		async getUser(canAccessTokenBeExpired) {
 			const accessToken = (event |> eventToCookies |> cookiesToAccessToken(process.env.ACCESS_COOKIE_NAME)) || throw new CookiesError()
-
 			// CSRF token is only used in case cors are enabled
 			if (cors) {
 				const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
 				// we ignore CSRF expiration because the auth always need to be able to provide
-				verifyCSRF(process.env.CSRF_SECRET)(accessToken)(-1)(csrfToken) || throw new CSRFError()
+				verifyCSRF(process.env.CSRF_SECRET)(accessToken)(canAccessTokenBeExpired ? -1 : ACCESS_TOKEN_EXPIRATION)(csrfToken) || throw new CSRFError()
 			}
 			// we also ignore the JWT expiration because the auth always need to know the userid
 			// accessToken have no other purposes here
-			const { sub: userId, jti: hash } = verifyAccessToken(process.env.PUB_KEY)(true)(accessToken)
-			const user = await userIdToDabaseUser(findUser)(userId)
+			const { sub: userid, jti: hash } = verifyAccessToken(process.env.PUB_KEY)(canAccessTokenBeExpired)(accessToken) || throw new InvalidAccessTokenError()
+			const user = await userIdToDabaseUser(findUser)(userid)
 			const sessionFound = user |> getSessionByHash(hash)
 			return sessionFound ? user : throw new SessionError()
 		},
 
-		publicKey,
+		publicKey:PUB_KEY,
 
 		mailResetCode: to => async code => publishPassReset(JSON.stringify({ to, code })),
 
-		refreshToken: () => eventToCookies |> cookiesToRefreshToken(refreshCookie),
+		refreshToken: () => eventToCookies |> cookiesToRefreshToken(REFRESH_COOKIE_NAME),
 
 		session: event |> findUserAgent |> makeSession(ip),
 
@@ -145,20 +154,20 @@ export const buildContext = ({
 		checkEmailFormat: mail => mail.match(emailRule),
 
 		removeCookies: () => {
-			makeExpiredAccessCookie(cors)(accessCookie) |> fixAccessCookie(event)
-			makeExpiredRefreshCookie(cors)(domain)(refreshCookie) |> fixRefreshCookie(event)
+			makeExpiredAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME) |> fixAccessCookie(event)
+			makeExpiredRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event)
 		},
 
-		makeCsrfToken: accessToken => signCSRF(csrfSecret)(accessToken)(),
+		makeCsrfToken: accessToken => signCSRF(CSRF_SECRET)(accessToken)(),
 
 		makeAccessToken: userId => payload => sessionHash => {
-			const opt = buildJwtOptions('auth::service')(userId)(sessionHash)(min20)
-			return createAccessToken(privateKey)(opt)(payload)
+			const opt = buildJwtOptions('auth::service')(userId)(sessionHash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
+			return createAccessToken(PRV_KEY)(opt)(payload)
 		},
 
-		makeRefreshToken: userId => sessionHash => createRefreshToken(refreshTokenSecret)(sessionHash),
+		makeRefreshToken: userId => sessionHash => createRefreshToken(REFRESH_TOKEN_SECRET)(sessionHash),
 
-		sendRefreshToken: token => token |> makeRefreshCookie(cors)(domain)(refreshCookie) |> fixRefreshCookie(event),
+		sendRefreshToken: token => token |> makeRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event),
 
-		sendAccessToken: rememberMe => token => token |> makeAccessCookie(cors)(domain)(accessCookie)(rememberMe) |> fixAccessCookie(event)
+		sendAccessToken: rememberMe => token => token |> makeAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME)(rememberMe) |> fixAccessCookie(event)
 	} |> (_ => (debug('context built'), _)))

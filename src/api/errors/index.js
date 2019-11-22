@@ -15,7 +15,6 @@ const CODES = {
 	REFRESH_TOKEN: 'REFRESH_TOKEN',
 	ACCESS_TOKEN: 'ACCESS_TOKEN',
 	WAIT_RESET_CODE: 'WAIT_RESET_CODE',
-	RESET_CODE_MISSING: 'RESET_CODE_MISSING',
 	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
 	GOOGLE_ID: 'GOOGLE_ID',
 	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED'
@@ -34,12 +33,6 @@ export class GoogleEmailNotFound extends ApolloError {
 export class InvalidResetCodeError extends ApolloError {
 	constructor() {
 		super(`The reset code is invalid`, CODES.RESET_CODE_INVALID)
-	}
-}
-
-export class ResetCodeNotFoundError extends ApolloError {
-	constructor() {
-		super(`The user doesn't have any resetcode available`, CODES.RESET_CODE_MISSING)
 	}
 }
 

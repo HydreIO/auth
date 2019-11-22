@@ -1,4 +1,4 @@
-directive @auth on FIELD_DEFINITION
+directive @auth(canAccessTokenBeExpired: Boolean) on FIELD_DEFINITION
 
 enum Provider {
 	GOOGLE
@@ -26,7 +26,7 @@ type Query {
 	whoami: User! @auth
 	cert: String!
 	# An accessToken is used to access different services
-	accessToken: String @auth
+	accessToken: String @auth(canAccessTokenBeExpired: true)
 }
 
 type Mutation {

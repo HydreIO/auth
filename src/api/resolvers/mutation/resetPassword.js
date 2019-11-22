@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { ObjectID } from 'mongodb'
 import { hash } from '../../../utils/crypt'
-import { TooManyResetRequestError, BadPwdFormatError, ResetCodeNotFoundError, InvalidResetCodeError } from '../../errors'
+import { TooManyResetRequestError, BadPwdFormatError, InvalidResetCodeError } from '../../errors'
 
 const debug = require('debug')('auth').extend('resetpwd')
 
@@ -12,7 +12,7 @@ export default async (_, { email, newPwd, resetCode }, { findUser, checkPwdForma
 		if (user) {
 			debug('user found, checking password format')
 			checkPwdFormat(newPwd) || throw new BadPwdFormatError()
-			;(user.resetCode || throw new ResetCodeNotFoundError()) === resetCode || throw new InvalidResetCodeError()
+			if(!user.resetCode || user.resetCode !== resetCode) throw new InvalidResetCodeError()
 			user.hash = await hash(newPwd)
 			user.resetCode = ''
 			debug('upserting user')

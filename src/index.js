@@ -24,7 +24,7 @@ export async function handler(event, ctx) {
 
 	if (event.source === 'serverless-plugin-warmup') return 'Lambda is warm!'
 
-	debug('received event %O', event)
+	// debug('received event %O', event)
 	debug('initializing lambda')
 
 	try {
@@ -49,7 +49,8 @@ export async function handler(event, ctx) {
 			RESET_PASS_DELAY, // ms between two pwd reset request
 			CORS,  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
 			// when cors are disabled the cookies sent become samesite Strict
-			VPC // When in a vpc the agw event use a different path to store caller ip adress
+			VPC, // When in a vpc the agw event use a different path to store caller ip adress
+			ACCESS_TOKEN_EXPIRATION
 		} = process.env
 
 		debug('Parameters successfully loaded')
@@ -62,19 +63,20 @@ export async function handler(event, ctx) {
 		debug('Cache successfully initialized')
 
 		const securePayload = {
-			publicKey: PUB_KEY,
-			privateKey: PRV_KEY,
-			refreshTokenSecret: REFRESH_TOKEN_SECRET,
-			csrfSecret: CSRF_SECRET,
-			ip: VPC ? event.headers['CF-Connecting-IP'] : event.requestContext.identity.sourceIp,
+			PUB_KEY,
+			PRV_KEY,
+			REFRESH_TOKEN_SECRET,
+			CSRF_SECRET,
+			ip: VPC.toLowerCase() === 'true' ? event.headers['CF-Connecting-IP'] : event.requestContext.identity.sourceIp,
 			registrationAllowed: ALLOW_REGISTRATION.toLowerCase() === 'true',
 			pwdRule: new RegExp(PWD_REGEX),
 			emailRule: new RegExp(EMAIL_REGEX),
-			accessCookie: ACCESS_COOKIE_NAME,
-			refreshCookie: REFRESH_COOKIE_NAME,
+			ACCESS_COOKIE_NAME,
+			REFRESH_COOKIE_NAME,
 			resetCodeDelay: +RESET_PASS_DELAY,
-			domain: COOKIE_DOMAIN,
-			cors: CORS
+			COOKIE_DOMAIN,
+			ACCESS_TOKEN_EXPIRATION,
+			cors: CORS.toLowerCase() === 'true'
 		}
 
 		const ioPayload = {
