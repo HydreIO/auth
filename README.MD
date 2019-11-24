@@ -112,9 +112,8 @@ Ask for a refresh token
 * A refresh token can be given in exchange of user credentials or SSO credentials, and a valid user agent
 * A refresh token is only used to retrieve new access tokens
 
-This is a type `query`, even though it sometimes should be a mutation
 ```
-{
+mutation {
 	refreshToken(creds: { email, pwd, rememberMe }, sso: { provider, idToken, rememberMe }, signup! }
 }
 ```
@@ -136,12 +135,12 @@ Generate a code to reset the user password, the code will be forwarded to an SNS
 - a code can only be used once
 
 ```
-{
+mutation {
 	createResetCode(email)
 }
 ```
 
-returns true, the server will publish a message on the SNS topic `auth_reset_pass` in the form
+returns true, the server will publish a message on the SNS topic `${label}:auth:reset_pass` in the form
 ```js
 {
 	to: 'user email',
@@ -159,3 +158,29 @@ Update the user hash with a new password if the provided code is valid
 ```
 
 returns true
+
+## logout
+Remove user cookies
+
+```
+mutation { logout }
+```
+
+returns true
+
+## inviteUser
+Register an account for someone else without setting any password, use this to create an invitation system. A `SNS` event will be triggered to `${label}:auth:invite_user` in the form
+```js
+{
+	to: 'user email',
+	code: 'reset code'
+}
+```
+
+```
+mutation {
+	inviteUser(email)
+}
+```
+
+returns a signed JWT with the `invitedId` (userid) and `email` of the newly created user
