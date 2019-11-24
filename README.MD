@@ -201,7 +201,7 @@ mutation {
 }
 ```
 
-returns a signed JWT with the `invitedId` (userid) and `email` of the newly created user
+returns a signed JWT with the `invitedId` (userid) and `email` of the newly created user or `null` if the user already exist
 
 # Errors
 
