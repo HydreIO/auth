@@ -219,6 +219,8 @@ export default onError(({ graphQLErrors, networkError, operation, forward }) => 
 
 ## Definitions
 
+| Error name | Cause |
+|------------|------|
 | `EMAIL_USED` | _Provided email is already used_ |
 | `USER_INCORRECT` | _The user is not found_ |
 | `UNKNOW_PROVIDER` | _The provider is not implemented yet (`GOOGLE` only)_ |
