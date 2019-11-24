@@ -14,6 +14,10 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
 > This doc is complete but minimal, if you need any help feel free to join the discord above to get a fast reply!
 
+- [Getting started](#Setup)
+- [Api](#Api)
+- [Handle errors](#Errors)
+
 # Requirements
 
 - an AWS account with access to lambda
@@ -112,6 +116,8 @@ Ask for a refresh token
 * A refresh token can be given in exchange of user credentials or SSO credentials, and a valid user agent
 * A refresh token is only used to retrieve new access tokens
 
+provider argument [`GOOGLE`, ..implemented soon]
+
 ```
 mutation {
 	refreshToken(creds: { email, pwd, rememberMe }, sso: { provider, idToken, rememberMe }, signup! }
@@ -184,3 +190,49 @@ mutation {
 ```
 
 returns a signed JWT with the `invitedId` (userid) and `email` of the newly created user
+
+# Errors
+
+Working with graphql you'll get two type of errors, `graphQLErrors` and `networkErrors`.
+A graphql errors is returned as
+```js
+[{"errors":[{"message":"User not found","type":"USER_INCORRECT"}],"data":null}]
+```
+
+I suggest using [apollo-link-error](https://www.npmjs.com/package/apollo-link-error) as so
+
+```js
+const network = err => alert(`A wild ${err.statusCode} appeared`)
+const graphql = errs => errs.forEach(({ type }) => {
+	switch (type) {
+		case 'USER_INCORRECT':
+			// do stuff
+			break
+	}
+})
+
+export default onError(({ graphQLErrors, networkError, operation, forward }) => {
+	if (graphQLErrors) graphql(graphQLErrors)
+	else if (networkError) network(networkError)
+})
+```
+
+## Definitions
+
+| `EMAIL_USED` | _Provided email is already used_ |
+| `USER_INCORRECT` | _The user is not found_ |
+| `UNKNOW_PROVIDER` | _The provider is not implemented yet (`GOOGLE` only)_ |
+| `PWD_FORMAT` | _Bad password format_ |
+| `EMAIL_FORMAT` | _Bad email format_ |
+| `REGISTRATION_DISABLED` | _Registrations are disabled_ |
+| `CSRF_INVALID` | _(only in `cors` mode) The csrf token is not valid (relog the user)_ |
+| `SESSION` | _The sessions is invalid or revoked_ |
+| `USER_AGENT` | _The user agent is invalid_ |
+| `COOKIES` | _Cookies were not found_ |
+| `HEADERS` | _Header is missing_ |
+| `REFRESH_TOKEN` | _The refresh token is invalid_ |
+| `ACCESS_TOKEN` | _The access token is invalid or expired_ |
+| `WAIT_RESET_CODE` | _You're trying to send reset code too quickly_ |
+| `RESET_CODE_INVALID` | _The reset code is not valid or already used_ |
+| `GOOGLE_ID` | _Google user not found with this id_ |
+| `GOOGLE_EMAIL_NOT_GRANTED` | _Google user need to grand permissions for emails_ |
