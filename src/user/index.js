@@ -25,7 +25,7 @@ export const makeSession = ip => userAgent => {
 export const getId = user => user._id
 export const getPwdHash = user => user.hash
 export const getSessions = user => user.sessions
-export const isMailVerified = user => user.emailVerified
+export const isMailVerified = user => user.emailVerified || false
 export const getSessionByHash = hash => user =>
 	user |> getSessions |> (arr => arr.find(s => s.hash === hash))
 export const getSessionHash = session =>

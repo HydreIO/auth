@@ -17,7 +17,14 @@ const CODES = {
 	WAIT_RESET_CODE: 'WAIT_RESET_CODE',
 	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
 	GOOGLE_ID: 'GOOGLE_ID',
-	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED'
+	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED',
+	LOCAL_ONLY: 'LOCAL_ONLY'
+}
+
+export class LocalOnlyError extends ApolloError {
+	constructor() {
+		super('This query is only accessible in development mode', CODES.LOCAL_ONLY)
+	}
 }
 export class GoogleIdNotFound extends ApolloError {
 	constructor() {

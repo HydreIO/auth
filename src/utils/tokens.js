@@ -36,7 +36,7 @@ export const buildJwtOptions = audience => userId => sessionHash => expiresIn =>
 	// mutatePayload: true
 })
 
-export const createAccessToken = privateKey => opt => datas => jwt.sign(datas, privateKey, opt)
+export const signJwt = privateKey => opt => datas => jwt.sign(datas, privateKey, opt)
 
 export const verifyAccessToken = publicKey => ignoreExpiration => token => {
 	try {

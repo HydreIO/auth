@@ -2,6 +2,9 @@ type Session {
   ip: String!
   browserName: String
   osName: String
+  deviceModel: String
+  deviceType: String
+  deviceVendor: String
 }
 
 type User {

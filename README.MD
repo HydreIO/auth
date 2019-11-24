@@ -136,6 +136,18 @@ Ask for an access token
 ```
 returns a `String!` which is a new CSRF token that must be sent on every request, the access token will be automatically updated in a cookie
 
+## gamemodeTwo _*[DEVELOPMENT MODE ONLY]*_
+Used to grant infinite access to the required user, this allow for easy integration testing but doesn't work with `cors` enabled.
+This query will return an error if the env variable `DEVELOPMENT` is not set to `true`
+
+```
+mutation {
+	gamemodeTwo(email)
+}
+```
+
+return an non expiring accessToken directly instead of setting it in a cookie
+
 ## createResetCode
 Generate a code to reset the user password, the code will be forwarded to an SNS topic to be futher handler by whatever service you want (for exemple another lambda that handle email sending)
 - a code can only be used once
@@ -238,3 +250,4 @@ export default onError(({ graphQLErrors, networkError, operation, forward }) => 
 | `RESET_CODE_INVALID` | _The reset code is not valid or already used_ |
 | `GOOGLE_ID` | _Google user not found with this id_ |
 | `GOOGLE_EMAIL_NOT_GRANTED` | _Google user need to grand permissions for emails_ |
+| `LOCAL_ONLY` | _The queried ressources is only accessible in development mode_ |

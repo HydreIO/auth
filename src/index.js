@@ -50,7 +50,8 @@ export async function handler(event, ctx) {
 			CORS,  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
 			// when cors are disabled the cookies sent become samesite Strict
 			VPC, // When in a vpc the agw event use a different path to store caller ip adress
-			ACCESS_TOKEN_EXPIRATION
+			ACCESS_TOKEN_EXPIRATION,
+			LABEL
 		} = process.env
 
 		debug('Parameters successfully loaded')
@@ -76,7 +77,8 @@ export async function handler(event, ctx) {
 			resetCodeDelay: +RESET_PASS_DELAY,
 			COOKIE_DOMAIN,
 			ACCESS_TOKEN_EXPIRATION,
-			cors: CORS.toLowerCase() === 'true'
+			cors: CORS.toLowerCase() === 'true',
+			LABEL
 		}
 
 		const ioPayload = {

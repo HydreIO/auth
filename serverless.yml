@@ -38,6 +38,7 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
     environment:
+      LABEL: 'hydre' # CHANGE ME: custom name of your service (used in SNS topics)
       ALLOW_REGISTRATION: ${self:custom.variables.${self:provider.stage}.ALLOW_REGISTRATION}
       DATABASE: ${self:custom.variables.${self:provider.stage}.DATABASE}
       COLLECTION: ${self:custom.variables.${self:provider.stage}.COLLECTION}

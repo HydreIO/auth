@@ -1,10 +1,11 @@
 import crypto from 'crypto'
 import { ObjectID } from 'mongodb'
 import { TooManyResetRequestError } from '../../errors'
+import { publishToSNS } from '../../../utils/sns'
 
 const debug = require('debug')('auth').extend('resetCode')
 
-export default async (_, { email }, { findUser, mailResetCode, updateUser, resetCodeDelay }) =>
+export default async (_, { email }, { findUser, LABEL, updateUser, resetCodeDelay }) =>
 	(await findUser({ email }))
 	|> (async user => {
 		debug('asking resetcode')
@@ -22,9 +23,9 @@ export default async (_, { email }, { findUser, mailResetCode, updateUser, reset
 				.update(`${email}${crypto.randomBytes(32).toString('hex')}`)
 				.digest('hex'))
 
-			user.lastResetEmailSent = Date.now()
+				user.lastResetEmailSent = Date.now()
 			debug('emailing code')
-			await mailResetCode(email)(code)
+			await publishToSNS(`${LABEL}:auth:reset_pass`)(JSON.stringify({ to: email, code }))
 			debug('updating user')
 			await updateUser({ _id: new ObjectID(user._id) })(user)
 		} else debug(`user doesn't exist`)

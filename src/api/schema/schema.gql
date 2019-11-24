@@ -1,4 +1,6 @@
 directive @auth(canAccessTokenBeExpired: Boolean) on FIELD_DEFINITION
+directive @verifyRefreshToken on FIELD_DEFINITION
+directive @localOnly on FIELD_DEFINITION
 
 enum Provider {
 	GOOGLE
@@ -26,14 +28,14 @@ type Query {
 	whoami: User! @auth
 	cert: String!
 	# An accessToken is used to access different services
-	accessToken: String @auth(canAccessTokenBeExpired: true)
+	accessToken: String @auth(canAccessTokenBeExpired: true) @verifyRefreshToken
+	gamemodeTwo(email: String!): String! @localOnly
 }
 
 type Mutation {
 	logout: Boolean!
-	# A refreshtoken must be kept safe and used to retrieve accessTokens
 	refreshToken(creds: Local, sso: SSO, signup: Boolean): String
 	createResetCode(email: String!): Boolean!
 	resetPassword(email: String!, newPwd: String!, resetCode: String!): Boolean!
-	inviteUser(email: String!): InvitedUser! @auth
+	inviteUser(email: String!): String @auth
 }
