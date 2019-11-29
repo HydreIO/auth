@@ -23,7 +23,7 @@ functions:
     reservedConcurrency: 10 # CHANGE ME: you are going to want to change this value, refer to the doc
     events:
       - http:
-          path: graphql
+          path: gql
           method: post
           cors:
             origin: 'https://exemple.com' # CHANGE ME: This is the domain of the website which will access this authentication service, use a yaml array to support multiple domains
@@ -99,7 +99,7 @@ custom:
       ALLOW_REGISTRATION: 'TRUE'
       DATABASE: 'auth'
       COLLECTION: 'users'
-      MONGO_URI: ${env:MONGO_URI}
+      MONGO_URI: ${env:MONGO_URI}2
       GOOGLE_ID: 'xxxx.apps.googleusercontent.com'
       CSRF_SECRET: 'E95DC8223638D373EC2E6FEBA2596'
       REFRESH_TOKEN_SECRET: '64339224EC7974C314EBCFC7C6441'
