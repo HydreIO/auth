@@ -110,67 +110,67 @@ export const buildContext = ({
 }) => ({ findUser, userExist, updateUser, insertUser, verifyGoogleIdToken }) => event =>
 	({
 		@cache
-async getUser(canAccessTokenBeExpired) {
-	const accessToken = (event |> eventToCookies |> cookiesToAccessToken(ACCESS_COOKIE_NAME)) || throw new CookiesError()
-	// CSRF token is only used in case cors are enabled
-	if (cors) {
-		const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
-		// we ignore CSRF expiration because the auth always need to be able to provide
-		verifyCSRF(CSRF_SECRET)(accessToken)(canAccessTokenBeExpired ? -1 : ACCESS_TOKEN_EXPIRATION)(csrfToken) || throw new CSRFError()
-	}
-	// we also ignore the JWT expiration because the auth always need to know the userid
-	// accessToken have no other purposes here
-	const { sub: userid, jti: hash } = verifyAccessToken(PUB_KEY)(canAccessTokenBeExpired)(accessToken) || throw new InvalidAccessTokenError()
-	const user = await userIdToDabaseUser(findUser)(userid)
-	const sessionFound = user |> getSessionByHash(hash)
-	return sessionFound ? user : throw new SessionError()
-},
+		async getUser(canAccessTokenBeExpired) {
+			const accessToken = (event |> eventToCookies |> cookiesToAccessToken(ACCESS_COOKIE_NAME)) || throw new CookiesError()
+			// CSRF token is only used in case cors are enabled
+			if (cors) {
+				const csrfToken = (event |> eventToCsrfToken) || throw new CSRFError()
+				// we ignore CSRF expiration because the auth always need to be able to provide
+				verifyCSRF(CSRF_SECRET)(accessToken)(canAccessTokenBeExpired ? -1 : ACCESS_TOKEN_EXPIRATION)(csrfToken) || throw new CSRFError()
+			}
+			// we also ignore the JWT expiration because the auth always need to know the userid
+			// accessToken have no other purposes here
+			const { sub: userid, jti: hash } = verifyAccessToken(PUB_KEY)(canAccessTokenBeExpired)(accessToken) || throw new InvalidAccessTokenError()
+			const user = await userIdToDabaseUser(findUser)(userid)
+			const sessionFound = user |> getSessionByHash(hash)
+			return sessionFound ? user : throw new SessionError()
+		},
 
-PUB_KEY,
+		PUB_KEY,
 
-	PRV_KEY,
+		PRV_KEY,
 
-	LABEL,
+		LABEL,
 
-	refreshToken: () => eventToCookies |> cookiesToRefreshToken(REFRESH_COOKIE_NAME),
+		refreshToken: () => eventToCookies |> cookiesToRefreshToken(REFRESH_COOKIE_NAME),
 
 		session: event |> findUserAgent |> makeSession(ip),
 
-			findUser,
+		findUser,
 
-			userExist,
+		userExist,
 
-			insertUser,
+		insertUser,
 
-			updateUser,
+		updateUser,
 
-			verifyGoogleIdToken,
+		verifyGoogleIdToken,
 
-			registrationAllowed,
+		registrationAllowed,
 
-			resetCodeDelay,
+		resetCodeDelay,
 
-			cors,
+		cors,
 
-			checkPwdFormat: pwd => pwd.match(pwdRule),
+		checkPwdFormat: pwd => pwd.match(pwdRule),
 
-				checkEmailFormat: mail => mail.match(emailRule),
+		checkEmailFormat: mail => mail.match(emailRule),
 
-					removeCookies: () => {
-						makeExpiredAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME) |> fixAccessCookie(event)
-						makeExpiredRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event)
-					},
+		removeCookies: () => {
+			makeExpiredAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME) |> fixAccessCookie(event)
+			makeExpiredRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event)
+		},
 
-						makeCsrfToken: accessToken => signCSRF(CSRF_SECRET)(accessToken)(),
+		makeCsrfToken: accessToken => signCSRF(CSRF_SECRET)(accessToken)(),
 
-							makeAccessToken: userId => payload => sessionHash => {
-								const opt = buildJwtOptions('auth::service')(userId)(sessionHash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
-								return signJwt(PRV_KEY)(opt)(payload)
-							},
+		makeAccessToken: userId => payload => sessionHash => {
+			const opt = buildJwtOptions('auth::service')(userId)(sessionHash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
+			return signJwt(PRV_KEY)(opt)(payload)
+		},
 
-								makeRefreshToken: userId => sessionHash => createRefreshToken(REFRESH_TOKEN_SECRET)(sessionHash),
+		makeRefreshToken: userId => sessionHash => createRefreshToken(REFRESH_TOKEN_SECRET)(sessionHash),
 
-									sendRefreshToken: token => token |> makeRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event),
+		sendRefreshToken: token => token |> makeRefreshCookie(cors)(COOKIE_DOMAIN)(REFRESH_COOKIE_NAME) |> fixRefreshCookie(event),
 
-										sendAccessToken: rememberMe => token => token |> makeAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME)(rememberMe) |> fixAccessCookie(event)
+		sendAccessToken: rememberMe => token => token |> makeAccessCookie(cors)(COOKIE_DOMAIN)(ACCESS_COOKIE_NAME)(rememberMe) |> fixAccessCookie(event)
 	} |> (_ => (debug('context built'), _)))
