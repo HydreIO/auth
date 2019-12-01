@@ -11,6 +11,7 @@ lib/
 # Serverless directories
 .serverless
 .webpack
+serverless.yml
 
 # Runtime data
 pids

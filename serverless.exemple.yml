@@ -38,7 +38,6 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
     environment:
-      LABEL: 'hydre' # CHANGE ME: custom name of your service (used in SNS topics)
       ALLOW_REGISTRATION: ${self:custom.variables.${self:provider.stage}.ALLOW_REGISTRATION}
       DATABASE: ${self:custom.variables.${self:provider.stage}.DATABASE}
       COLLECTION: ${self:custom.variables.${self:provider.stage}.COLLECTION}
@@ -75,23 +74,24 @@ modules:
     - aws-sdk
 
 custom:
+  app: 'hydre' # CHANGE ME: custom name of your service (used in SNS topics and SSM parameters)
   variables:
     prod:
-      ALLOW_REGISTRATION: ${ssm:AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store, again for any help just join the discord from the readme
+      ALLOW_REGISTRATION: ${ssm:${self:custom.app}_AUTH_ALLOW_REGISTRATION} # create all the SSM parameters in AWS parameter store, again for any help just join the discord from the readme
       DATABASE: 'auth' # CHANGE ME: database name
       COLLECTION: 'users' # CHANGE ME: collection name
-      MONGO_URI: ${ssm:AUTH_MONGO_URI~true} # <~true> this mean it's a secureString you have to create in SSM parameter
+      MONGO_URI: ${ssm:${self:custom.app}_AUTH_MONGO_URI~true} # <~true> this mean it's a secureString you have to create in SSM parameter
       GOOGLE_ID: 'xxxx.apps.googleusercontent.com' # CHANGE ME: google app
-      CSRF_SECRET: ${ssm:AUTH_CSRF_SECRET~true} # 256 bit key
-      REFRESH_TOKEN_SECRET: ${ssm:AUTH_REFRESH_SECRET~true} # 256 bit key
+      CSRF_SECRET: ${ssm:${self:custom.app}_AUTH_CSRF_SECRET~true} # 256 bit key
+      REFRESH_TOKEN_SECRET: ${ssm:${self:custom.app}_AUTH_REFRESH_SECRET~true} # 256 bit key
       REFRESH_COOKIE_NAME: 'a-cookie-name' # CHANGE ME: cookie names
       ACCESS_COOKIE_NAME: 'another-cookie-name' # CHANGE ME:
       COOKIE_DOMAIN: '.exemple.com' # CHANGE ME: the domains for cookies, basically all services with a need to verify authenticated users, authentication need to be under this domain too (subdomains works)
-      PUB_KEY: ${ssm:AUTH_PUBLIC_KEY} # ES512 public
-      PRV_KEY: ${ssm:AUTH_PRIVATE_KEY~true} # ES512 private
+      PUB_KEY: ${ssm:${self:custom.app}_AUTH_PUBLIC_KEY} # ES512 public
+      PRV_KEY: ${ssm:${self:custom.app}_AUTH_PRIVATE_KEY~true} # ES512 private
       CORS: 'false' # CHANGE ME: webapp not on the auth domain ?
       VPC: 'false' # CHANGE ME: using a VPC ?
-      RESET_PASS_DELAY: ${ssm:AUTH_RESET_PASS_DELAY} # in ms
+      RESET_PASS_DELAY: ${ssm:${self:custom.app}_AUTH_RESET_PASS_DELAY} # in ms
       PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})' # CHANGE ME:
       EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$' # CHANGE ME:
       ACCESS_TOKEN_EXPIRATION: 1200000
@@ -99,7 +99,7 @@ custom:
       ALLOW_REGISTRATION: 'TRUE'
       DATABASE: 'auth'
       COLLECTION: 'users'
-      MONGO_URI: ${env:MONGO_URI}2
+      MONGO_URI: ${env:MONGO_URI}
       GOOGLE_ID: 'xxxx.apps.googleusercontent.com'
       CSRF_SECRET: 'E95DC8223638D373EC2E6FEBA2596'
       REFRESH_TOKEN_SECRET: '64339224EC7974C314EBCFC7C6441'

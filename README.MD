@@ -31,7 +31,7 @@ Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 ```
 git clone git@github.com:HydreIO/hydre.auth.git
 ```
-
+- Rename `./serverless.exemple.yml` in `./serverless.yml` (the file become untracked thus you can always pull changes from git while keeping your configuration)
 - configure `./serverless.yml`, you'll see some *CHANGE ME: * fields, read the entire file
 	> the no cors mode use a cookie samesite Strict
 	> cors mode use a csrf token
