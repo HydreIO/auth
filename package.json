@@ -7,7 +7,8 @@
 	"scripts": {
 		"build": "webpack --mode production",
 		"postversion": "git push && git push --tags",
-		"deploy": "sls deploy -prod"
+		"deploy": "sls deploy -prod",
+		"dev": "sls offline"
 	},
 	"dependencies": {
 		"@hydre/commons": "^1.0.20",
