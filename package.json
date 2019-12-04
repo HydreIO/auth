@@ -6,7 +6,8 @@
 	"author": "HydreIO",
 	"scripts": {
 		"build": "webpack --mode production",
-		"postversion": "git push && git push --tags"
+		"postversion": "git push && git push --tags",
+		"deploy": "sls deploy -prod"
 	},
 	"dependencies": {
 		"@hydre/commons": "^1.0.20",
