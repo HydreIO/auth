@@ -73,10 +73,10 @@ the `domain` field must be `.foo.com`, you cannot have different domains.
 # Debug
 
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
-For local testing you can specify `DEVELOPMENT` env variable, that way cookies will be http instead of https and webpack will not minify bundle
+Local testing `NODE_ENV` set to `development`, that way cookies will be http instead of https and webpack will not minify bundle
 Every env variables is defaulted to a value so you can local test out of the box, you only need a `MONGO_URI` (create a free account on mongo atlas and you're set up)
 
-run it with `MONGO_URI="xxx" DEVELOPMENT=true DEBUG="auth*" sls offline` *ignore warnings*
+run it with `MONGO_URI="xxx" NODE_ENV="development" DEBUG="auth*" sls offline` *ignore warnings*
 
 # Api
 
@@ -138,7 +138,7 @@ returns a `String!` which is a new CSRF token that must be sent on every request
 
 ## gamemodeTwo _*[DEVELOPMENT MODE ONLY]*_
 Used to grant infinite access to the required user, this allow for easy integration testing but doesn't work with `cors` enabled.
-This query will return an error if the env variable `DEVELOPMENT` is not set to `true`
+This query will return an error if the env variable `NODE_ENV` is not set to `development`
 
 ```
 mutation {

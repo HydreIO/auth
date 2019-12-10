@@ -55,7 +55,6 @@ functions:
       RESET_PASS_DELAY: ${self:custom.variables.${self:provider.stage}.RESET_PASS_DELAY}
       PWD_REGEX: ${self:custom.variables.${self:provider.stage}.PWD_REGEX}
       EMAIL_REGEX: ${self:custom.variables.${self:provider.stage}.EMAIL_REGEX}
-      DEVELOPMENT: ${env:DEVELOPMENT}
       ACCESS_TOKEN_EXPIRATION: ${self:custom.variables.${self:provider.stage}.ACCESS_TOKEN_EXPIRATION}
 
 package:

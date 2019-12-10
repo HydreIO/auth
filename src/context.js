@@ -10,7 +10,7 @@ const debug = require('debug')('auth').extend('context')
 
 const aYear = 60 * 60 * 24 * 365 * 1
 
-const runningInProduction = () => !process.env.DEVELOPMENT
+const runningInProduction = () => process.env.NODE_ENV !== 'development'
 
 const makeAccessCookie = cors => domain => accessCookie => rememberMe => accessToken => {
 	const payload = {

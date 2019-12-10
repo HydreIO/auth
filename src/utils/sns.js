@@ -7,5 +7,5 @@ const publish = topic => async msg => SNS.publish({	Message: msg,	TopicArn: topi
 const mock = topic => async msg => debug(`[local mode] => Publishing to SNS[${topic}] \n%o`, msg)
 
 export const publishToSNS = topic => async msg => {
-	return process.env.DEVELOPMENT ? mock(topic)(msg) : publish(topic)(msg)
+	return process.env.NODE_ENV === 'development' ? mock(topic)(msg) : publish(topic)(msg)
 }
