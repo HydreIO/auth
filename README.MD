@@ -87,6 +87,16 @@ Ping the api
 ```
 return a `String!`
 
+## stage
+Check the current serverless stage and the auth version
+```
+{ stage }
+```
+return a `Stage!`
+```js
+{ stage, version }
+```
+
 ## cert
 Retrieve the public key to verify an access token (jwt)
 ```
@@ -103,7 +113,7 @@ infos on the user.
 { whoami }
 ```
 returns an `User!` :
-```
+```js
 { id, sessions: { ip, browserName, osName }, emailVerified }
 ```
 

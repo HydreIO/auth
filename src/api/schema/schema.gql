@@ -21,9 +21,16 @@ input SSO {
 	rememberMe: Boolean
 }
 
+type Stage {
+	stage: String!
+	version: String!
+}
+
 type Query {
 	# Pong
 	ping: String!
+	# stage and version
+	stage: Stage!
 	# Hello user
 	whoami: User! @auth
 	cert: String!
