@@ -122,8 +122,7 @@ export const buildContext = ({
 			// accessToken have no other purposes here
 			const { sub: userid, jti: hash } = verifyAccessToken(PUB_KEY)(canAccessTokenBeExpired)(accessToken) || throw new InvalidAccessTokenError()
 			const user = await userIdToDabaseUser(findUser)(userid)
-			const sessionFound = user |> getSessionByHash(hash)
-			return sessionFound ? user : throw new SessionError()
+			return user && getSessionByHash(hash)(user) ? user : throw new SessionError()
 		},
 
 		PUB_KEY,
