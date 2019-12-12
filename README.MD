@@ -36,6 +36,7 @@ git clone git@github.com:HydreIO/hydre.auth.git
 	> the no cors mode use a cookie samesite Strict
 	> cors mode use a csrf token
 	> (to accept a wildcard cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
+	> to accept multiple origin replace by `origins` and input an array
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 
