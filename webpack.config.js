@@ -24,7 +24,7 @@ module.exports = {
 		]
 	},
 	optimization: {
-		minimize: process.env.NODE_ENV === 'production'
+		minimize: process.env.AUTH_ENV === 'production'
 	},
 	output: {
 		libraryTarget: 'commonjs2',
