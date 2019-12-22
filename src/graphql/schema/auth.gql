@@ -1,0 +1,37 @@
+enum Provider {
+	GOOGLE
+	# TWITTER
+	# FACEBOOK
+	# GITHUB
+}
+
+type AuthResponse {
+	user: User!
+	newAccount: Boolean! # was it a registration ?
+	newSession: Boolean! # was it a non existing session ? usefull to implement security later
+}
+
+interface AuthOps {
+	signout: String @Auth
+}
+
+input Creds {
+	email: String!
+	pwd: String!
+	rememberMe: Boolean
+}
+
+type Local implements AuthOps {
+	signin(creds: creds!): AuthResponse!
+	signup(creds: creds!): AuthResponse!
+	signout: String @Auth
+}
+
+type Sso implements AuthOps {
+	sign(provider: Provider!, idToken: String!): AuthResponse!
+	signout: String @Auth # void
+}
+
+extend type Mutation {
+	authenticate: AuthOps!
+}

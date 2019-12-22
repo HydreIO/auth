@@ -1,15 +1,16 @@
 import api from './api'
 import { loadDB, getCollection } from './io/mongo'
 import { apollo, forwardError } from './io/apollo'
-import { buildContext } from './context'
+import { buildContext } from './core/context'
 import { OAuth2Client } from 'google-auth-library'
 import { verifyGoogleIdToken } from './io/google'
 import { ApolloError } from 'apollo-server-lambda'
 import { HeadersError } from './api/errors'
-import { createTransporter } from './utils/sns'
+import { createTransporter } from './core/sns'
 
 // see debug npm package
 const debug = 'auth' |> require('debug')
+Symbol.transient = Symbol()
 
 debug('initializing container')
 
@@ -63,49 +64,31 @@ export async function handler(event, ctx) {
 
 		debug('Cache successfully initialized')
 
-		const securePayload = {
+		const env = {
 			PUB_KEY,
 			PRV_KEY,
 			REFRESH_TOKEN_SECRET,
-			CSRF_SECRET,
-			ip: VPC.toLowerCase() === 'true' ? event.headers['CF-Connecting-IP'] : event.requestContext.identity.sourceIp,
-			registrationAllowed: ALLOW_REGISTRATION.toLowerCase() === 'true',
-			pwdRule: new RegExp(PWD_REGEX),
-			emailRule: new RegExp(EMAIL_REGEX),
+			IP: VPC.toLowerCase() === 'true' ? event.headers['CF-Connecting-IP'] : event.requestContext.identity.sourceIp,
+			ALLOW_REGISTRATION: ALLOW_REGISTRATION.toLowerCase() === 'true',
+			PWD_REGEX: new RegExp(PWD_REGEX),
+			EMAIL_REGEX: new RegExp(EMAIL_REGEX),
 			ACCESS_COOKIE_NAME,
 			REFRESH_COOKIE_NAME,
-			resetCodeDelay: +RESET_PASS_DELAY,
+			RESET_PASS_DELAY: +RESET_PASS_DELAY,
 			COOKIE_DOMAIN,
 			ACCESS_TOKEN_EXPIRATION,
-			cors: CORS.toLowerCase() === 'true',
 			LABEL
 		}
 
-		const ioPayload = {
-			findUser: async datas =>
-				userColl
-					.find(datas)
-					.limit(1)
-					.toArray()
-					.then(([user]) => user),
-			userExist: async datas =>
-				userColl
-					.find(datas)
-					.limit(1)
-					.toArray()
-					.then(a => !!a.length),
-			insertUser: :: userColl.insertOne,
-			updateUser: filter => async datas =>
-				userColl.updateOne(filter, {
-					$set: datas
-				}),
+		const sso = {
 			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(GOOGLE_ID)
 		}
+
 
 		debug('ioPayload initialized')
 
 		// return await useful in a try catch statement
-		return await (event |> buildContext(securePayload)(ioPayload) |> apollo(event)(api))
+		return await (event |> buildContext(env)(userColl)(sso) |> apollo(event)(api))
 	} catch (error) {
 		console.error(error)
 		return error instanceof ApolloError

@@ -1,0 +1,18 @@
+directive @Auth(canAccessTokenBeExpired: Boolean) on FIELD_DEFINITION
+directive @VerifyRefreshToken on FIELD_DEFINITION
+
+type Stage {
+	stage: String!
+	version: String!
+}
+
+type Query {
+	# pong
+	ping: String!
+	# stage and version
+	stage: Stage!
+	# public key
+	cert: String!
+}
+
+type Mutation {}

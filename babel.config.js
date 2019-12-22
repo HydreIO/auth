@@ -25,6 +25,6 @@ module.exports = {
 		['@babel/plugin-proposal-throw-expressions'],
 		['@babel/plugin-proposal-do-expressions'],
 		['babel-plugin-implicit-function'],
-		['wildcard', { noModifyCase: true }]
+		["import-directory"]
 	]
 }

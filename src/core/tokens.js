@@ -3,22 +3,6 @@ import jwt from 'jsonwebtoken'
 
 const ALG = 'sha256'
 
-export const signCSRF = csrfSecret => accessToken => (timestamp = Date.now()) => {
-	const HMAC = crypto
-		.createHmac(ALG, csrfSecret)
-		.update(`${timestamp}${accessToken}`)
-		.digest('hex')
-	return `${HMAC}.${timestamp}`
-}
-
-const isExpired = timestamp => expiration => expiration !== -1 && Date.now() - timestamp > expiration
-
-export const verifyCSRF = csrfSecret => accessToken => expiration => csrfToken => {
-	const [HMAC, timestamp] = csrfToken.split('.')
-	const [reHMAC] = signCSRF(csrfSecret)(accessToken)(timestamp).split('.')
-	return !isExpired(timestamp)(expiration) && HMAC === reHMAC
-}
-
 export const createRefreshToken = refreshTokenSecret => sessionHash =>
 	crypto
 		.createHmac(ALG, refreshTokenSecret)
@@ -38,12 +22,14 @@ export const buildJwtOptions = audience => userId => sessionHash => expiresIn =>
 
 export const signJwt = privateKey => opt => datas => jwt.sign(datas, privateKey, opt)
 
-export const verifyAccessToken = publicKey => ignoreExpiration => token => {
+export const verifyAccessToken = publicKey => token => {
 	try {
 		return jwt.verify(token, publicKey, {
 			algorithms: 'ES512',
 			issuer: 'auth.service',
-			ignoreExpiration
+			ignoreExpiration: true
 		})
-	} catch {}
+	} catch (e) {
+		console.error(e)
+	}
 }

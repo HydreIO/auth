@@ -16,21 +16,30 @@ const CODES = {
 	ACCESS_TOKEN: 'ACCESS_TOKEN',
 	WAIT_RESET_CODE: 'WAIT_RESET_CODE',
 	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
+	VERIFICATION_CODE_INVALID: 'VERIFICATION_CODE_INVALID',
 	GOOGLE_ID: 'GOOGLE_ID',
 	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED',
-	LOCAL_ONLY: 'LOCAL_ONLY'
+	UNKNOW_CODE: 'UNKNOW_CODE'
 }
 
-export class LocalOnlyError extends ApolloError {
+export class UnknowCodeError extends ApolloError {
 	constructor() {
-		super('This query is only accessible in development mode', CODES.LOCAL_ONLY)
+		super(`This code doesn't exist`, CODES.UNKNOW_CODE)
 	}
 }
+
+export class InvalidVerificationCodeError extends ApolloError {
+	constructor() {
+		super(`This code doesn't exist`, CODES.VERIFICATION_CODE_INVALID)
+	}
+}
+
 export class GoogleIdNotFound extends ApolloError {
 	constructor() {
 		super(`Google user id not found`, CODES.GOOGLE_ID)
 	}
 }
+
 export class GoogleEmailNotFound extends ApolloError {
 	constructor() {
 		super(`Google user email not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
