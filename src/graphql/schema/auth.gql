@@ -22,8 +22,8 @@ input Creds {
 }
 
 type Local implements AuthOps {
-	signin(creds: creds!): AuthResponse!
-	signup(creds: creds!): AuthResponse!
+	signin(creds: Creds!): AuthResponse!
+	signup(creds: Creds!): AuthResponse!
 	signout: String @Auth
 }
 
