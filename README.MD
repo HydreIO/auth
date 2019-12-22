@@ -12,10 +12,10 @@
 
 Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
-> This doc is complete but minimal, if you need any help feel free to join the discord above to get a fast reply!
+> This doc is A WORK IN PROGRESS and is not complete, if you need any help feel free to join the discord above to get a fast reply!
 
 - [Getting started](#Setup)
-- [Api](#Api)
+- [Api](TYPES.MD)
 - [Handle errors](#Errors)
 
 # Requirements
@@ -33,10 +33,9 @@ git clone git@github.com:HydreIO/hydre.auth.git
 ```
 - Rename `./serverless.exemple.yml` in `./serverless.yml` (the file become untracked thus you can always pull changes from git while keeping your configuration)
 - configure `./serverless.yml`, you'll see some *CHANGE ME: * fields, read the entire file
-	> the no cors mode use a cookie samesite Strict
-	> cors mode use a csrf token
-	> (to accept a wildcard cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation)
-	> to accept multiple origin replace by `origins` and input an array
+	> to accept a wildcard cors origin you need to create a custom ressource and disable serverless cors, create an issue if u need more explanation
+
+	> to accept multiple origin replace `origin` by `origins` and input an array
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
 - deploy the lambda
 
@@ -55,7 +54,28 @@ You'll find any errors logged in cloudwatch logs
 
 # Usage
 
-To login you basically just have to query (usually on the frontend side but can totally be used by another server) for a refreshToken, in case cors are enabled the auth will send you back a CSRF token, store this token wherever you want and send it back in every request under the header `x-csrf-token`, nothing else to do if you have disabled cors
+To register you have to call the user operation signin with the user credentials
+```js
+mutation {
+  authenticate {
+    signup(creds: { email, pwd, rememberMe })
+  }
+}
+```
+
+Same thing to sign in
+```js
+mutation {
+  authenticate {
+    signin(creds: { email, pwd, rememberMe })
+  }
+}
+```
+
+to logout just call sign out (you must be authenticated)
+```js
+mutation { authenticate { signout } }
+```
 
 The auth will fix 2 cookie for you :
 - an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
@@ -74,52 +94,26 @@ the `domain` field must be `.foo.com`, you cannot have different domains.
 # Debug
 
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
-Local testing `AUTH_ENV` set to `development`, that way cookies will be http instead of https and webpack will not minify bundle
+
+**__Local testing :__** `AUTH_ENV` set to `development`, that way cookies will be http instead of https and webpack will not minify bundle
 Every env variables is defaulted to a value so you can local test out of the box, you only need a `MONGO_URI` (create a free account on mongo atlas and you're set up)
 
 run it with `MONGO_URI="xxx" AUTH_ENV="development" DEBUG="auth*" sls offline` *ignore warnings*
 
-# Api
-
-## ping
-Ping the api
-```
-{ ping }
-```
-return a `String!`
-
-## stage
-Check the current serverless stage and the auth version
-```
-{ stage }
-```
-return a `Stage!`
-```js
-{ stage, version }
-```
-
-## cert
-Retrieve the public key to verify an access token (jwt)
-```
-{ cert }
-```
-returns a `String!`
-
-## whoami
-infos on the user.
+# Details
+## User
 * The user is found by extracting an id (subject) of the jwt (access token) contained in a cookie
 * The cookie containing the token is secure and httponly, he never expire unless the user doesn't want to stay logged, in that case it's a session cookie
 * The access token (jwt) is asymmetrically signed
 ```
-{ whoami }
+{ me }
 ```
 returns an `User!` :
 ```js
-{ id, sessions: { ip, browserName, osName }, emailVerified }
+{ id, sessions: { ip, browserName, osName }, verified }
 ```
 
-## refreshToken
-Ask for a refresh token
+## RefreshToken
 * A refresh token is a HMAC of the `userId` and the `sessionHash`
 * A session is composed of specific common field of the user agent
 * The refresh token never expire
@@ -128,37 +122,7 @@ Ask for a refresh token
 * A refresh token is only used to retrieve new access tokens
 
 provider argument [`GOOGLE`, ..implemented soon]
-
-```
-mutation {
-	refreshToken(creds: { email, pwd, rememberMe }, sso: { provider, idToken, rememberMe }, signup! }
-}
-```
-specify creds if it's a email/pass sign, or sso if it's a _sign in with X_
-
-returns a `String!` which is the CSRF token that must be sent on every request, a refresh token and an access token will be automatically fixed in two cookies
-
-## accessToken
-Ask for an access token
-* Requires a refresh cookie and a valid CSRF token in the `x-csrf-token` header field
-
-```
-{ accessToken }
-```
-returns a `String!` which is a new CSRF token that must be sent on every request, the access token will be automatically updated in a cookie
-
-## gamemodeTwo _*[DEVELOPMENT MODE ONLY]*_
-Used to grant infinite access to the required user, this allow for easy integration testing but doesn't work with `cors` enabled.
-This query will return an error if the env variable `AUTH_ENV` is not set to `development`
-
-```
-mutation {
-	gamemodeTwo(email)
-}
-```
-
-return an non expiring accessToken directly instead of setting it in a cookie
-
+---
 ## createResetCode
 Generate a code to reset the user password, the code will be forwarded to an SNS topic to be futher handler by whatever service you want (for exemple another lambda that handle email sending)
 - a code can only be used once
@@ -198,7 +162,7 @@ mutation { logout }
 returns true
 
 ## inviteUser
-Register an account for someone else without setting any password, use this to create an invitation system. A `SNS` event will be triggered to `${label}:auth:invite_user` in the form
+Register an account for someone else without setting any password, use this to create an invitation system. A `SNS` event will be triggered to `${LABEL}:auth:invite_user` in the form
 ```js
 {
 	to: 'user email',
@@ -262,3 +226,4 @@ export default onError(({ graphQLErrors, networkError, operation, forward }) => 
 | `GOOGLE_ID` | _Google user not found with this id_ |
 | `GOOGLE_EMAIL_NOT_GRANTED` | _Google user need to grand permissions for emails_ |
 | `LOCAL_ONLY` | _The queried ressources is only accessible in development mode_ |
+| `VERIFICATION_CODE_INVALID` | _The verification is not valid or already used_ |
