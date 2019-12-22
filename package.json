@@ -1,6 +1,6 @@
 {
 	"name": "@hydre/auth",
-	"version": "2.0.3",
+	"version": "3.0.0",
 	"description": "Auth server",
 	"main": "src/index.js",
 	"author": "HydreIO",
@@ -53,7 +53,7 @@
 		"@koa/cors": "^3.0.0",
 		"babel-loader": "^8.0.6",
 		"babel-plugin-implicit-function": "^0.1.1",
-    "babel-plugin-import-directory": "^1.1.0",
+		"babel-plugin-import-directory": "^1.1.0",
 		"colors": "^1.4.0",
 		"nodemon": "^2.0.2",
 		"serverless-api-stage": "^1.4.0",
