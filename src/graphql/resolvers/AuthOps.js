@@ -1,11 +1,11 @@
 import { verify } from '../../core/crypt'
-import { UserNotFoundError, BadPwdFormatError, BadEmailFormatError, EmailUsedError, UnknowProviderError, RegistrationDisabledError } from '../../errors'
+import { UserNotFoundError, BadPwdFormatError, BadEmailFormatError, EmailUsedError, UnknowProviderError, RegistrationDisabledError } from '../errors'
 import { ObjectID } from 'mongodb'
 
 const debug = 'authOps' |> require('debug')('auth').extend
 
 export const Auth = {
-	__resolveType: obj => (return obj.sign ? 'sso' : obj.signin ? 'local' : null)
+	__resolveType: obj => (obj.sign ? 'sso' : obj.signin ? 'local' : null)
 }
 
 export const signout = async (_, __, { eventOps: { removeCookies }, getUser, userIops: { push }, userOps: { deleteSessionByHash } }) => {
@@ -70,7 +70,7 @@ export const signWithGoogle = async (idToken, { verifyGoogleIdToken }, { fetch, 
 	return user
 }
 
-export const sign = (_, { provider, idToken }, { sso, userIops, env, eventOps: { parseUserAgent }, userOps: { loadAccessToken, loadRefreshToken } }) => {
+export const sign = async (_, { provider, idToken }, { sso, userIops, env, eventOps: { parseUserAgent }, userOps: { loadAccessToken, loadRefreshToken } }) => {
 	const user = {}
 	switch (provider) {
 		case GOOGLE:

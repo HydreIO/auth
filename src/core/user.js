@@ -1,9 +1,9 @@
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
-import { hash } from '../core/crypt'
+import { hash } from './crypt'
 import { UserAgentError, InvalidAccessTokenError } from '../graphql/errors'
-import { verifyAccessToken, createRefreshToken, signJwt } from './utils/tokens'
+import { verifyAccessToken, createRefreshToken, signJwt } from '../core/tokens'
 
 const fromCredentials = mail => async pwd => ({ email, hash: await hash(pwd) })
 const fromToken = token => {
@@ -41,7 +41,7 @@ const loadSession = (ip, useragent) => user => {
 	}
 	const session = { ...sessionFields, hash: crypto.createHash('md5').update(JSON.stringify(sessionFields)).digest('hex') }
 	user[Symbol.transient].session = session
-	user.sessions ||= []
+	user.sessions ||=[]
 	// session loading always need to be called after a database fetching so we're sure to have latest session in memory
 	// in case of a registration it's not important because no sessions exist so we just append it for later saving
 	if (!getSessionByHash(session.hash)(user)) {
@@ -66,4 +66,4 @@ const loadAccessToken = ({ ACCESS_TOKEN_EXPIRATION, PRV_KEY }) => user => {
 }
 
 export const operate = ({ fromCredentials, getSessionByHash, deleteSessionByHash, loadSession, fromToken })
-export const ioperate = collection => ({ push: push(collection), fetch: fetch(collection), exist(collection) })
+export const ioperate = collection => ({ push: push(collection), fetch: fetch(collection), exist: exist(collection) })

@@ -3,7 +3,7 @@ import { defaultFieldResolver } from 'graphql'
 import { DisabledError, InvalidRefreshTokenError } from './errors'
 import { AuthenticationError } from 'apollo-server-lambda'
 
-export default class Auth extends SchemaDirectiveVisitor {
+export class Auth extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field) {
 		const { resolve = defaultFieldResolver } = field
 		const { canAccessTokenBeExpired = false } = this.args
@@ -15,7 +15,7 @@ export default class Auth extends SchemaDirectiveVisitor {
 	}
 }
 
-export default class VerifyRefreshToken extends SchemaDirectiveVisitor {
+export class VerifyRefreshToken extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field) {
 		const { resolve = defaultFieldResolver } = field
 		field.resolve = async (root, arg, ctx, info) => {

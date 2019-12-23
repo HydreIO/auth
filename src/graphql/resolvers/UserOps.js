@@ -7,7 +7,7 @@ import { TooManyResetRequestError, UnknowCodeError, BadPwdFormatError, InvalidRe
 
 const debug = 'userOps' |> require('debug')('auth').extend
 
-const shaCode = email => crypto.createHash('sha256').update(`${email}${crypto.randomBytes(32).toString('hex')}`).digest('hex'))
+const shaCode = email => crypto.createHash('sha256').update(`${email}${crypto.randomBytes(32).toString('hex')}`).digest('hex')
 
 export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DELAY }, userIops: { push, fetch } }) => {
 	debug('asking code')

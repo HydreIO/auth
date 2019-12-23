@@ -1,11 +1,11 @@
-import api from './api'
+import schema from './graphql'
 import { loadDB, getCollection } from './io/mongo'
 import { apollo, forwardError } from './io/apollo'
 import { buildContext } from './core/context'
 import { OAuth2Client } from 'google-auth-library'
 import { verifyGoogleIdToken } from './io/google'
 import { ApolloError } from 'apollo-server-lambda'
-import { HeadersError } from './api/errors'
+import { HeadersError } from './graphql/errors'
 import { createTransporter } from './core/sns'
 
 // see debug npm package
@@ -83,12 +83,8 @@ export async function handler(event, ctx) {
 		const sso = {
 			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(GOOGLE_ID)
 		}
-
-
-		debug('ioPayload initialized')
-
 		// return await useful in a try catch statement
-		return await (event |> buildContext(env)(userColl)(sso) |> apollo(event)(api))
+		return await (event |> buildContext(env)(userColl)(sso) |> apollo(event)(schema))
 	} catch (error) {
 		console.error(error)
 		return error instanceof ApolloError

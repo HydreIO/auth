@@ -1,7 +1,7 @@
-import { makeExecutableSchema } from 'apollo-server-koa'
+import { makeExecutableSchema } from 'apollo-server-lambda'
 import { mergeTypes } from 'merge-graphql-schemas'
 import * as resolvers from './resolvers/'
-import * as schemaDirectives from './directives/'
+import * as schemaDirectives from './directives'
 
 import schema from './schema/auth.gql'
 import user from './schema/user.gql'
