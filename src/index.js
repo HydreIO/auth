@@ -83,8 +83,10 @@ export async function handler(event, ctx) {
 		const sso = {
 			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(GOOGLE_ID)
 		}
+
+		const context = buildContext(env)(userColl)(sso)(event)
 		// return await useful in a try catch statement
-		return await (event |> buildContext(env)(userColl)(sso) |> apollo(event)(schema))
+		return await apollo(event)(schema)(context)
 	} catch (error) {
 		console.error(error)
 		return error instanceof ApolloError

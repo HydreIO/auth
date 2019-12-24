@@ -1,7 +1,6 @@
 import { ApolloServer } from 'apollo-server-lambda'
 import PrettyError from 'pretty-error'
-const debug = 'error' |> require('debug')('auth').extend
-const adebug = 'apollo' |> require('debug')('auth').extend
+const debug = 'apollo' |> require('debug')('auth').extend
 const pe = new PrettyError()
 
 const formatError = error =>
@@ -11,24 +10,26 @@ const formatError = error =>
 const caseInsensitive = object => key => object[Object.keys(object).find(k => k.toLowerCase() === key)]
 
 export const apollo = event => schema => context =>
-	new Promise(
-		(res, rej) =>
-			void new ApolloServer({ schema, formatError, playground: false, context })
-				.createHandler({ cors: { origin: caseInsensitive(event.headers)('origin'), credentials: true } })
-				(event, context, (err, data) => void (err ? rej(do {
-					console.log('rejected: ', err)
-					return err
-				}) : res(do {
-					adebug('resolving lambda %O', data)
-					if (event.cookies) {
-						Object.assign(data.headers, event.cookies)
-						delete event.cookies
-					}
-					data.headers.Vary = 'Origin'
-					return data
-				}))
-			)
-	)
+	new Promise((res, rej) => {
+		const server = new ApolloServer({ schema, formatError, playground: false, context })
+		const handler = server.createHandler({ cors: { origin: caseInsensitive(event.headers)('origin'), credentials: true } })
+		handler(event, context, (err, data) => {
+			if (err) {
+				debug(`rejecting lambda ${err}`)
+				rej(err)
+			}
+			else {
+				const { body, ...rest } = data
+				debug('resolving lambda %O', { body: JSON.parse(body), ...rest })
+				if (event.cookies) {
+					Object.assign(data.headers, event.cookies)
+					delete event.cookies
+				}
+				data.headers.Vary = 'Origin'
+				res(data)
+			}
+		})
+	})
 
 export const forwardError = event => apolloError => ({
 	headers: {

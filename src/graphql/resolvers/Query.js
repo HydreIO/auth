@@ -5,7 +5,7 @@ export const stage = ~({ stage: process.env.STAGE, version })
 
 export const ping = ~'subscribe to pewdiepie'
 
-export const cert = (_, __, { PUB_KEY }) => PUB_KEY
+export const cert = (_, __, { env: { PUB_KEY } }) => PUB_KEY
 
 export const me = async (_, __, { getUser }) => {
 	debug('asking identity')

@@ -11,6 +11,11 @@ type AuthResponse {
 	newSession: Boolean! # was it a non existing session ? usefull to implement security later
 }
 
+type AuthType {
+	local: Local!
+	sso: Sso!
+}
+
 interface AuthOps {
 	signout: String @Auth
 }
@@ -32,6 +37,8 @@ type Sso implements AuthOps {
 	signout: String @Auth # void
 }
 
-extend type Mutation {
-	authenticate: AuthOps!
+# I CAN'T RETURN AN INTERFACE TO QUERY MORE, I HAVE TO IMPLEM
+# authenticate(type)
+type Mutation {
+	authenticate: AuthType!
 }

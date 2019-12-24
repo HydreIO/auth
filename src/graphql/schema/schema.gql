@@ -1,5 +1,4 @@
 directive @Auth(canAccessTokenBeExpired: Boolean) on FIELD_DEFINITION
-directive @VerifyRefreshToken on FIELD_DEFINITION
 
 type Stage {
 	stage: String!
@@ -14,5 +13,3 @@ type Query {
 	# public key
 	cert: String!
 }
-
-type Mutation {}

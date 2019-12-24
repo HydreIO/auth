@@ -1,4 +1,4 @@
-import { GoogleIdNotFound, GoogleEmailNotFound } from '../api/errors'
+import { GoogleIdNotFound, GoogleEmailNotFound } from '../graphql/errors'
 
 export const verifyGoogleIdToken = client => clientId => idToken => {
 	const { sub: userid = throw new GoogleIdNotFound(), email = throw new GoogleEmailNotFound() } = client.verifyIdToken({
