@@ -13,3 +13,15 @@ export const refreshMe = async (_, __, { getUser, env, userOps: { loadAccessToke
 	sendAccessToken(user[Symbol.transient].accessToken, true)
 	return `And you're full of gas!`
 }
+
+export const signout = async (_, __, { eventOps: { removeCookies }, getUser, userIops: { push }, userOps: { deleteSessionByHash } }) => {
+	debug('loging out..')
+	const user = await getUser(true)
+	debug('deleting session..')
+	user |> deleteSessionByHash(user[Symbol.transient].session.hash)
+	debug('saving user')
+	await push(user)
+	debug('removing cookies..')
+	removeCookies()
+	return "Bye."
+}

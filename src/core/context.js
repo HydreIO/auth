@@ -23,10 +23,13 @@ export const buildContext = env => collection => sso => event => {
 			// notice that we check on the DBUSER and not the local
 			const session = dbUser |> userOps.getSessionByHash(user[Symbol.transient].sessionHash)
 			session || throw new SessionError()
+			debug.extend('session.hash')('%s',user[Symbol.transient].session.hash)
+			debug.extend('sessionHash')('%s',user[Symbol.transient].sessionHash)
 
 			// This should not happen unless the user cookies are stolen or user-agent update on the same session
 			if (user[Symbol.transient].session.hash !== user[Symbol.transient].sessionHash) throw new SessionError()
 
+			console.log('3')
 			// The user current session may not be expired
 			if (!canAccessTokenBeExpired && user[Symbol.transient].sessionExpired) throw new SessionError()
 

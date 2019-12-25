@@ -16,29 +16,24 @@ type AuthType {
 	sso: Sso!
 }
 
-interface AuthOps {
-	signout: String @Auth
-}
-
 input Creds {
 	email: String!
 	pwd: String!
 	rememberMe: Boolean
 }
 
-type Local implements AuthOps {
+type Local {
 	signin(creds: Creds!): AuthResponse!
 	signup(creds: Creds!): AuthResponse!
-	signout: String @Auth
 }
 
-type Sso implements AuthOps {
+type Sso {
 	sign(provider: Provider!, idToken: String!): AuthResponse!
-	signout: String @Auth # void
 }
 
 # I CAN'T RETURN AN INTERFACE TO QUERY MORE, I HAVE TO IMPLEM
 # authenticate(type)
 type Mutation {
 	authenticate: AuthType!
+	signout: String @Auth(canAccessTokenBeExpired: true)
 }

@@ -25,6 +25,9 @@ export const signin = async (_, { creds: { email, pwd, rememberMe = false } }, {
 
 export const signup = async (_, { creds: { email, pwd, rememberMe = false } }, { env, eventOps: { parseUserAgent, sendAccessToken, sendRefreshToken }, userIops: { exist, push }, userOps: { fromCredentials, loadSession, loadRefreshToken, loadAccessToken } }) => {
 	env.ALLOW_REGISTRATION || throw new RegistrationDisabledError()
+	debug('checking password and email format..')
+	pwd.match(env.PWD_REGEX) || throw new BadPwdFormatError()
+	email.match(env.EMAIL_REGEX) || throw new BadEmailFormatError()
 	debug('checking if the user already exist..')
 	if (await exist({ email })) throw new EmailUsedError(email)
 	debug('initialising user')
