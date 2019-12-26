@@ -6,6 +6,8 @@ import { UserAgentError, InvalidAccessTokenError } from '../graphql/errors'
 import { verifyAccessToken, createRefreshToken, signJwt, buildJwtOptions } from '../core/tokens'
 import { ObjectID } from 'mongodb'
 
+const debug = require('debug')('auth').extend('user')
+
 const fromCredentials = email => async pwd => ({ email, hash: await hash(pwd), verified: false })
 const fromToken = env => token => {
 	const { sub: _id, jti: sessionHash, exp, ...end } = verifyAccessToken(env.PUB_KEY)(token) || throw new InvalidAccessTokenError()
@@ -20,10 +22,10 @@ const fromToken = env => token => {
 }
 
 const getSessionByHash = hash => user => user.sessions.find(s => s.hash === hash)
-const deleteSessionByHash = hash => user => ((user.sessions = this.sessions.filter(s => s.hash !== hash)), user)
+const deleteSessionByHash = hash => user => ((user.sessions = user.sessions.filter(s => s.hash !== hash)), user)
 
 const idOrField = user => user._id ? { _id: new ObjectID(user._id) } : user
-const fetch = collection => async user => collection.find(user |> idOrField).limit(1).toArray().then(([user]) => ({ ...user, _id: user._id.toString() }))
+const fetch = collection => async user => collection.find(user |> idOrField).limit(1).toArray().then(([user]) => (user ?._id ? { ...user, _id: user ?._id ?.toString() } : undefined))
 const push = collection => async user => collection.updateOne(user |> idOrField, { $set: user |> (({ _id, ...u }) => u) }, { upsert: true })
 const exist = collection => async user => collection.find(user).limit(1).toArray().then(a => !!a.length)
 

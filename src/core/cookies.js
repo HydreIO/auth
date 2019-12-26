@@ -31,5 +31,5 @@ export const expiredAccessCookie = ({ COOKIE_DOMAIN, ACCESS_COOKIE_NAME }) => {
 
 export const expiredRefreshCookie = ({ COOKIE_DOMAIN, REFRESH_COOKIE_NAME }) => {
 	const payload = { httpOnly: true, secure: false, maxAge: aYear, sameSite: 'strict', expires: new Date(0), ...prodOpt(COOKIE_DOMAIN) }
-	return cookie.serialize(refreshCookie, 'hehe boi', payload)
+	return cookie.serialize(REFRESH_COOKIE_NAME, 'hehe boi', payload)
 }

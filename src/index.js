@@ -47,9 +47,8 @@ export async function handler(event, ctx) {
 			ACCESS_COOKIE_NAME, // name of the accessToken cookie (share this with your others services)
 			REFRESH_COOKIE_NAME, // refresh cookie name (only used by auth)
 			COOKIE_DOMAIN, // domain for the refresh
-			RESET_PASS_DELAY, // ms between two pwd reset request
-			CORS,  // with cors enabled you can authenticate an user coming from a different domain website, this activate csrf token protection
-			// when cors are disabled the cookies sent become samesite Strict
+			RESET_PASS_DELAY, // ms between two pwd reset code request
+			CONFIRM_ACCOUNT_DELAY, // ms between two verification code request
 			VPC, // When in a vpc the agw event use a different path to store caller ip adress
 			ACCESS_TOKEN_EXPIRATION,
 			LABEL
@@ -75,6 +74,7 @@ export async function handler(event, ctx) {
 			ACCESS_COOKIE_NAME,
 			REFRESH_COOKIE_NAME,
 			RESET_PASS_DELAY: +RESET_PASS_DELAY,
+			CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY,
 			COOKIE_DOMAIN,
 			ACCESS_TOKEN_EXPIRATION,
 			LABEL

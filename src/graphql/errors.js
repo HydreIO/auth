@@ -7,18 +7,18 @@ const CODES = {
 	PWD_FORMAT: 'PWD_FORMAT',
 	EMAIL_FORMAT: 'EMAIL_FORMAT',
 	REGISTRATION_DISABLED: 'REGISTRATION_DISABLED',
-	CSRF_INVALID: 'CSRF_INVALID',
 	SESSION: 'SESSION',
 	USER_AGENT: 'USER_AGENT',
 	COOKIES: 'COOKIES',
 	HEADERS: 'HEADERS',
 	REFRESH_TOKEN: 'REFRESH_TOKEN',
 	ACCESS_TOKEN: 'ACCESS_TOKEN',
-	WAIT_RESET_CODE: 'WAIT_RESET_CODE',
+	WAIT_CODE: 'WAIT_CODE',
 	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
 	VERIFICATION_CODE_INVALID: 'VERIFICATION_CODE_INVALID',
 	GOOGLE_ID: 'GOOGLE_ID',
 	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED',
+	GOOGLE_TOKEN: 'GOOGLE_TOKEN',
 	UNKNOW_CODE: 'UNKNOW_CODE'
 }
 
@@ -34,13 +34,19 @@ export class InvalidVerificationCodeError extends ApolloError {
 	}
 }
 
-export class GoogleIdNotFound extends ApolloError {
+export class GoogleTokenError extends ApolloError {
+	constructor() {
+		super(`Google idToken invalid`, CODES.GOOGLE_TOKEN)
+	}
+}
+
+export class GoogleIdNotFoundError extends ApolloError {
 	constructor() {
 		super(`Google user id not found`, CODES.GOOGLE_ID)
 	}
 }
 
-export class GoogleEmailNotFound extends ApolloError {
+export class GoogleEmailNotFoundError extends ApolloError {
 	constructor() {
 		super(`Google user email not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
 	}
@@ -52,9 +58,9 @@ export class InvalidResetCodeError extends ApolloError {
 	}
 }
 
-export class TooManyResetRequestError extends ApolloError {
+export class TooManyCodeRequestError extends ApolloError {
 	constructor() {
-		super(`A reset code can't be sent again that quickly`, CODES.WAIT_RESET_CODE)
+		super(`A code can't be sent again that quickly`, CODES.WAIT_CODE)
 	}
 }
 export class InvalidAccessTokenError extends ApolloError {
@@ -89,7 +95,7 @@ export class UserAgentError extends ApolloError {
 
 export class SessionError extends ApolloError {
 	constructor() {
-		super(`The session doesn't exist or was revoked`, CODES.SESSION)
+		super(`The session doesn't exist, is expired, or was revoked`, CODES.SESSION)
 	}
 }
 

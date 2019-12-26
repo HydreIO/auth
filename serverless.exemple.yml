@@ -49,14 +49,15 @@ functions:
       COOKIE_DOMAIN: ${self:custom.variables.${self:provider.stage}.COOKIE_DOMAIN}
       PUB_KEY: ${self:custom.variables.${self:provider.stage}.PUB_KEY}
       PRV_KEY: ${self:custom.variables.${self:provider.stage}.PRV_KEY}
-      CORS: ${self:custom.variables.${self:provider.stage}.CORS}
       VPC: ${self:custom.variables.${self:provider.stage}.VPC}
       RESET_PASS_DELAY: ${self:custom.variables.${self:provider.stage}.RESET_PASS_DELAY}
+      CONFIRM_ACCOUNT_DELAY: ${self:custom.variables.${self:provider.stage}.CONFIRM_ACCOUNT_DELAY}
       PWD_REGEX: ${self:custom.variables.${self:provider.stage}.PWD_REGEX}
       EMAIL_REGEX: ${self:custom.variables.${self:provider.stage}.EMAIL_REGEX}
       ACCESS_TOKEN_EXPIRATION: ${self:custom.variables.${self:provider.stage}.ACCESS_TOKEN_EXPIRATION}
       STAGE: ${self:provider.stage}
       AUTH_ENV: ${env:AUTH_ENV, 'production'}
+      LABEL: ${self:custom.app}
 
 package:
   individually: true
@@ -95,9 +96,9 @@ custom:
       COOKIE_DOMAIN: '.exemple.com' # CHANGE ME: the domains for cookies, basically all services with a need to verify authenticated users, authentication need to be under this domain too (subdomains works)
       PUB_KEY: ${ssm:${self:custom.app}_AUTH_PUBLIC_KEY} # ES512 public
       PRV_KEY: ${ssm:${self:custom.app}_AUTH_PRIVATE_KEY~true} # ES512 private
-      CORS: 'false' # CHANGE ME: webapp not on the auth domain ?
       VPC: 'false' # CHANGE ME: using a VPC ?
       RESET_PASS_DELAY: ${ssm:${self:custom.app}_AUTH_RESET_PASS_DELAY} # in ms
+      CONFIRM_ACCOUNT_DELAY: ${ssm:${self:custom.app}_AUTH_CONFIRM_ACCOUNT_DELAY} # in ms
       PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})' # CHANGE ME:
       EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$' # CHANGE ME:
       ACCESS_TOKEN_EXPIRATION: 1200000
@@ -113,9 +114,9 @@ custom:
       COOKIE_DOMAIN: '.exemple.com'
       PUB_KEY: ${file(./local_test_key-public.pem)}
       PRV_KEY: ${file(./local_test_key-private.pem)}
-      CORS: 'false'
       VPC: 'false'
       RESET_PASS_DELAY: 5000
+      CONFIRM_ACCOUNT_DELAY: 5000
       PWD_REGEX: '^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})'
       EMAIL_REGEX: '^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
       ACCESS_TOKEN_EXPIRATION: 1200000

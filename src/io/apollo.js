@@ -1,11 +1,15 @@
 import { ApolloServer } from 'apollo-server-lambda'
 import PrettyError from 'pretty-error'
 const debug = 'apollo' |> require('debug')('auth').extend
+const log = 'graphql' |> require('debug')('auth').extend
 const pe = new PrettyError()
 
-const formatError = error =>
-	({ message: error.message, type: error.extensions.code }
-		|> (_ => (debug(pe.render({ ...error, stack: error.extensions ?.exception ?.stacktrace ?.join('\n') })), _)))
+const formatError = error => {
+	let { message, extensions: { code: type } } = error
+	debug.extend('err')(pe.render({ ...error, stack: error.extensions ?.exception ?.stacktrace ?.join('\n') }))
+	if (type === 'INTERNAL_SERVER_ERROR') message = 'Oops.. something went wrong! Contact us if this error persist !'
+	return { message, type }
+}
 
 const caseInsensitive = object => key => object[Object.keys(object).find(k => k.toLowerCase() === key)]
 
@@ -19,8 +23,9 @@ export const apollo = event => schema => context =>
 				rej(err)
 			}
 			else {
-				const { body, ...rest } = data
-				debug('resolving lambda %O', { body: JSON.parse(body), ...rest })
+				const { body } = data
+				log('🔄 %O', JSON.parse(body))
+				// debug('resolving lambda %O', { body: JSON.parse(body), ...rest })
 				if (event.cookies) {
 					Object.assign(data.headers, event.cookies)
 					delete event.cookies

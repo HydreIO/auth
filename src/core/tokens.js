@@ -29,7 +29,5 @@ export const verifyAccessToken = publicKey => token => {
 			issuer: 'auth.service',
 			ignoreExpiration: true
 		})
-	} catch (e) {
-		console.error(e)
-	}
+	} catch { }
 }
