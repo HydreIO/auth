@@ -70,6 +70,17 @@ mutation {
 }
 ```
 
+## Server verification
+Dead simple exemple of an auth middleware with koaJs
+```js
+export const auth = async (ctx, next) => {
+	const accessToken = ctx.cookies.get(ctx.COOKIE_NAME) || throw new CookiesMissingError()
+	const { sub: userid, email, verified } = verifyAccessToken(ctx.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
+	Object.assign(ctx, { userid, email, verified })
+	await next()
+}
+```
+
 ## errors handling
 
 Working with graphql you'll get two type of errors, `graphQLErrors` and `networkErrors`.

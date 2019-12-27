@@ -26,6 +26,7 @@ Serverless authentication built on GraphQL for AWS Lambda
     * [Usage in production](usage.md#Usage-in-production)
   * [Implementation](implem.md)
     * [Implementation details](implem.md#Implementation-details)
+    * [Server verification](implem.md#Server-verification)
     * [Flow](implem.md#Flow)
     * [Errors handling](implem.md#errors-handling)
 * [Queries](queries/)
