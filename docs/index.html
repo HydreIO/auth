@@ -27,10 +27,16 @@
 				el: '#app',
 				name: '@hydre/auth',
 				repo: '',
-				loadSidebar: false
+				loadSidebar: true
+			}
+			if (typeof navigator.serviceWorker !== 'undefined') {
+				navigator.serviceWorker.register('sw.js')
 			}
 		</script>
 		<script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
+		<script src="//unpkg.com/prismjs/components/prism-javascript.min.js"></script>
+		<script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
+		<script src="//unpkg.com/prismjs/components/prism-graphql.min.js"></script>
 	</body>
 	<style>
 		.sk-cube-grid {

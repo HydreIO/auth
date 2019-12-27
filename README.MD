@@ -12,17 +12,21 @@
 
 Serverless Oauth2 compliant authentication for AWS with a GraphQL API
 
-> This doc is A WORK IN PROGRESS and is not complete, if you need any help feel free to join the discord above to get a fast reply!
+> if you need any help feel free to join the discord above to get a fast reply!
 
-- [Getting started](#Setup)
-- [Api](TYPES.MD)
-- [Handle errors](#Errors)
+- [How to install](#Setup)
+- [Api docs](https://docs.auth.hydre.io/)
 
-# Requirements
+# Requirements local
+
+- a mongoDB access (you can use atlas)
+- [serverless](https://github.com/serverless/serverless) framework
+
+# Requirements prod
 
 - an AWS account with access to lambda
-- a mongoDB access
-- an SNS topic `auth_reset_pass`
+- some SNS topics `$LABEL:auth:confirm_mail` / `$LABEL:auth:reset_pass` / `${LABEL}:auth:invite_user`
+- a mongoDB access (you can use atlas)
 - [serverless](https://github.com/serverless/serverless) framework
 
 # Setup
@@ -37,62 +41,8 @@ git clone git@github.com:HydreIO/hydre.auth.git
 
 	> to accept multiple origin replace `origin` by `origins` and input an array
 - you can also disable the serverless warmup plugin which is used to keep lambda containers warm
-- deploy the lambda
 
-```
-sls deploy
-```
-
-Once the auth is online retrieve the endpoint from api gateway in your aws account or in the serverless dashboard in case you linked it.
-Send a `{ ping }` query inside a client like Graphiql, don't forget to add an user-agent in the header to act like a navigator, here is one for you
-
-```
-user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
-```
-
-You'll find any errors logged in cloudwatch logs
-
-# Usage
-
-To register you have to call the user operation signin with the user credentials
-```js
-mutation {
-  authenticate {
-    signup(creds: { email, pwd, rememberMe })
-  }
-}
-```
-
-Same thing to sign in
-```js
-mutation {
-  authenticate {
-    signin(creds: { email, pwd, rememberMe })
-  }
-}
-```
-
-to logout just call sign out (you must be authenticated)
-```js
-mutation { authenticate { signout } }
-```
-
-The auth will fix 2 cookie for you :
-- an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
-will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (you get this key with the query `{ cert }` explained below)
-if the token is valid then you can trust the request
-
-- a refresh token, only used by the auth to fix a new accessToken in a cookie in case it is valid
-
-Make sure you know how cookies work, the `domain` must be your services domain, for exemple if you have
-
-- auth.foo.com
-- api.foo.com
-
-the `domain` field must be `.foo.com`, you cannot have different domains.
-
-# Debug
-
+## Usage in development mode
 You can access deep logging by setting the env variable `DEBUG` to `auth*`
 
 **__Local testing :__** `AUTH_ENV` set to `development`, that way cookies will be http instead of https and webpack will not minify bundle
@@ -100,85 +50,91 @@ Every env variables is defaulted to a value so you can local test out of the box
 
 run it with `MONGO_URI="xxx" AUTH_ENV="development" DEBUG="auth*" sls offline` *ignore warnings*
 
-# Details
-## User
-* The user is found by extracting an id (subject) of the jwt (access token) contained in a cookie
-* The cookie containing the token is secure and httponly, he never expire unless the user doesn't want to stay logged, in that case it's a session cookie
-* The access token (jwt) is asymmetrically signed
-```
-{ me }
-```
-returns an `User!` :
-```js
-{ id, sessions: { ip, browserName, osName }, verified }
-```
+## Usage in production
 
-## RefreshToken
-* A refresh token is a HMAC of the `userId` and the `sessionHash`
-* A session is composed of specific common field of the user agent
-* The refresh token never expire
-* The refresh token is tied to the session, if the session is revoked, the token will be invalid
-* A refresh token can be given in exchange of user credentials or SSO credentials, and a valid user agent
-* A refresh token is only used to retrieve new access tokens
-
-provider argument [`GOOGLE`, ..implemented soon]
----
-## createResetCode
-Generate a code to reset the user password, the code will be forwarded to an SNS topic to be futher handler by whatever service you want (for exemple another lambda that handle email sending)
-- a code can only be used once
+- deploy the lambda
 
 ```
+sls deploy
+```
+
+Once the auth is online retrieve the endpoint from api gateway in your aws account or in the serverless dashboard in case you linked it.
+You'll find any errors logged in cloudwatch logs
+
+# Implementation
+
+The auth will fix 2 cookie for you :
+- an acces token which expire after 20min, it's the proof you're authenticated. Any server under the specified domain (in `serverless.yml`)
+will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (see [How to retrieve the public key](https://docs.auth.hydre.io/#/cert))
+if the token is valid then you can trust the request
+
+- a refresh token, only used by the auth to fix new accessTokens
+
+Make sure you know how cookies work, the `domain` must be your services domain, for exemple if you have
+
+- auth.foo.com
+- myapp.foo.com
+- api.foo.com
+
+the `domain` field must be `.foo.com`, you cannot have different domains.
+
+## Flow
+
+Start by registering an account
+```graphql
+mutation ($creds: Creds!) {
+  authenticate {
+    signup(creds: $creds) {
+      user { id }
+    }
+  }
+}
+```
+Variables :
+```json
+{
+	"creds": {
+		"email": "admin@foo.com",
+		"pwd": "admin1",
+		"rememberMe": true
+	}
+}
+```
+
+Try to refresh it
+```graphql
 mutation {
-	createResetCode(email)
+  me {
+    refresh
+  }
 }
 ```
 
-returns true, the server will publish a message on the SNS topic `${label}:auth:reset_pass` in the form
-```js
+Ask who you are
+```graphql
 {
-	to: 'user email',
-	code: 'reset code'
+  me {
+    id
+    verified
+    sessions {
+      ip
+    }
+  }
 }
 ```
 
-## resetPassword
-Update the user hash with a new password if the provided code is valid
-
-```
-{
-	resetPassword(email, newPwd, resetCode)
-}
-```
-
-returns true
-
-## logout
-Remove user cookies
-
-```
-mutation { logout }
-```
-
-returns true
-
-## inviteUser
-Register an account for someone else without setting any password, use this to create an invitation system. A `SNS` event will be triggered to `${LABEL}:auth:invite_user` in the form
-```js
-{
-	to: 'user email',
-	code: 'reset code'
-}
-```
-
-```
+Then leave
+> Calling signout remove the cookies, it's mandatory
+```graphql
 mutation {
-	inviteUser(email)
+  authenticate {
+    signout
+  }
 }
 ```
 
-returns a signed JWT with the `invitedId` (userid) and `email` of the newly created user or `null` if the user already exist
 
-# Errors
+## errors handling
 
 Working with graphql you'll get two type of errors, `graphQLErrors` and `networkErrors`.
 A graphql errors is returned as
@@ -204,26 +160,6 @@ export default onError(({ graphQLErrors, networkError, operation, forward }) => 
 })
 ```
 
-## Definitions
+# Read more
 
-| Error name | Cause |
-|------------|------|
-| `EMAIL_USED` | _Provided email is already used_ |
-| `USER_INCORRECT` | _The user is not found_ |
-| `UNKNOW_PROVIDER` | _The provider is not implemented yet (`GOOGLE` only)_ |
-| `PWD_FORMAT` | _Bad password format_ |
-| `EMAIL_FORMAT` | _Bad email format_ |
-| `REGISTRATION_DISABLED` | _Registrations are disabled_ |
-| `CSRF_INVALID` | _(only in `cors` mode) The csrf token is not valid (relog the user)_ |
-| `SESSION` | _The sessions is invalid or revoked_ |
-| `USER_AGENT` | _The user agent is invalid_ |
-| `COOKIES` | _Cookies were not found_ |
-| `HEADERS` | _Header is missing_ |
-| `REFRESH_TOKEN` | _The refresh token is invalid_ |
-| `ACCESS_TOKEN` | _The access token is invalid or expired_ |
-| `WAIT_RESET_CODE` | _You're trying to send reset code too quickly_ |
-| `RESET_CODE_INVALID` | _The reset code is not valid or already used_ |
-| `GOOGLE_ID` | _Google user not found with this id_ |
-| `GOOGLE_EMAIL_NOT_GRANTED` | _Google user need to grand permissions for emails_ |
-| `LOCAL_ONLY` | _The queried ressources is only accessible in development mode_ |
-| `VERIFICATION_CODE_INVALID` | _The verification is not valid or already used_ |
+You'll find more details in the [Api docs](https://docs.auth.hydre.io/) !
