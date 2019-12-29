@@ -46,7 +46,7 @@ export const inviteUser = async (_, { email }, { getUser, userIops: { fetch, pus
 	// notify SNS
 	await publishToSNS(`${LABEL}:auth:invite_user`)(JSON.stringify({ to: email, code: resetCode }))
 	debug('signing jwt')
-	return signJwt(PRV_KEY)(jwtOptions)({ invitedId: (await push(invited)).upsertedId.toString(), email })
+	return signJwt(PRV_KEY)(jwtOptions)({ invitedId: (await push(invited)).upsertedId._id.toString(), email })
 }
 
 export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, userIops: { push, fetch } }) => {

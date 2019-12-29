@@ -49,19 +49,19 @@ const signWithGoogle = async (idToken, { verifyGoogleIdToken }, { fetch, push },
 	const { userid, email } = await verifyGoogleIdToken(idToken)
 	debug('finding user with google id')
 	const userDatas = { sso: { google: userid } }
-	const user = (await fetch(userDatas)) || {}
-	if (!user) {
+	const user = (await fetch(userDatas)) || { [Symbol.transient]: { newAccount: true } }
+	if (user[Symbol.transient] ?.newAccount) {
 		debug(`user doesn't exist yet`)
 		env.ALLOW_REGISTRATION || throw new RegistrationDisabledError()
 		Object.assign(user, { email, ...userDatas })
 		debug('saving user to retrieve userid')
-		user._id = (await push(user)).upsertedId
-		user[Symbol.transient].newAccount = true
+		user._id = (await push(user)).upsertedId._id.toString()
 	}
+	debug('user datas loaded')
 	return user
 }
 
-export const sign = async (_, { provider, idToken }, { sso, userIops, env, eventOps: { parseUserAgent }, userOps: { loadAccessToken, loadRefreshToken } }) => {
+export const sign = async (_, { provider, idToken }, { sso, userIops, env, eventOps: { sendRefreshToken, sendAccessToken, parseUserAgent }, userOps: { loadSession, loadAccessToken, loadRefreshToken } }) => {
 	const user = {}
 	switch (provider) {
 		case "GOOGLE":
@@ -72,10 +72,10 @@ export const sign = async (_, { provider, idToken }, { sso, userIops, env, event
 	}
 	user |> loadSession(env.IP, parseUserAgent()) |> loadRefreshToken(env) |> loadAccessToken(env)
 	debug('saving user..') // in case of a new session
-	await push(user)
+	await userIops.push(user)
 	debug('fixing tokens..')
 	sendRefreshToken(user[Symbol.transient].session.refreshToken)
-	sendAccessToken(user[Symbol.transient].accessToken, rememberMe)
+	sendAccessToken(user[Symbol.transient].accessToken, true)
 	return { user: { id: user._id, sessions: user.sessions, verified: user.verified }, newAccount: !!user[Symbol.transient].newAccount, newSession: !!user[Symbol.transient].newSession }
 }
 
