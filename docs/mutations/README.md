@@ -358,7 +358,7 @@ email: String!
 
 The code was sent by email by the `sendCode` query
 ```
-code: String
+code: String!
 ```
 
 ## @return
