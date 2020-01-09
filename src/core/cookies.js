@@ -4,9 +4,10 @@ const aYear = 60 * 60 * 24 * 365 * 1
 
 // by specifying development env variable we allow http cookies for test purposes
 const prodOpt = COOKIE_DOMAIN => process.env.AUTH_ENV === 'development' ? {} : { domain: COOKIE_DOMAIN, secure: true }
+const cookieOpt = { httpOnly: true, secure: false, sameSite: 'Strict', path: '/' }
 
 export const accessCookie = ({ COOKIE_DOMAIN, ACCESS_COOKIE_NAME }) => rememberMe => accessToken => {
-	const payload = { httpOnly: true, secure: false, sameSite: 'strict', ...prodOpt(COOKIE_DOMAIN) }
+	const payload = { ...cookieOpt, ...prodOpt(COOKIE_DOMAIN) }
 
 	// 1 years cookie :) that's a lot of cookies
 	// in case the user choose not be remembered, we don't set a expiration
@@ -20,16 +21,16 @@ export const accessCookie = ({ COOKIE_DOMAIN, ACCESS_COOKIE_NAME }) => rememberM
 }
 
 export const refreshCookie = ({ COOKIE_DOMAIN, REFRESH_COOKIE_NAME }) => refreshToken => {
-	const payload = { httpOnly: true, secure: false, maxAge: aYear, sameSite: 'strict', ...prodOpt(COOKIE_DOMAIN) }
+	const payload = { ...cookieOpt, maxAge: aYear, ...prodOpt(COOKIE_DOMAIN) }
 	return cookie.serialize(REFRESH_COOKIE_NAME, refreshToken, payload)
 }
 
 export const expiredAccessCookie = ({ COOKIE_DOMAIN, ACCESS_COOKIE_NAME }) => {
-	const payload = { httpOnly: true, secure: false, sameSite: 'strict', expires: new Date(0), ...prodOpt(COOKIE_DOMAIN) }
+	const payload = { ...cookieOpt, expires: new Date(0), ...prodOpt(COOKIE_DOMAIN) }
 	return cookie.serialize(ACCESS_COOKIE_NAME, 'hehe boi', payload)
 }
 
 export const expiredRefreshCookie = ({ COOKIE_DOMAIN, REFRESH_COOKIE_NAME }) => {
-	const payload = { httpOnly: true, secure: false, sameSite: 'strict', expires: new Date(0), ...prodOpt(COOKIE_DOMAIN) }
+	const payload = { ...cookieOpt, expires: new Date(0), ...prodOpt(COOKIE_DOMAIN) }
 	return cookie.serialize(REFRESH_COOKIE_NAME, 'hehe boi', payload)
 }
