@@ -16,4 +16,4 @@ Serverless authentication built on GraphQL for AWS Lambda
 
 See [here](https://docs.auth.hydre.io/)
 
-[![](https://img.shields.io/badge/READ-THE%20DOCS-green?style=for-the-badge)](https://docs.auth.hydre.io/) <==
+[![](https://img.shields.io/badge/READ-THE%20DOCS-green?style=for-the-badge)](https://docs.auth.hydre.io/)
