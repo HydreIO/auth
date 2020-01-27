@@ -73,6 +73,20 @@ mutation {
 ## Server verification
 Dead simple exemple of an auth middleware with koaJs
 ```js
+import jwt from 'jsonwebtoken'
+
+const verifyAccessToken = publicKey => token => {
+	try {
+		return jwt.verify(token, publicKey, {
+			algorithms: 'ES512',
+			issuer: 'auth.service'
+		})
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+
 export const auth = async (ctx, next) => {
 	const accessToken = ctx.cookies.get(ctx.COOKIE_NAME) || throw new CookiesMissingError()
 	const { sub: userid, email, verified } = verifyAccessToken(ctx.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
