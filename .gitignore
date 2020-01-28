@@ -18,6 +18,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+_warmup
 
 .env
 
