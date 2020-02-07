@@ -1,5 +1,4 @@
 import { GoogleIdNotFoundError, GoogleEmailNotFoundError, GoogleTokenError } from '../graphql/errors'
-import { ApolloError } from 'apollo-server-lambda'
 
 const googleVerify = client => async ({ idToken, audience }) => {
 	try {

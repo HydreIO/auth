@@ -1,26 +1,27 @@
-import { operate as userOps, ioperate } from './user'
-import { cache } from '@hydre/commons'
+import { operate as userOps } from './user'
 import User from './user'
 import { SessionError, CookiesError, UserNotFoundError } from '../graphql/errors'
 import EventOps from './event'
+import { OAuth2Client } from 'google-auth-library'
+import { verifyGoogleIdToken } from '../io/google'
 
 const debug = require('debug')('auth').extend('context')
 
-export const buildContext = env => collection => sso => event => {
-	const userIops = ioperate(collection)
-	const eventOps = EventOps(event)(env)
+export const buildContext = ({ env, event, crud }) => {
+	const eventOps = EventOps({ env, headers: event.headers, addCookie: event.addCookie })
+	const verifyGoogleIdToken = verifyGoogleIdToken(new OAuth2Client(GOOGLE_ID))(GOOGLE_ID)
 	return {
-		@cache
 		/**
 		 * Retrieve an authenticated user
 		 * @param {Object} options canAccessTokenBeExpired: wether or not check for jwt expiration, checkForCurrentSessionChanges: wether or not checking if the session used to build the access token is the same as the current user session
 		 */
 		async getUser({ canAccessTokenBeExpired = false, checkForCurrentSessionChanges = true } = {}) {
+			debug('retrieving user')
 			const token = eventOps.parseAccessToken() || throw new CookiesError()
 			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
 
 			// The user must exist in the database
-			const dbUser = await userIops.fetch(user)
+			const dbUser = await crud.fetch(user)
 			dbUser || throw new UserNotFoundError()
 
 			// The user current session must be valid
@@ -40,7 +41,7 @@ export const buildContext = env => collection => sso => event => {
 			// so we give the merge priority to the dbUser
 			// no data should be added localy unless it is a signup/signin operation
 			return { ...user, ...dbUser }
-		}, env, userOps, userIops, eventOps, sso
+		}, env, userOps, crud, event, sso: { verifyGoogleIdToken }
 	}
 }
 

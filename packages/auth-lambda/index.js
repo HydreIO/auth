@@ -1,12 +1,8 @@
-import schema from './graphql'
 import { loadDB, getCollection } from './io/mongo'
 import { apollo, forwardError } from './io/apollo'
-import { buildContext } from './core/context'
-import { OAuth2Client } from 'google-auth-library'
-import { verifyGoogleIdToken } from './io/google'
 import { ApolloError } from 'apollo-server-lambda'
 import { HeadersError } from './graphql/errors'
-import { createTransporter } from './core/sns'
+import { createTransporter } from '../auth-core/core/events'
 
 // see debug npm package
 const debug = 'auth' |> require('debug')
@@ -59,7 +55,6 @@ export async function handler(event, ctx) {
 
 		mongo ||= await loadDB(MONGO_URI)
 		userColl ||= getCollection(mongo)(DATABASE)(COLLECTION)
-		googleOauth2Client ||= new OAuth2Client(GOOGLE_ID)
 
 		debug('Cache successfully initialized')
 
@@ -78,10 +73,6 @@ export async function handler(event, ctx) {
 			COOKIE_DOMAIN,
 			ACCESS_TOKEN_EXPIRATION,
 			LABEL
-		}
-
-		const sso = {
-			verifyGoogleIdToken: verifyGoogleIdToken(googleOauth2Client)(GOOGLE_ID)
 		}
 
 		const context = buildContext(env)(userColl)(sso)(event)

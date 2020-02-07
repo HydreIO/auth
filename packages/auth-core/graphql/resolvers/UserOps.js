@@ -1,7 +1,7 @@
 import { signJwt, buildJwtOptions } from '../../core/tokens'
-import { ObjectID } from 'mongodb'
 import crypto from 'crypto'
-import { publishToSNS } from '../../core/sns'
+import events from '../../core/events'
+import { EVENTS } from '../../core/constant'
 import { hash } from '../../core/crypt'
 import { TooManyCodeRequestError, BadEmailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
 
@@ -41,10 +41,7 @@ export const inviteUser = async (_, { email }, { getUser, userIops: { fetch, pus
 	const resetCode = crypto.createHash('sha256').update(`${email}${crypto.randomBytes(32).toString('hex')}`).digest('hex')
 	const invited = { email, hash: undefined, sessions: [], resetCode }
 	const jwtOptions = buildJwtOptions('auth::service')(user._id)(user[Symbol.transient].sessionHash)('20s')
-
-	debug('publishing to sns')
-	// notify SNS
-	await publishToSNS(`${LABEL}:auth:invite_user`)(JSON.stringify({ to: email, code: resetCode }))
+	events.emit(EVENTS.INVITE_USER, { to: email, code: resetCode })
 	debug('signing jwt')
 	return signJwt(PRV_KEY)(jwtOptions)({ invitedId: (await push(invited)).upsertedId._id.toString(), email })
 }
@@ -65,7 +62,7 @@ export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DE
 				user.resetCode ||= shaCode(email)
 				user.lastResetEmailSent = Date.now()
 				debug('emailing reset code')
-				await publishToSNS(`${LABEL}:auth:reset_pass`)(JSON.stringify({ to: email, code: user.resetCode }))
+				events.emit(EVENTS.INVITE_USER, { to: email, code: user.resetCode })
 				debug('updating user')
 				await push(user)
 				break
@@ -76,7 +73,7 @@ export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DE
 				user.verificationCode ||= shaCode(email)
 				user.lastVerifEmailSent = Date.now()
 				debug('emailing confirm code')
-				await publishToSNS(`${LABEL}:auth:confirm_mail`)(JSON.stringify({ to: email, code: user.confirmCode }))
+				events.emit(EVENTS.INVITE_USER, { to: email, code: user.confirmCode })
 				debug('updating user')
 				await push(user)
 				break

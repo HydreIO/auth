@@ -1,4 +1,5 @@
-import { ApolloError } from 'apollo-server-lambda'
+import { ApolloError } from 'apollo-server'
+import PrettyError from 'pretty-error'
 
 const CODES = {
 	EMAIL_USED: 'EMAIL_USED',
@@ -20,6 +21,16 @@ const CODES = {
 	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED',
 	GOOGLE_TOKEN: 'GOOGLE_TOKEN',
 	UNKNOW_CODE: 'UNKNOW_CODE'
+}
+
+const pe = new PrettyError()
+const debug = require('debug')('auth')
+
+export const formatError = error => {
+	let { message, extensions: { code: type } } = error
+	debug.extend('error')(pe.render({ ...error, stack: error.extensions?.exception?.stacktrace?.join('\n') }))
+	if (type === 'INTERNAL_SERVER_ERROR') message = 'Oops.. something went wrong! Contact us if this error persist !'
+	return { message, type }
 }
 
 export class UnknowCodeError extends ApolloError {
