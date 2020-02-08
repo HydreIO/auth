@@ -50,7 +50,6 @@ void async function () {
   events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm email %O', a) })
   events.on(EVENTS.INVITE_USER, a => { debug('Invite user %O', a) })
   events.on(EVENTS.RESET_PWD, a => { debug('Reset pwd %O', a) })
-  debug('schema', schema)
   new Koa()
     .use(cors(corsOpt))
     .use(new ApolloServer({ schema, context }).getMiddleware())
