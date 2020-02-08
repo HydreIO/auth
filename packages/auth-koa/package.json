@@ -10,13 +10,11 @@
 		"build": "babel src --out-dir build --copy-files"
 	},
 	"dependencies": {
-		"@babel/register": "^7.8.3",
 		"@hydre/auth-core": "file:../auth-core",
 		"@hydre/auth-io-mongo": "file:../io-mongo",
 		"apollo-server-koa": "^2.10.0",
 		"debug": "^4.1.1",
 		"dotenv": "^8.2.0",
-		"graphql": "^14.6.0",
 		"koa": "^2.11.0",
 		"supports-color": "^7.1.0"
 	},
@@ -24,6 +22,7 @@
 		"@babel/cli": "^7.8.4",
 		"@babel/core": "^7.8.4",
 		"@babel/node": "^7.8.4",
+		"@babel/register": "^7.8.3",
 		"@babel/plugin-proposal-class-properties": "^7.8.3",
 		"@babel/plugin-proposal-decorators": "^7.8.3",
 		"@babel/plugin-proposal-do-expressions": "^7.8.3",
@@ -43,12 +42,8 @@
 		"@koa/cors": "^3.0.0",
 		"babel-plugin-implicit-function": "^0.1.1",
 		"babel-plugin-import-directory": "^1.1.0",
-		"babel-plugin-import-graphql": "^2.7.0",
 		"colors": "^1.4.0",
 		"nodemon": "^2.0.2",
 		"tap-spec": "^5.0.0"
-	},
-	"resolutions": {
-		"graphql": "^14.6.0"
 	}
 }

@@ -28,8 +28,10 @@ const debug = require('debug')('auth')
 
 export const formatError = error => {
 	let { message, extensions: { code: type } } = error
-	debug.extend('error')(pe.render({ ...error, stack: error.extensions?.exception?.stacktrace?.join('\n') }))
-	if (type === 'INTERNAL_SERVER_ERROR') message = 'Oops.. something went wrong! Contact us if this error persist !'
+	if (type === 'INTERNAL_SERVER_ERROR') {
+		console.error(pe.render({ ...error, stack: error.extensions?.exception?.stacktrace?.join('\n') }))
+		message = 'Oops.. something went wrong! Contact us if this error persist !'
+	}
 	return { message, type }
 }
 

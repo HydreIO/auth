@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from 'apollo-server'
 import * as resolvers from './resolvers/'
 import * as schemaDirectives from './directives'
-import typeDefs from './schema.gql'
+import typeDefs from './schema'
 
 const dir = __dirname
 export default makeExecutableSchema({

@@ -1,5 +1,4 @@
 import { gql } from 'apollo-server'
-
 export default gql`
 directive @Auth(canAccessTokenBeExpired: Boolean, checkForCurrentSessionChanges: Boolean) on FIELD_DEFINITION
 

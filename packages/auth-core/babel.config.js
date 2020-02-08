@@ -1,5 +1,4 @@
 require('@babel/register')({ rootMode: 'upward', ignore: [/node_modules/], });
-require('dotenv').config()
 
 module.exports = {
 	presets: [

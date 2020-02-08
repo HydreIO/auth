@@ -1,11 +1,13 @@
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
-import { hash } from './crypt'
+import { hash } from './utils/crypt'
 import { UserAgentError, InvalidAccessTokenError } from '../graphql/errors'
 import { verifyAccessToken, createRefreshToken, signJwt, buildJwtOptions } from './tokens'
 
-const debug = require('debug')('auth').extend('user')
+const debug = require('debug')('internal').extend('user')
+
+Symbol.transient = Symbol()
 
 const fromCredentials = email => async pwd => ({ email, hash: await hash(pwd), verified: false })
 const fromToken = env => token => {
@@ -44,7 +46,7 @@ const loadSession = (ip, userAgent = throw new UserAgentError()) => user => {
 	// in case of a registration it's not important because no sessions exist so we just append it for later saving
 	if (!getSessionByHash(session.hash)(user)) {
 		// and if there is too much session we disconnect the older one
-		if (user.sessions.length > 10) user.sessions.shift()
+		if (user.sessions.length >= 10) user.sessions.shift()
 		user[Symbol.transient].newSession = true
 		user.sessions.push(session)
 	}

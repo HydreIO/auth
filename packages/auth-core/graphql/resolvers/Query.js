@@ -1,5 +1,5 @@
 import version from 'project-version'
-const debug = 'query' |> require('debug')('auth').extend
+const debug = 'query' |> require('debug')('internal').extend
 
 export const ping = ~'subscribe to pewdiepie'
 export const cert = (_, __, { env: { PUB_KEY } }) => PUB_KEY

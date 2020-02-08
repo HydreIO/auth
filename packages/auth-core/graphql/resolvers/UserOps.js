@@ -1,11 +1,11 @@
 import { signJwt, buildJwtOptions } from '../../core/tokens'
 import crypto from 'crypto'
-import events from '../../core/events'
-import { EVENTS } from '../../core/constant'
-import { hash } from '../../core/crypt'
+import events from '../../core/utils/events'
+import { EVENTS } from '../../core/utils/constant'
+import { hash } from '../../core/utils/crypt'
 import { TooManyCodeRequestError, BadEmailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
 
-const debug = 'userOps' |> require('debug')('auth').extend
+const debug = 'me' |> require('debug')('internal').extend
 
 const shaCode = email => crypto.createHash('sha256').update(`${email}${crypto.randomBytes(32).toString('hex')}`).digest('hex')
 
@@ -19,7 +19,7 @@ export const refresh = async (_, __, { getUser, env, userOps: { loadAccessToken,
 	return `And you're full of gas!`
 }
 
-export const confirmEmail = async (_, { email, code }, { getUser, env, userIops: { fetch, push } }) => {
+export const confirmEmail = async (_, { email, code }, { getUser, env, crud: { fetch, push } }) => {
 	email.match(env.EMAIL_REGEX) || throw new BadEmailFormatError()
 	const user = await fetch({ email })
 	if (user) { // we don't notify the client if there is no user
@@ -32,7 +32,7 @@ export const confirmEmail = async (_, { email, code }, { getUser, env, userIops:
 	return `You're one with the force`
 }
 
-export const inviteUser = async (_, { email }, { getUser, userIops: { fetch, push }, env: { PRV_KEY, LABEL, EMAIL_REGEX } }) => {
+export const inviteUser = async (_, { email }, { getUser, crud: { fetch, push }, env: { PRV_KEY, LABEL, EMAIL_REGEX } }) => {
 	debug('inviting user %s', email)
 	email.match(EMAIL_REGEX) || throw new BadEmailFormatError()
 	const user = await getUser()
@@ -46,7 +46,7 @@ export const inviteUser = async (_, { email }, { getUser, userIops: { fetch, pus
 	return signJwt(PRV_KEY)(jwtOptions)({ invitedId: (await push(invited)).upsertedId._id.toString(), email })
 }
 
-export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, userIops: { push, fetch } }) => {
+export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, crud: { push, fetch } }) => {
 	debug('asking code')
 	email.match(EMAIL_REGEX) || throw new BadEmailFormatError()
 	const user = await fetch({ email })
@@ -62,7 +62,7 @@ export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DE
 				user.resetCode ||= shaCode(email)
 				user.lastResetEmailSent = Date.now()
 				debug('emailing reset code')
-				events.emit(EVENTS.INVITE_USER, { to: email, code: user.resetCode })
+				events.emit(EVENTS.RESET_PWD, { to: email, code: user.resetCode })
 				debug('updating user')
 				await push(user)
 				break
@@ -73,7 +73,7 @@ export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DE
 				user.verificationCode ||= shaCode(email)
 				user.lastVerifEmailSent = Date.now()
 				debug('emailing confirm code')
-				events.emit(EVENTS.INVITE_USER, { to: email, code: user.confirmCode })
+				events.emit(EVENTS.CONFIRM_EMAIL, { to: email, code: user.confirmCode })
 				debug('updating user')
 				await push(user)
 				break
@@ -83,7 +83,7 @@ export const sendCode = async (_, { code, email }, { env: { LABEL, RESET_PASS_DE
 	return 'Bip bop! code sent (or not)'
 }
 
-export const resetPassword = async (_, { email, newPwd, resetCode }, { userIops: { fetch, push }, env: { PWD_REGEX, EMAIL_REGEX } }) => {
+export const resetPassword = async (_, { email, newPwd, resetCode }, { crud: { fetch, push }, env: { PWD_REGEX, EMAIL_REGEX } }) => {
 	email.match(EMAIL_REGEX) || throw new BadEmailFormatError()
 	const user = await fetch({ email })
 	debug('asking pwd reset')

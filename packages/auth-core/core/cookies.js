@@ -3,7 +3,7 @@ import cookie from 'cookie'
 const aYear = 60 * 60 * 24 * 365 * 1
 
 // by specifying development env variable we allow http cookies for test purposes
-const prodOpt = COOKIE_DOMAIN => process.env.AUTH_ENV === 'development' ? {} : { domain: COOKIE_DOMAIN, secure: true }
+const prodOpt = COOKIE_DOMAIN => process.env.AUTH_LOCAL?.toLowerCase() === 'true' ? {} : { domain: COOKIE_DOMAIN, secure: true }
 const cookieOpt = { httpOnly: true, secure: false, sameSite: 'Strict', path: '/' }
 
 export const accessCookie = ({ COOKIE_DOMAIN, ACCESS_COOKIE_NAME }) => rememberMe => accessToken => {

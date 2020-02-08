@@ -3,19 +3,21 @@ import User from './user'
 import { SessionError, CookiesError, UserNotFoundError } from '../graphql/errors'
 import EventOps from './event'
 import { OAuth2Client } from 'google-auth-library'
-import { verifyGoogleIdToken } from '../io/google'
+import { verifyGoogleIdToken } from './sso/google'
 
-const debug = require('debug')('auth').extend('context')
+const debug = require('debug')('internal').extend('context')
+const googleClient = new OAuth2Client(process.env.GOOGLE_ID)
 
 export const buildContext = ({ env, event, crud }) => {
 	const eventOps = EventOps({ env, headers: event.headers, addCookie: event.addCookie })
-	const verifyGoogleIdToken = verifyGoogleIdToken(new OAuth2Client(GOOGLE_ID))(GOOGLE_ID)
+	let cachedUser
 	return {
 		/**
 		 * Retrieve an authenticated user
 		 * @param {Object} options canAccessTokenBeExpired: wether or not check for jwt expiration, checkForCurrentSessionChanges: wether or not checking if the session used to build the access token is the same as the current user session
 		 */
 		async getUser({ canAccessTokenBeExpired = false, checkForCurrentSessionChanges = true } = {}) {
+			if (cachedUser) return cachedUser
 			debug('retrieving user')
 			const token = eventOps.parseAccessToken() || throw new CookiesError()
 			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
@@ -40,8 +42,9 @@ export const buildContext = ({ env, event, crud }) => {
 			// we then want to be sure there is no alteration of this existing user
 			// so we give the merge priority to the dbUser
 			// no data should be added localy unless it is a signup/signin operation
-			return { ...user, ...dbUser }
-		}, env, userOps, crud, event, sso: { verifyGoogleIdToken }
+			cachedUser = { ...user, ...dbUser }
+			return cachedUser
+		}, env, userOps, crud, eventOps, sso: { verifyGoogleIdToken: verifyGoogleIdToken(googleClient)(env.GOOGLE_ID) }
 	}
 }
 
