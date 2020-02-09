@@ -22,9 +22,10 @@ export const buildContext = ({ env, event, crud }) => {
 			// this could be optimized by also memoizing arguments but it would add overhead
 			// as the data could be fetched twice, better to be careful with arguments than spending bandwith
 			if (cachedUser) return cachedUser
-			debug('.......retrieving user')
+			debug('.......retrieving user %O', { canAccessTokenBeExpired, checkForCurrentSessionChanges })
 			const token = eventOps.parseAccessToken() || throw new CookiesError()
 			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
+
 			// The user must exist in the database
 			const dbUser = await crud.fetch({ uuid: user.uuid })
 			dbUser || throw new UserNotFoundError()
@@ -33,7 +34,6 @@ export const buildContext = ({ env, event, crud }) => {
 			// notice that we check on the DBUSER with the sessionHash from the received JWT
 			const session = dbUser |> userOps.getSessionByHash(user[Symbol.transient].sessionHash)
 			session || throw new SessionError()
-
 			if (checkForCurrentSessionChanges)
 				// This should not happen unless the user cookies are stolen or user-agent update on the same session
 				if (user[Symbol.transient].session.hash !== user[Symbol.transient].sessionHash) throw new SessionError()

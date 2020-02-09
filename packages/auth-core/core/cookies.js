@@ -4,7 +4,7 @@ const aYear = 60 * 60 * 24 * 365 * 1
 
 const cookieOpt = {
 	httpOnly: true,
-	secure: process.env.LOCALHOST?.toLowerCase() === 'true',
+	secure: process.env.LOCALHOST?.toLowerCase() !== 'true',
 	sameSite: 'Strict',
 	path: '/'
 }
