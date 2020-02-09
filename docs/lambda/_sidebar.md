@@ -9,4 +9,7 @@
   * [Mutations](mutations/#mutations)
 * **Implementations**
   * [hydre-auth-koa](koa/#requirements)
-  * [hydre-auth-lambda](lambda/#requirements)
+  * hydre-auth-lambda
+    * [- Requirements](lambda/#requirements)
+    * [- Environement](lambda/#environement)
+    * [- Setup](lambda/#setup)

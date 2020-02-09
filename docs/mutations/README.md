@@ -33,7 +33,8 @@ mutation ($creds: Creds!) {
   authenticate {
     signup(creds: $creds) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip
@@ -101,7 +102,8 @@ mutation ($creds: Creds!) {
   authenticate {
     signin(creds: $creds) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip
@@ -166,7 +168,8 @@ mutation ($provider: Provider!, $idToken: String!) {
   authenticate {
     sign(provider: $provider, idToken: $idToken) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip

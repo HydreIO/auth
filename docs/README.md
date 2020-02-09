@@ -1,6 +1,6 @@
-![][licence]
+![][licence] [![][forks]][repolink]
 
-<h1 align=center>@hydre/auth</h1>
+<h1 class="test" align=center>@hydre/auth</h1>
 
 [![][discord]][discordlink] [![][twitter]][twitterlink]
 
@@ -9,50 +9,41 @@
 [twitterlink]: https://twitter.com/hydreio
 [discord]: https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge
 [discordlink]: https://discord.gg/bRSpRpD
+[forks]: https://img.shields.io/github/forks/HydreIO/hydre.auth?label=fork%20me&logo=github&style=for-the-badge
+[repolink]: https://github.com/HydreIO/hydre.auth
 
-Serverless authentication built on GraphQL for AWS Lambda
+Lightweight authentication server built on GraphQL
 
 > if you need any help feel free to join the discord above to get a fast reply!
 
-**__Navigation__**
+# Quick Start
 
-* [Home](/)
-  * [Requirements](requirements.md)
-    * [Locally](requirements.md#Locally)
-    * [Production](requirements.md#Production)
-  * [Setup](setup.md)
-  * [Usage](usage.md)
-    * [Usage in development mode](usage.md#Usage-in-development-mode)
-    * [Usage in production](usage.md#Usage-in-production)
-  * [Implementation](implem.md)
-    * [Implementation details](implem.md#Implementation-details)
-    * [Server verification](implem.md#Server-verification)
-    * [Flow](implem.md#Flow)
-    * [Errors handling](implem.md#errors-handling)
-* [Queries](queries/)
-  * [ping](queries/#ping)
-  * [cert](queries/#cert)
-  * [stage](queries/#stage)
-  * [me](queries/#me)
-* [Mutations](mutations/)
-  * [signup](mutations/#signup)
-  * [signin](mutations/#signin)
-  * [sign](mutations/#sign)
-  * [signout](mutations/#signout)
-  * [refresh](mutations/#refresh)
-  * [sendCode](mutations/#sendCode)
-  * [inviteUser](mutations/#inviteUser)
-  * [confirmEmail](mutations/#confirmEmail)
-  * [resetPassword](mutations/#resetPassword)
+```
+git clone git@github.com:HydreIO/hydre.auth.git
+cd hydre.auth/packages/auth-<integration>
+touch .env
+```
+Test it locally by fill the `.env` file according to the chosen `integration`
+```
+DEBUG="auth* internal*" LOCALHOST="true" npm run dev
+```
+> By specifying LOCALHOST we allow cookies to be unsecure (http)
 
-# Implementation details
+- [**Koa**](koa/)
+- [**Lambda**](lambda/)
 
-The auth will fix 2 cookie for you :
-- an acces token which expire, it's the proof you're authenticated. Any server matching configurated origins
-will receive the token and can verify (`JWT.verify`) it asymmetrically with the authentication public key (see [How to retrieve the public key](https://docs.auth.hydre.io/#/cert))
+---
+
+# How it works
+
+We're fat so we use cookies to send tokens!
+
+The **ACCESS TOKEN** which expire, is the proof you're authenticated.<br>
+Any server matching your origins (not as a person but in your configuration)
+will receive the token and can verify (`JWT.verify`) it asymmetrically using the authentication public key (see [How to retrieve the public key](https://docs.auth.hydre.io/#/queries#cert))
 if the token is valid then you can trust the request
 
-- a refresh token, only used by the auth to fix new accessTokens
+The **REFRESH TOKEN** which doesn't expire but can be revoked, is only used by the auth to send new accessTokens
 
 Make sure you know how cookies work, the `domain` must be your services domain, for exemple if you have
 
@@ -60,11 +51,23 @@ Make sure you know how cookies work, the `domain` must be your services domain, 
 - myapp.foo.com
 - api.foo.com
 
-the `domain` field must be `.foo.com`, you cannot have different domains.
+the `domain` field must be `.foo.com`, you cannot have different domains.<br>
+when running the auth in local you must add some kind of domain to your hosts file like
+```
+127.0.0.1 local.host
+```
+and specify `local.host` as the `domain`.<br>
+while you can wildcard the `ORIGINS`, we advise to set it according to your needs
+```
+ORIGINS="http:\/\/local.host:.+"
+```
+that way you can connect through any service running locally, like a vue App `http://local.host:8080`
 
-## Flow
+---
 
-Start by registering an account
+# Client Usage
+
+#### Start by registering an account
 ```graphql
 mutation ($creds: Creds!) {
   authenticate {
@@ -85,7 +88,7 @@ Variables :
 }
 ```
 
-Try to refresh it
+#### Try to refresh it
 ```graphql
 mutation {
   me {
@@ -94,7 +97,7 @@ mutation {
 }
 ```
 
-Ask who you are
+#### Ask who you are
 ```graphql
 {
   me {
@@ -107,7 +110,7 @@ Ask who you are
 }
 ```
 
-Then leave
+#### Then leave
 > Calling signout remove the cookies, it's mandatory
 ```graphql
 mutation {
@@ -117,32 +120,9 @@ mutation {
 }
 ```
 
-## Server verification
-Dead simple exemple of an auth middleware with koaJs
-```js
-import jwt from 'jsonwebtoken'
+---
 
-const verifyAccessToken = publicKey => token => {
-	try {
-		return jwt.verify(token, publicKey, {
-			algorithms: 'ES512',
-			issuer: 'auth.service'
-		})
-	} catch (e) {
-		console.error(e)
-	}
-}
-
-
-export const auth = async (ctx, next) => {
-	const accessToken = ctx.cookies.get(ctx.COOKIE_NAME) || throw new CookiesMissingError()
-	const { sub: userid, email, verified } = verifyAccessToken(ctx.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
-	Object.assign(ctx, { userid, email, verified })
-	await next()
-}
-```
-
-## errors handling
+# Client Error Handling
 
 Working with graphql you'll get two type of errors, `graphQLErrors` and `networkErrors`.
 A graphql errors is returned as
@@ -174,4 +154,32 @@ export const errorHandler = opt => new Observable(async observer => {
     observer.error(error)
   }
 })
+```
+
+---
+
+# Server Usage
+Dead simple exemple of an auth middleware with koaJs
+> See [here](https://github.com/HydreIO/hydre.auth/blob/master/packages/auth-core/graphql/errors.js) to create your own errors
+```js
+import jwt from 'jsonwebtoken'
+
+const verifyAccessToken = publicKey => token => {
+	try {
+		return jwt.verify(token, publicKey, {
+			algorithms: 'ES512',
+			issuer: 'auth.service'
+		})
+	} catch (e) {
+		console.error(e)
+	}
+}
+
+
+export const auth = async (ctx, next) => {
+	const accessToken = ctx.cookies.get(process.env.ACCESS_TOKEN_COOKIE_NAME) || throw new CookiesMissingError()
+	const { sub: userid, email, verified } = verifyAccessToken(process.env.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
+	Object.assign(ctx, { userid, email, verified })
+	await next()
+}
 ```

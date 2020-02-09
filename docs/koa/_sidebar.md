@@ -8,5 +8,8 @@
   * [Queries](queries/#ping)
   * [Mutations](mutations/#mutations)
 * **Implementations**
-  * [hydre-auth-koa](koa/#requirements)
+  * hydre-auth-koa
+    * [- Requirements](koa/#requirements)
+    * [- Environement](koa/#environement)
+    * [- Setup](koa/#setup)
   * [hydre-auth-lambda](lambda/#requirements)
