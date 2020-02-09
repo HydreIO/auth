@@ -37,6 +37,7 @@ const {
   INVITE_USER_DELAY, // ms between two user invitation
   ACCESS_TOKEN_EXPIRATION, // ms before access token expiration
   PLAYGROUND = false // graphql playground
+  DATASOURCE = 'MONGO' // db type
 } = process.env
 
 const env = {
@@ -60,7 +61,18 @@ const env = {
 // Options
 // -----------------
 
-const { connect, crud } = MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
+const connector = src => {
+  switch (DATASOURCE) {
+    case 'MONGO':
+      return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
+    case 'NEO4J':
+      return null
+    default:
+      throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\n    https://docs.auth.hydre.io/#/koa/?id=environement')
+  }
+}
+
+const { connect, crud } = DATASOURCE |> connector
 
 const addCookie = ctx => serialized => {
   const [name, ...value] = serialized.split('=')
