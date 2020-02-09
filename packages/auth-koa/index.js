@@ -36,7 +36,7 @@ const {
   CONFIRM_ACCOUNT_DELAY, // ms between two verification code request,
   INVITE_USER_DELAY, // ms between two user invitation
   ACCESS_TOKEN_EXPIRATION, // ms before access token expiration
-  PLAYGROUND = false // graphql playground
+  PLAYGROUND = false, // graphql playground
   DATASOURCE = 'MONGO' // db type
 } = process.env
 
