@@ -1,12 +1,12 @@
 {
-	"name": "@hydre/auth-datasrc-mongo",
+	"name": "@hydre/auth-datasrc-neo4j",
 	"version": "0.1.0",
-	"description": "mongodb io auth connector",
+	"description": "neo4j io auth connector",
 	"main": "src/index.js",
 	"author": "HydreIO",
 	"dependencies": {
 		"debug": "^4.1.1",
-		"mongodb": "^3.5.2"
+		"neo4j-driver": "^4.0.1"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.8.3",

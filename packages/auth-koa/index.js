@@ -2,7 +2,8 @@ import Koa from 'koa'
 import cors from '@koa/cors'
 import { ApolloServer, ApolloError } from 'apollo-server-koa'
 import { createContext, schema, events, types, EVENTS, formatError } from '@hydre/auth-core'
-import MongoConnector from '@hydre/auth-io-mongo'
+import MongoConnector from '@hydre/auth-datasrc-mongo'
+import Neo4jConnector from '@hydre/auth-datasrc-neo4j'
 
 // #################
 // Loggers
@@ -66,7 +67,8 @@ const connector = src => {
     case 'MONGO':
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
     case 'NEO4J':
-      return null
+      // return Neo4jConnector
+      throw new Error('neo4j connector is not ready yet')
     default:
       throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\n    https://docs.auth.hydre.io/#/koa/?id=environement')
   }
