@@ -7,13 +7,13 @@ import { verifyAccessToken, createRefreshToken, signJwt, buildJwtOptions } from 
 
 const debug = require('debug')('internal').extend('user')
 
-Symbol.transient = Symbol()
+Symbol.transient = Symbol('transient')
 
 const fromCredentials = email => async pwd => ({ email, hash: await hash(pwd), verified: false })
 const fromToken = env => token => {
-	const { sub: _id, jti: sessionHash, exp, ...end } = verifyAccessToken(env.PUB_KEY)(token) || throw new InvalidAccessTokenError()
+	const { sub: uuid, jti: sessionHash, exp, ...end } = verifyAccessToken(env.PUB_KEY)(token) || throw new InvalidAccessTokenError()
 	return {
-		_id, [Symbol.transient]: {
+		uuid, [Symbol.transient]: {
 			sessionHash,
 			sessionExpired: Date.now() >= exp * 1000,
 			decodedJwt: end,
@@ -61,7 +61,7 @@ const loadRefreshToken = ({ REFRESH_TOKEN_SECRET }) => user => {
 }
 
 const loadAccessToken = ({ ACCESS_TOKEN_EXPIRATION, PRV_KEY }) => user => {
-	const opt = buildJwtOptions('auth::service')(user._id)(user[Symbol.transient].session.hash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
+	const opt = buildJwtOptions('auth::service')(user.uuid)(user[Symbol.transient].session.hash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
 	user[Symbol.transient].accessToken = signJwt(PRV_KEY)(opt)({ email: user.email, verified: user.verified })
 	return user
 }

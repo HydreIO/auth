@@ -17,17 +17,20 @@ export const buildContext = ({ env, event, crud }) => {
 		 * @param {Object} options canAccessTokenBeExpired: wether or not check for jwt expiration, checkForCurrentSessionChanges: wether or not checking if the session used to build the access token is the same as the current user session
 		 */
 		async getUser({ canAccessTokenBeExpired = false, checkForCurrentSessionChanges = true } = {}) {
+			// memoizing a function with argument can be dangerous, always make sure that a route
+			// with the @auth directive use the same arguments as in the resolver
+			// this could be optimized by also memoizing arguments but it would add overhead
+			// as the data could be fetched twice, better to be careful with arguments than spending bandwith
 			if (cachedUser) return cachedUser
-			debug('retrieving user')
+			debug('.......retrieving user')
 			const token = eventOps.parseAccessToken() || throw new CookiesError()
 			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
-
 			// The user must exist in the database
-			const dbUser = await crud.fetch(user)
+			const dbUser = await crud.fetch({ uuid: user.uuid })
 			dbUser || throw new UserNotFoundError()
 
 			// The user current session must be valid
-			// notice that we check on the DBUSER and not the local
+			// notice that we check on the DBUSER with the sessionHash from the received JWT
 			const session = dbUser |> userOps.getSessionByHash(user[Symbol.transient].sessionHash)
 			session || throw new SessionError()
 

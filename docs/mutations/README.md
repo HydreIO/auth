@@ -304,7 +304,7 @@ email: String!
 
 | Error          | Why                                 |
 | -------------- | ----------------------------------- |
-| `WAIT_CODE`    | Wow slow down Barry Allen           |
+| `SPAM`         | Wow slow down Barry Allen           |
 | `UNKNOW_CODE`  | When the code type is not supported |
 | `EMAIL_FORMAT` | when the email format is invalid    |
 
@@ -334,6 +334,7 @@ The JWT `{ invitedId, email }` of the invited user, or `null` if already exist
 | ---------------- | -------------------------------- |
 | `COOKIES`        | when auth cookies are missing    |
 | `USER_INCORRECT` | when you doesn't exist :shrug:   |
+| `SPAM`           | Wow slow down Barry Allen        |
 | `SESSION`        | when the session is invalid      |
 | `EMAIL_FORMAT`   | when the email format is invalid |
 

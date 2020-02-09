@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"@hydre/auth-core": "file:../auth-core",
-		"@hydre/auth-io-mongo": "file:../io-mongo",
+		"@hydre/auth-io-mongo": "file:../datasrc-mongo",
 		"apollo-server-koa": "^2.10.0",
 		"debug": "^4.1.1",
 		"dotenv": "^8.2.0",

@@ -34,6 +34,7 @@ const {
   COOKIE_DOMAIN, // domain for the refresh
   RESET_PASS_DELAY, // ms between two pwd reset code request
   CONFIRM_ACCOUNT_DELAY, // ms between two verification code request,
+  INVITE_USER_DELAY, // ms between two user invitation
   ACCESS_TOKEN_EXPIRATION, // ms before access token expiration
   PLAYGROUND = false // graphql playground
 } = process.env
@@ -51,7 +52,8 @@ const env = {
   PWD_REGEX: new RegExp(PWD_REGEX),
   EMAIL_REGEX: new RegExp(EMAIL_REGEX),
   RESET_PASS_DELAY: +RESET_PASS_DELAY,
-  CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY
+  CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY,
+  INVITE_USER_DELAY: +INVITE_USER_DELAY
 }
 
 // #################
@@ -70,7 +72,7 @@ const serverOpt = {
   context: ({ ctx }) => {
     new Date().toLocaleString() |> logDate
     const { query } = ctx.request.body
-    ctx.introspection = query.includes('__schema')
+    ctx.introspection = !!query?.includes('__schema')
     if (!ctx.introspection) logIncommingQuery(query)
     else logIncommingQuery('Introspection query (hidden)')
     return createContext({

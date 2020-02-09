@@ -14,7 +14,7 @@ const CODES = {
 	HEADERS: 'HEADERS',
 	REFRESH_TOKEN: 'REFRESH_TOKEN',
 	ACCESS_TOKEN: 'ACCESS_TOKEN',
-	WAIT_CODE: 'WAIT_CODE',
+	SPAM: 'SPAM',
 	RESET_CODE_INVALID: 'RESET_CODE_INVALID',
 	VERIFICATION_CODE_INVALID: 'VERIFICATION_CODE_INVALID',
 	GOOGLE_ID: 'GOOGLE_ID',
@@ -71,9 +71,9 @@ export class InvalidResetCodeError extends ApolloError {
 	}
 }
 
-export class TooManyCodeRequestError extends ApolloError {
+export class TooManyRequestError extends ApolloError {
 	constructor() {
-		super(`A code can't be sent again that quickly`, CODES.WAIT_CODE)
+		super(`This request is protected against spam`, CODES.SPAM)
 	}
 }
 export class InvalidAccessTokenError extends ApolloError {
