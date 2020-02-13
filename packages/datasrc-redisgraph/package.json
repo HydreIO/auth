@@ -1,12 +1,15 @@
 {
-	"name": "@hydre/auth-datasrc-neo4j",
+	"name": "@hydre/auth-datasrc-redisgraph",
 	"version": "0.1.0",
-	"description": "neo4j io auth connector",
+	"description": "redisgraph io auth connector",
 	"main": "src/index.js",
 	"author": "HydreIO",
 	"dependencies": {
 		"debug": "^4.1.1",
-		"neo4j-driver": "^4.0.1"
+		"neo4j-driver": "^4.0.1",
+		"redis": "^3.0.2",
+		"redisgraph.js": "^2.0.1",
+		"rxjs": "^6.5.4"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.8.3",
