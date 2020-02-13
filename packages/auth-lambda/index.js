@@ -39,7 +39,7 @@ export async function handler(event, ctx) {
 			GOOGLE_ID, // google app id (sso)
 			ALLOW_REGISTRATION, // can we register ? (TRUE, FALSE) case sensitive
 			PWD_REGEX, // accept which type of pwd
-			EMAIL_REGEX, // accept wich type of email
+			EMAIL_REGEX, // accept wich type of mail
 			ACCESS_COOKIE_NAME, // name of the accessToken cookie (share this with your others services)
 			REFRESH_COOKIE_NAME, // refresh cookie name (only used by auth)
 			COOKIE_DOMAIN, // domain for the refresh

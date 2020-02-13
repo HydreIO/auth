@@ -3,7 +3,7 @@ import cors from '@koa/cors'
 import { ApolloServer, ApolloError } from 'apollo-server-koa'
 import { createContext, schema, events, types, EVENTS, formatError } from '@hydre/auth-core'
 import MongoConnector from '@hydre/auth-datasrc-mongo'
-import Neo4jConnector from '@hydre/auth-datasrc-neo4j'
+import GraphConnector from '@hydre/auth-datasrc-redisgraph'
 
 // #################
 // Loggers
@@ -23,13 +23,16 @@ const {
   DATABASE, // db name
   MONGO_URI, // mongo host (if using mongo datasource)
   COLLECTION, // auth collection name
+  NEO4J_URI,
+  NEO4J_USER,
+  NEO4J_PWD,
   PUB_KEY, // ES512
   PRV_KEY, // ES512
   REFRESH_TOKEN_SECRET, // secret string
   GOOGLE_ID, // google app id (sso)
   ALLOW_REGISTRATION, // can we register ?
   PWD_REGEX, // accept which type of pwd
-  EMAIL_REGEX, // accept wich type of email
+  EMAIL_REGEX, // accept wich type of mail
   ACCESS_COOKIE_NAME, // name of the accessToken cookie (share this with your others services)
   REFRESH_COOKIE_NAME, // refresh cookie name (only used by auth)
   COOKIE_DOMAIN, // domain for the refresh
@@ -67,8 +70,7 @@ const connector = src => {
     case 'MONGO':
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
     case 'NEO4J':
-      // return Neo4jConnector
-      throw new Error('neo4j connector is not ready yet')
+      return GraphConnector({ uri: NEO4J_URI, user: NEO4J_USER, pwd: NEO4J_PWD })
     default:
       throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\n    https://docs.auth.hydre.io/#/koa/?id=environement')
   }
@@ -142,7 +144,7 @@ const loggerMiddleware = async (ctx, next) => {
 void async function () {
   debug('loading..')
   await connect()
-  events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm email %O', a) })
+  events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm mail %O', a) })
   events.on(EVENTS.INVITE_USER, a => { debug('Invite user %O', a) })
   events.on(EVENTS.RESET_PWD, a => { debug('Reset pwd %O', a) })
   new Koa()
