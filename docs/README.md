@@ -81,7 +81,7 @@ Variables :
 ```json
 {
 	"creds": {
-		"email": "admin@admin.com",
+		"mail": "admin@admin.com",
 		"pwd": "admin1",
 		"rememberMe": true
 	}
@@ -178,8 +178,8 @@ const verifyAccessToken = publicKey => token => {
 
 export const auth = async (ctx, next) => {
 	const accessToken = ctx.cookies.get(process.env.ACCESS_TOKEN_COOKIE_NAME) || throw new CookiesMissingError()
-	const { sub: userid, email, verified } = verifyAccessToken(process.env.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
-	Object.assign(ctx, { userid, email, verified })
+	const { sub: userid, mail, verified } = verifyAccessToken(process.env.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
+	Object.assign(ctx, { userid, mail, verified })
 	await next()
 }
 ```

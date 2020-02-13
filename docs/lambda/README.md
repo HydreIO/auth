@@ -26,7 +26,7 @@
 | `RESET_PASS_DELAY`        | `5000`                            | Delay in milliseconds between 2 reset password query (per user)                                                                                               |
 | `CONFIRM_ACCOUNT_DELAY`   | `5000`                            | Delay in milliseconds between 2 verification code query (per user)                                                                                            |
 | `PWD_REGEX`               | Regex                             | Enforce password policy                                                                                                                                       |
-| `EMAIL_REGEX`             | Regex                             | Enforce email policy                                                                                                                                          |
+| `EMAIL_REGEX`             | Regex                             | Enforce mail policy                                                                                                                                           |
 | `ACCESS_TOKEN_EXPIRATION` | `1200000`                         | Duration in milliseconds of an accessToken validity                                                                                                           |
 | `LOCALHOST`               | `true` `false`                    | Wether or not the auth is running in local, cookies are https only and webpack minify the bundle if the value is false                                        |
 

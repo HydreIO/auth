@@ -14,7 +14,7 @@
     * [- refresh](mutations/#refresh)
     * [- sendCode](mutations/#sendCode)
     * [- inviteUser](mutations/#inviteUser)
-    * [- confirmEmail](mutations/#confirmEmail)
+    * [- confirmMail](mutations/#confirmMail)
     * [- resetPassword](mutations/#resetPassword)
 * **Implementations**
   * [hydre-auth-koa](koa/#requirements)
