@@ -1,4 +1,4 @@
-import { GoogleIdNotFoundError, GoogleEmailNotFoundError, GoogleTokenError } from '../../graphql/errors'
+import { GoogleIdNotFoundError, GoogleMailNotFoundError, GoogleTokenError } from '../../graphql/errors'
 
 const googleVerify = client => async ({ idToken, audience }) => {
 	try {
@@ -10,6 +10,6 @@ const googleVerify = client => async ({ idToken, audience }) => {
 
 export const verifyGoogleIdToken = client => clientId => async idToken => {
 	const verified = await googleVerify(client)({ idToken, audience: clientId })
-	const { sub: userid = throw new GoogleIdNotFoundError(), email = throw new GoogleEmailNotFoundError()	} = verified.getPayload()
-	return { userid, email }
+	const { sub: userid = throw new GoogleIdNotFoundError(), mail = throw new GoogleMailNotFoundError() } = verified.getPayload()
+	return { userid, mail }
 }

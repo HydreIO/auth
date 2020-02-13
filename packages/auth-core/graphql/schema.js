@@ -26,8 +26,8 @@ enum Provider {
 }
 
 input Creds {
-	# the email
-	email: String!
+	# the mail
+	mail: String!
 	# the password
 	pwd: String!
 	# only the brave will be remembered
@@ -70,16 +70,16 @@ enum Code {
 
 type User {
 	uuid: ID!
-	email: String!
+	mail: String!
 	sessions: [Session!]!
 	verified: Boolean!
 }
 
 type UserOps {
 	refresh: String @Auth(canAccessTokenBeExpired: true)
-	confirmEmail(email: String!, code: String!): String # void
-	inviteUser(email: String!): String @Auth # jwt with id of invited user or null if it already exist
-	sendCode(code: Code!, email: String!): String # void
-	resetPassword(email: String!, newPwd: String!, resetCode: String!): String # void
+	confirmMail(mail: String!, code: String!): String # void
+	inviteUser(mail: String!): String @Auth # jwt with id of invited user or null if it already exist
+	sendCode(code: Code!, mail: String!): String # void
+	resetPassword(mail: String!, newPwd: String!, resetCode: String!): String # void
 }
 `

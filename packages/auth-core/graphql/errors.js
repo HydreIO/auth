@@ -59,9 +59,9 @@ export class GoogleIdNotFoundError extends ApolloError {
 	}
 }
 
-export class GoogleEmailNotFoundError extends ApolloError {
+export class GoogleMailNotFoundError extends ApolloError {
 	constructor() {
-		super(`Google user email not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
+		super(`Google user mail not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
 	}
 }
 
@@ -118,9 +118,9 @@ export class CSRFError extends ApolloError {
 	}
 }
 
-export class EmailUsedError extends ApolloError {
-	constructor(email) {
-		super(`The email address ${email} is already in use.`, CODES.EMAIL_USED)
+export class MailUsedError extends ApolloError {
+	constructor(mail) {
+		super(`The mail address ${mail} is already in use.`, CODES.EMAIL_USED)
 	}
 }
 
@@ -142,9 +142,9 @@ export class BadPwdFormatError extends ApolloError {
 	}
 }
 
-export class BadEmailFormatError extends ApolloError {
+export class BadMailFormatError extends ApolloError {
 	constructor() {
-		super('Incorrect email format', CODES.EMAIL_FORMAT)
+		super('Incorrect mail format', CODES.EMAIL_FORMAT)
 	}
 }
 

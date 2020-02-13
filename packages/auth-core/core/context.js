@@ -27,7 +27,7 @@ export const buildContext = ({ env, event, crud }) => {
 			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
 
 			// The user must exist in the database
-			const dbUser = await crud.fetch({ uuid: user.uuid })
+			const dbUser = await crud.fetchByUid(user.uuid)
 			dbUser || throw new UserNotFoundError()
 
 			// The user current session must be valid
