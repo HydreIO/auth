@@ -33,7 +33,8 @@ mutation ($creds: Creds!) {
   authenticate {
     signup(creds: $creds) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip
@@ -54,7 +55,7 @@ mutation ($creds: Creds!) {
 ```
 {
 	"creds": {
-		"email": "admin@admin.com",
+		"mail": "admin@admin.com",
 		"pwd": "admin1",
 		"rememberMe": true
 	}
@@ -64,7 +65,7 @@ mutation ($creds: Creds!) {
 
 ```graphql
 input Creds {
-	email: String! # The user email
+	mail: String! # The user mail
 	pwd: String! # The user password
 	rememberMe: Boolean # when false the session will expire at the of the navigation
 }
@@ -84,8 +85,8 @@ type AuthResponse {
 | `USER_AGENT`            | when the user agent is invalid or not found          |
 | `REGISTRATION_DISABLED` | when the registratrion is not allowed                |
 | `PWD_FORMAT`            | when the password doesn't respect the allowed format |
-| `EMAIL_FORMAT`          | when the email doesn't respect the allowed format    |
-| `EMAIL_USED`            | when the email is already used                       |
+| `EMAIL_FORMAT`          | when the mail doesn't respect the allowed format     |
+| `EMAIL_USED`            | when the mail is already used                        |
 
 ---
 
@@ -101,7 +102,8 @@ mutation ($creds: Creds!) {
   authenticate {
     signin(creds: $creds) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip
@@ -121,7 +123,7 @@ mutation ($creds: Creds!) {
 ```
 {
 	"creds": {
-		"email": "admin@admin.com",
+		"mail": "admin@admin.com",
 		"pwd": "admin1",
 		"rememberMe": true
 	}
@@ -130,7 +132,7 @@ mutation ($creds: Creds!) {
 ## @args
 ```graphql
 input Creds {
-	email: String!
+	mail: String!
 	pwd: String!
 	rememberMe: Boolean
 }
@@ -150,7 +152,7 @@ type AuthResponse {
 | `USER_AGENT`     | when the user agent is invalid or not found          |
 | `USER_INCORRECT` | when the credentials doesn't match any user          |
 | `PWD_FORMAT`     | when the password doesn't respect the allowed format |
-| `EMAIL_FORMAT`   | when the email doesn't respect the allowed format    |
+| `EMAIL_FORMAT`   | when the mail doesn't respect the allowed format     |
 
 ---
 
@@ -166,7 +168,8 @@ mutation ($provider: Provider!, $idToken: String!) {
   authenticate {
     sign(provider: $provider, idToken: $idToken) {
       user {
-        id
+        uuid
+        mail
         verified
         sessions {
           ip
@@ -216,7 +219,7 @@ type AuthResponse {
 | `UNKNOW_PROVIDER`          | when the provider is not supported or incorrect        |
 | `GOOGLE_TOKEN`             | when there is something wrong with the google id token |
 | `GOOGLE_ID`                | when the google id is not found (provider error)       |
-| `GOOGLE_EMAIL_NOT_GRANTED` | when when the google email is not granted              |
+| `GOOGLE_EMAIL_NOT_GRANTED` | when when the google mail is not granted               |
 
 ---
 
@@ -273,19 +276,19 @@ Ask a code to perform different actions and then notify SNS topics below
 - **CONFIRM_EMAIL**: `${LABEL}:auth:confirm_mail` will be notified
 - **RESET_PWD**: `${LABEL}:auth:reset_pass` wil be notified
 
-> The auth doesn't say anything in case the email doesn't correspond to any account
+> The auth doesn't say anything in case the mail doesn't correspond to any account
 
 ```graphql
-mutation ($email: String!) {
+mutation ($mail: String!) {
   me {
-    pwd: sendCode(code: RESET_PWD, email: $email)
-    verify: sendCode(code: CONFIRM_EMAIL, email: $email)
+    pwd: sendCode(code: RESET_PWD, mail: $mail)
+    verify: sendCode(code: CONFIRM_EMAIL, mail: $mail)
   }
 }
 ```
 ```
 {
-	"email": "admin@admin.com"
+	"mail": "admin@admin.com"
 }
 ```
 ## @args
@@ -293,9 +296,9 @@ The code enum type `['CONFIRM_EMAIL', 'RESET_PWD']`
 ```
 code: Code!
 ```
-The user email
+The user mail
 ```
-email: String!
+mail: String!
 ```
 ## @return
 `Bip bop! code sent (or not)`
@@ -304,9 +307,9 @@ email: String!
 
 | Error          | Why                                 |
 | -------------- | ----------------------------------- |
-| `WAIT_CODE`    | Wow slow down Barry Allen           |
+| `SPAM`         | Wow slow down Barry Allen           |
 | `UNKNOW_CODE`  | When the code type is not supported |
-| `EMAIL_FORMAT` | when the email format is invalid    |
+| `EMAIL_FORMAT` | when the mail format is invalid     |
 
 ---
 
@@ -316,47 +319,48 @@ Create an account for someone and notify SNS topic `${LABEL}:auth:invite_user`
 ```graphql
 mutation {
   me {
-    inviteUser(email: "some@normy.dude")
+    inviteUser(mail: "some@normy.dude")
   }
 }
 ```
 ## @args
 ```
-email: String!
+mail: String!
 ```
 
 ## @return
-The JWT `{ invitedId, email }` of the invited user, or `null` if already exist
+The JWT `{ invitedId, mail }` of the invited user, or `null` if already exist
 
 ## @throws
 
-| Error            | Why                              |
-| ---------------- | -------------------------------- |
-| `COOKIES`        | when auth cookies are missing    |
-| `USER_INCORRECT` | when you doesn't exist :shrug:   |
-| `SESSION`        | when the session is invalid      |
-| `EMAIL_FORMAT`   | when the email format is invalid |
+| Error            | Why                             |
+| ---------------- | ------------------------------- |
+| `COOKIES`        | when auth cookies are missing   |
+| `USER_INCORRECT` | when you doesn't exist :shrug:  |
+| `SPAM`           | Wow slow down Barry Allen       |
+| `SESSION`        | when the session is invalid     |
+| `EMAIL_FORMAT`   | when the mail format is invalid |
 
 ---
 
-# confirmEmail
+# confirmMail
 confirm the user account
-> The auth doesn't say anything in case the email doesn't correspond to any account
+> The auth doesn't say anything in case the mail doesn't correspond to any account
 
 ```graphql
 mutation {
   me {
-    confirmEmail(email: "admin@admin.com", code: "xxxx")
+    confirmMail(mail: "admin@admin.com", code: "xxxx")
   }
 }
 ```
 ## @args
-The user email
+The user mail
 ```
-email: String!
+mail: String!
 ```
 
-The code was sent by email by the `sendCode` query
+The code was sent by mail by the `sendCode` query
 ```
 code: String!
 ```
@@ -369,31 +373,31 @@ a string: `You're one with the force`
 | Error                       | Why                                                   |
 | --------------------------- | ----------------------------------------------------- |
 | `VERIFICATION_CODE_INVALID` | when the verification code is invalid or already used |
-| `EMAIL_FORMAT`              | when the email format is invalid                      |
+| `EMAIL_FORMAT`              | when the mail format is invalid                       |
 
 ---
 
 # resetPassword
 Reset the user password
-> The auth doesn't say anything in case the email doesn't correspond to any account
+> The auth doesn't say anything in case the mail doesn't correspond to any account
 
 ```graphql
 mutation {
   me {
-    resetPassword(email: "admin@admin.com", newPwd: "admin1", resetCode: "xxxxx")
+    resetPassword(mail: "admin@admin.com", newPwd: "admin1", resetCode: "xxxxx")
   }
 }
 ```
 ## @args
-The user email
+The user mail
 ```
-email: String!
+mail: String!
 ```
 The user new password
 ```
 newPwd: String!
 ```
-The emailed reset code
+The mailed reset code
 ```
 resetCode: String!
 ```
@@ -406,4 +410,4 @@ resetCode: String!
 | -------------------- | ---------------------------------------------------- |
 | `PWD_FORMAT`         | when the password doesn't respect the allowed format |
 | `RESET_CODE_INVALID` | when the reset code is invalid or already used       |
-| `EMAIL_FORMAT`       | when the email format is invalid                     |
+| `EMAIL_FORMAT`       | when the mail format is invalid                      |

@@ -51,7 +51,8 @@ who are you ?
 ```graphql
 {
   me {
-    id
+    uuid
+    mail
     verified
     sessions {
       ip
@@ -67,7 +68,8 @@ who are you ?
 ## @return
 ```graphql
 type User {
-	id: ID!
+	uuid: ID!
+  mail: String!
 	sessions: [Session!]!
 	verified: Boolean!
 }
