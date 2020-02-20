@@ -10,9 +10,17 @@
 [discord]: https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge
 [discordlink]: https://discord.gg/bRSpRpD
 
-Serverless authentication built on GraphQL for AWS Lambda
+Serverless authentication built on GraphQL with multi packages
 
-## :book: Documentation
+- auth-koa
+- auth-lambda (WIP)
+
+Also suport multiple datasource
+
+- Mongodb
+- RedisGraph (WIP)
+
+## :book: Documentation (WIP)
 
 See [here](https://docs.auth.hydre.io/)
 
