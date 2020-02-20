@@ -1,100 +1,27 @@
-import { from, zip } from 'rxjs'
-import { toArray, reduce, map } from 'rxjs/operators'
 import rgraph from '@hydre/rgraph'
+import { plusEquals } from '@hydre/rgraph/operators'
 import redis from 'redis'
-import { inspect } from 'util'
+import { inspect, promisify } from 'util'
+import { interval } from 'rxjs'
+import { concatMapTo, map } from 'rxjs/operators'
 
-const debug = 'graph' |> require('debug')('auth').extend
+const debug = require('debug')('auth').extend('graph')
+const extractUser = result => result?.user
 
-export default () => ({
-  connect: async () => {
-
-    const user = { uuid: 'xxx-xx-xxx', name: 'Tony' }
-    const graph = rgraph(redis.createClient('redis://127.0.0.1:6379/'))('test')
-    // const result$ = graph`MERGE (foo:User ${user})-[:Knows]->(thanos { name: 'Thanos', age: ${5 + 5} }) RETURN foo AS user, thanos`
-    // const result$ = graph`MERGE (foo:User ${user})-[:Knows]->(thanos { name: 'Thanos', age: ${5 + 5}, a: ${true}, b: ${922337203685477580750}, c: ${51.000000000016} }) RETURN foo AS user, thanos`
-    const result$ = graph`MERGE (foo:User ${user}) RETURN foo`
-
-    console.log(inspect(await result$.toPromise(), false, null, true))
-    process.exit(0)
-    // result$.pipe(
-    //   tap(({ stats }) => console.log(stats))
-    // ).subscribe(({ user, thanos }) => console.log(user.name)) // print Tony
-
-    // const driver = neo4j.driver(process.env.NEO4J_URI, neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PWD), { encrypted: "ENCRYPTION_ON" })
-    // const rxs = driver.rxSession()
-    // const foo = { 'a': 1, 'b': 2 }
-    // // const res = await graph.query('MATCH (u:User {uuid: 0}) SET u += $user RETURN u', { user: foo })
-    // // await rxs.run('MERGE (u:Test {uuid: 0}) SET u += $user RETURN u', { user: foo })
-    // //   .records()
-    // //   .pipe(map(r => r.get('u')), concat(rxs.close()))
-    // //   .toPromise()
-
-
-    // // debug('testing..')
-    // // const user = {
-    // //   name: 'Sceat',
-    // //   aaa: 50
-    // //   // test: {
-    // //   //   a: 1
-    // //   // },
-    // //   // sessions: [
-    // //   //   { foo: 1, bar: 'a' }
-    // //   // ]
-    // // }
-    // const res = await graph.query('MERGE (u:User {uuid: 0}) SET u = $user RETURN u', { 'user': foo })
-    // // await graph.query(`MERGE (user:User $user)`, { user })
-    // // const res = await graph.query("MATCH (u:User {uuid: 50}) SET u.uuid = 51 RETURN u")
-    // while (res.hasNext()) {
-    //   let record = res.next();
-    //   debug(record.get("u"));
-    // }
-  },
-  crud: {}
-})
-
-// export default ({ uri, user, pwd }) => ({
-//   async connect() {
-//     debug('connecting..')
-//     driver = neo4j.driver(uri, neo4j.auth.basic(user, pwd), { encrypted: "ENCRYPTION_ON" })
-//   },
-//   crud: {
-//     async fetchByUid(uuid) {
-//       const rxs = driver.rxSession()
-//       return await rxs
-//         .run('MATCH (user:User {uuid: $uuid}) RETURN user', { uuid })
-//         .records()
-//         .pipe(map(r => r.get('user')), concat(rxs.close()))
-//         .toPromise()
-//     },
-//     async fetchByMail(mail) {
-//       const rxs = driver.rxSession()
-//       return await rxs
-//         .run('MATCH (user:User {mail: $mail}) RETURN user', { mail })
-//         .records()
-//         .pipe(map(r => r.get('user')), concat(rxs.close()))
-//         .toPromise()
-//     },
-//     async pushByUid(uuid, user) {
-//       const rxs = driver.rxSession()
-
-//       user.sessions = user.sessions.map(s => JSON.stringify(s))
-//       const u = { ...user }
-//       delete u[Symbol.transient]
-//       debug('pushing %O', u)
-//       return rxs
-//         .run('MERGE (user:User {uuid: $uuid}) SET user += $user', { uuid, user: u })
-//         .records()
-//         .pipe(concat(rxs.close()))
-//         .toPromise()
-//     },
-//     async existByMail(mail) {
-//       const rxs = driver.rxSession()
-//       return rxs
-//         .run('MATCH (user:User {mail: $mail}) RETURN user', { mail })
-//         .records()
-//         .pipe(map(r => !!r.get('user')), concat(rxs.close()))
-//         .toPromise()
-//     }
-//   }
-// })
+export default ({ uri, graph }) => {
+  let run
+  return {
+    connect: async () => {
+      run = rgraph(redis.createClient(uri))(graph).run
+    },
+    crud: {
+      fetchByUid: async uuid => run`MATCH (user:User {uuid: ${uuid}}) RETURN user`.pipe(map(extractUser)).toPromise(),
+      fetchByMail: async mail => run`MATCH (user:User {mail: ${mail}}) RETURN user`.pipe(map(extractUser)).toPromise(),
+      pushByUid: async (uuid, user) => {
+        const { sessions, ...userWithoutSessions } = user
+        await run`MERGE (user:User {uuid: ${uuid}}) SET ${plusEquals('user', userWithoutSessions)}`.toPromise()
+      },
+      existByMail: async mail => run`MATCH (user:User {mail: ${mail}}) RETURN user`.pipe(map(result => !!result?.user)).toPromise()
+    }
+  }
+}

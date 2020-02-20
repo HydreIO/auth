@@ -23,9 +23,8 @@ const {
   DATABASE, // db name
   MONGO_URI, // mongo host (if using mongo datasource)
   COLLECTION, // auth collection name
-  NEO4J_URI,
-  NEO4J_USER,
-  NEO4J_PWD,
+  REDIS_URI,
+  GRAPH_NAME,
   PUB_KEY, // ES512
   PRV_KEY, // ES512
   REFRESH_TOKEN_SECRET, // secret string
@@ -69,10 +68,10 @@ const connector = src => {
   switch (DATASOURCE) {
     case 'MONGO':
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
-    case 'NEO4J':
-      return GraphConnector({ uri: NEO4J_URI, user: NEO4J_USER, pwd: NEO4J_PWD })
+    case 'REDISGRAPH':
+      return GraphConnector({ uri: REDIS_URI, graph: GRAPH_NAME })
     default:
-      throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\n    https://docs.auth.hydre.io/#/koa/?id=environement')
+      throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\nhttps://docs.auth.hydre.io/#/koa/?id=environement')
   }
 }
 
@@ -113,23 +112,6 @@ const corsOpt = {
 // Middlewares
 // -----------------
 
-const errorsMiddleware = async (ctx, next) => {
-  try {
-    await next()
-  } catch (error) {
-    if (error instanceof ApolloError) {
-      // const { code, ...body } = error
-      // ctx.status = code
-      // ctx.body = body
-    } else {
-      // we only log the error if it's unexpected, thus need fixing
-      logError(error)
-      ctx.status = 500
-      ctx.body = 'Internal server error'
-    }
-  }
-}
-
 const parsed = body => { try { return JSON.parse(body) } catch { return body } }
 const loggerMiddleware = async (ctx, next) => {
   await next()
@@ -141,7 +123,7 @@ const loggerMiddleware = async (ctx, next) => {
 // Server
 // -----------------
 
-void async function () {
+void async function() {
   debug('loading..')
   await connect()
   events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm mail %O', a) })
@@ -150,7 +132,6 @@ void async function () {
   new Koa()
     .use(cors(corsOpt))
     .use(loggerMiddleware)
-    // .use(errorsMiddleware)
     .use(new ApolloServer(serverOpt).getMiddleware({ path: '/' }))
     .listen(PORT, () => debug(`Now online! (:${PORT})`))
 }()

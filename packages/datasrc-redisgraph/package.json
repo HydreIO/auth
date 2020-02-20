@@ -5,10 +5,9 @@
 	"main": "src/index.js",
 	"author": "HydreIO",
 	"dependencies": {
+		"@hydre/rgraph": "^1.2.2",
 		"debug": "^4.1.1",
-		"neo4j-driver": "^4.0.1",
 		"redis": "^3.0.2",
-		"redisgraph.js": "^2.0.1",
 		"rxjs": "^6.5.4"
 	},
 	"devDependencies": {

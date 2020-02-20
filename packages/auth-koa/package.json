@@ -7,7 +7,8 @@
 	"scripts": {
 		"dev": "babel-node index.js",
 		"start": "node build/index.js",
-		"build": "babel src --out-dir build --copy-files"
+		"build": "babel src -d lib",
+		"postversion": "git push && git push --tags"
 	},
 	"dependencies": {
 		"@hydre/auth-core": "file:../auth-core",
