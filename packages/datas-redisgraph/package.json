@@ -1,12 +1,14 @@
 {
-	"name": "@hydre/auth-datasrc-mongo",
+	"name": "@hydre/datas-redisgraph",
 	"version": "0.1.0",
-	"description": "mongodb io auth connector",
+	"description": "redisgraph io auth connector",
 	"main": "src/index.js",
 	"author": "HydreIO",
 	"dependencies": {
+		"@hydre/rgraph": "^1.2.2",
 		"debug": "^4.1.1",
-		"mongodb": "^3.5.2"
+		"redis": "^3.0.2",
+		"rxjs": "^6.5.4"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.8.3",
