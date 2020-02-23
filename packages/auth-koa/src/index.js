@@ -63,7 +63,7 @@ const env = {
 // -----------------
 
 const connector = async src => {
-  switch (DATASOURCE) {
+  switch (src) {
     case 'MONGO':
       const MongoConnector = await import('@hydre/datas-mongo')
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
@@ -78,32 +78,9 @@ const connector = async src => {
   }
 }
 
-const { connect, crud } = DATASOURCE |> connector
-
 const addCookie = ctx => serialized => {
   const [name, ...value] = serialized.split('=')
   ctx.cookies.set(name, value.join('='))
-}
-
-const serverOpt = {
-  schema,
-  context: ({ ctx }) => {
-    new Date().toLocaleString() |> logDate
-    const { query } = ctx.request.body
-    ctx.introspection = !!query?.includes('__schema')
-    if (!ctx.introspection) logIncommingQuery(query)
-    else logIncommingQuery('Introspection query (hidden)')
-    return createContext({
-      env: {
-        ...env,
-        IP: ctx.request.ip
-      },
-      crud,
-      event: { headers: ctx.headers, addCookie: addCookie(ctx) }
-    })
-  },
-  playground: PLAYGROUND,
-  formatError
 }
 
 const corsOpt = {
@@ -127,6 +104,29 @@ const loggerMiddleware = async (ctx, next) => {
 // -----------------
 
 void async function() {
+  const { connect, crud } = await connector(DATASOURCE)
+
+  const serverOpt = {
+    schema,
+    context: ({ ctx }) => {
+      new Date().toLocaleString() |> logDate
+      const { query } = ctx.request.body
+      ctx.introspection = !!query?.includes('__schema')
+      if (!ctx.introspection) logIncommingQuery(query)
+      else logIncommingQuery('Introspection query (hidden)')
+      return createContext({
+        env: {
+          ...env,
+          IP: ctx.request.ip
+        },
+        crud,
+        event: { headers: ctx.headers, addCookie: addCookie(ctx) }
+      })
+    },
+    playground: PLAYGROUND,
+    formatError
+  }
+
   debug('loading..')
   await connect()
   events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm mail %O', a) })

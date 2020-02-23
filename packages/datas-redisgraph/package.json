@@ -2,34 +2,17 @@
 	"name": "@hydre/datas-redisgraph",
 	"version": "0.1.0",
 	"description": "redisgraph io auth connector",
-	"main": "src/index.js",
+	"source": "src/index.js",
+	"main": "index.js",
+	"module": "modules.js",
+	"engines": {
+		"node": "current"
+	},
 	"author": "HydreIO",
 	"dependencies": {
 		"@hydre/rgraph": "^1.2.2",
 		"debug": "^4.1.1",
 		"redis": "^3.0.2",
 		"rxjs": "^6.5.4"
-	},
-	"devDependencies": {
-		"@babel/cli": "^7.8.3",
-		"@babel/core": "^7.8.3",
-		"@babel/node": "^7.8.3",
-		"@babel/plugin-proposal-class-properties": "^7.8.3",
-		"@babel/plugin-proposal-decorators": "^7.8.3",
-		"@babel/plugin-proposal-do-expressions": "^7.8.3",
-		"@babel/plugin-proposal-export-default-from": "^7.8.3",
-		"@babel/plugin-proposal-function-bind": "^7.8.3",
-		"@babel/plugin-proposal-logical-assignment-operators": "^7.8.3",
-		"@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.3",
-		"@babel/plugin-proposal-numeric-separator": "^7.8.3",
-		"@babel/plugin-proposal-optional-catch-binding": "^7.8.3",
-		"@babel/plugin-proposal-optional-chaining": "^7.8.3",
-		"@babel/plugin-proposal-pipeline-operator": "^7.8.3",
-		"@babel/plugin-proposal-private-methods": "^7.8.3",
-		"@babel/plugin-proposal-throw-expressions": "^7.8.3",
-		"@babel/plugin-syntax-dynamic-import": "^7.8.3",
-		"@babel/preset-env": "^7.8.3",
-		"babel-plugin-implicit-function": "^0.1.1",
-		"babel-plugin-import-directory": "^1.1.0"
 	}
 }

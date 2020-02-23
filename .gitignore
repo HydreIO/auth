@@ -11,6 +11,8 @@ lib/
 # Serverless directories
 .serverless
 .webpack
+.cache
+.parcel-cache
 serverless.yml
 
 # Runtime data
