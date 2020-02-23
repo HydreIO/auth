@@ -2,9 +2,6 @@ import Koa from 'koa'
 import cors from '@koa/cors'
 import { ApolloServer, ApolloError } from 'apollo-server-koa'
 import { createContext, schema, events, types, EVENTS, formatError } from '@hydre/auth-core'
-import MongoConnector from '@hydre/datas-mongo'
-import RedisGraphConnector from '@hydre/datas-redisgraph'
-import Neo4jConnector from '@hydre/datas-neo4j'
 
 // #################
 // Loggers
@@ -65,13 +62,16 @@ const env = {
 // Options
 // -----------------
 
-const connector = src => {
+const connector = async src => {
   switch (DATASOURCE) {
     case 'MONGO':
+      const MongoConnector = await import('@hydre/datas-mongo')
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
     case 'REDISGRAPH':
+      const RedisGraphConnector = await import('@hydre/datas-redisgraph')
       return RedisGraphConnector({ uri: REDIS_URI, graph: GRAPH_NAME })
     case 'NEO4J':
+      const Neo4jConnector = await import('@hydre/datas-neo4j')
       return Neo4jConnector({ uri: NEO4J_URI })
     default:
       throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\nhttps://docs.auth.hydre.io/#/koa/?id=environement')
