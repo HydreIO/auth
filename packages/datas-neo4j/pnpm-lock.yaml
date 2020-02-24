@@ -1,0 +1,67 @@
+dependencies:
+  debug: 4.1.1
+  neo4j-driver: 4.0.1
+  rxjs: 6.5.4
+lockfileVersion: 5.1
+packages:
+  /@babel/runtime/7.8.4:
+    dependencies:
+      regenerator-runtime: 0.13.3
+    dev: false
+    resolution:
+      integrity: sha512-neAp3zt80trRVBI1x0azq6c57aNBqYZH8KhMm3TaB7wEI5Q4A2SHfBHE8w9gOhI/lrqxtEbXZgQIrHP+wvSGwQ==
+  /debug/4.1.1:
+    dependencies:
+      ms: 2.1.2
+    dev: false
+    resolution:
+      integrity: sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
+  /ms/2.1.2:
+    dev: false
+    resolution:
+      integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+  /neo4j-driver/4.0.1:
+    dependencies:
+      '@babel/runtime': 7.8.4
+      rxjs: 6.5.4
+      text-encoding-utf-8: 1.0.2
+      uri-js: 4.2.2
+    dev: false
+    resolution:
+      integrity: sha512-SqBhXyyyayVs5gV/6BrgdKbcmU5AsYQXkFAiYO74XAE8XPLJ1HVR/Hu4wjonAX7+70DsalkWEiFN1c6UaCVzlQ==
+  /punycode/2.1.1:
+    dev: false
+    engines:
+      node: '>=6'
+    resolution:
+      integrity: sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
+  /regenerator-runtime/0.13.3:
+    dev: false
+    resolution:
+      integrity: sha512-naKIZz2GQ8JWh///G7L3X6LaQUAMp2lvb1rvwwsURe/VXwD6VMfr+/1NuNw3ag8v2kY1aQ/go5SNn79O9JU7yw==
+  /rxjs/6.5.4:
+    dependencies:
+      tslib: 1.11.0
+    dev: false
+    engines:
+      npm: '>=2.0.0'
+    resolution:
+      integrity: sha512-naMQXcgEo3csAEGvw/NydRA0fuS2nDZJiw1YUWFKU7aPPAPGZEsD4Iimit96qwCieH6y614MCLYwdkrWx7z/7Q==
+  /text-encoding-utf-8/1.0.2:
+    dev: false
+    resolution:
+      integrity: sha512-8bw4MY9WjdsD2aMtO0OzOCY3pXGYNx2d2FfHRVUKkiCPDWjKuOlhLVASS+pD7VkLTVjW268LYJHwsnPFlBpbAg==
+  /tslib/1.11.0:
+    dev: false
+    resolution:
+      integrity: sha512-BmndXUtiTn/VDDrJzQE7Mm22Ix3PxgLltW9bSNLoeCY31gnG2OPx0QqJnuc9oMIKioYrz487i6K9o4Pdn0j+Kg==
+  /uri-js/4.2.2:
+    dependencies:
+      punycode: 2.1.1
+    dev: false
+    resolution:
+      integrity: sha512-KY9Frmirql91X2Qgjry0Wd4Y+YTdrdZheS8TFwvkbLWf/G5KNJDCh6pKL5OZctEW4+0Baa5idK2ZQuELRwPznQ==
+specifiers:
+  debug: ^4.1.1
+  neo4j-driver: ^4.0.1
+  rxjs: ^6.5.4

@@ -3,9 +3,10 @@ import { apollo, forwardError } from './io/apollo'
 import { ApolloError } from 'apollo-server-lambda'
 import { HeadersError } from './graphql/errors'
 import { createTransporter } from '../auth-core/core/events'
+import Debug from 'debug'
 
 // see debug npm package
-const debug = 'auth' |> require('debug')
+const debug = Debug('auth')
 Symbol.transient = Symbol()
 
 debug('initializing container')
@@ -26,7 +27,7 @@ export async function handler(event, ctx) {
 
 	try {
 		debug('checking event integrity')
-		event.headers || throw new HeadersError()
+		if (!event.headers) throw new HeadersError()
 
 		const {
 			DATABASE, // db name
@@ -53,8 +54,8 @@ export async function handler(event, ctx) {
 		debug('Parameters successfully loaded')
 		debug('Initializing cache')
 
-		mongo ||= await loadDB(MONGO_URI)
-		userColl ||= getCollection(mongo)(DATABASE)(COLLECTION)
+		if (!mongo) mongo = await loadDB(MONGO_URI)
+		if (!userColl) userColl = getCollection(mongo)(DATABASE)(COLLECTION)
 
 		debug('Cache successfully initialized')
 

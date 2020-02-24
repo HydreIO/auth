@@ -134,7 +134,7 @@ custom:
   warmup:
     enabled: true
   webpack:
-    webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
+    webpackConfig: 'webpack.config'   # Name of webpack configuration file
     includeModules: true   # Node modules configuration for packaging
   stageSettings:
     MethodSettings:

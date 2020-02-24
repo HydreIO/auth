@@ -2,15 +2,11 @@
 	"name": "@hydre/datas-redisgraph",
 	"version": "0.1.0",
 	"description": "redisgraph io auth connector",
-	"source": "src/index.js",
-	"main": "index.js",
-	"module": "modules.js",
-	"engines": {
-		"node": "current"
-	},
+	"main": "src/index.js",
+	"type": "module",
 	"author": "HydreIO",
 	"dependencies": {
-		"@hydre/rgraph": "^1.2.2",
+		"@hydre/rgraph": "link:../../../hydre.rgraph",
 		"debug": "^4.1.1",
 		"redis": "^3.0.2",
 		"rxjs": "^6.5.4"

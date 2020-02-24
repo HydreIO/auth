@@ -1,14 +1,15 @@
 import { verify } from '../../core/utils/crypt'
 import { UserNotFoundError, BadPwdFormatError, BadMailFormatError, MailUsedError, RegistrationDisabledError, UnknowProviderError } from '../errors'
 import uuidv4 from 'uuid/v4'
+import Debug from 'debug'
 
-const debug = require('debug')('internal').extend('authenticate')
+const debug = Debug('internal').extend('authenticate')
 
 export const signup = async (_, { creds: { mail, pwd, rememberMe = false } }, { env, eventOps: { parseUserAgent, sendAccessToken, sendRefreshToken }, crud: { existByMail, pushByUid }, userOps: { fromCredentials, loadSession, loadRefreshToken, loadAccessToken } }) => {
-	env.ALLOW_REGISTRATION || throw new RegistrationDisabledError()
+	if (!env.ALLOW_REGISTRATION) throw new RegistrationDisabledError()
 	debug('.......checking password and mail format')
-	pwd.match(env.PWD_REGEX) || throw new BadPwdFormatError()
-	mail.match(env.EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!pwd.match(env.PWD_REGEX)) throw new BadPwdFormatError()
+	if (!mail.match(env.EMAIL_REGEX)) throw new BadMailFormatError()
 	debug('.......checking if the user already exist')
 	if (await existByMail(mail)) throw new MailUsedError(mail)
 	debug('.......initialising user')
@@ -17,7 +18,7 @@ export const signup = async (_, { creds: { mail, pwd, rememberMe = false } }, { 
 	user.uuid = uuidv4()
 	debug.extend('uuid')(user.uuid)
 	debug('.......loading tokens')
-	user |> loadSession(env.IP, parseUserAgent()) |> loadRefreshToken(env) |> loadAccessToken(env)
+	loadAccessToken(env)(loadRefreshToken(env)(loadSession(env.IP, parseUserAgent())(user)))
 	debug('.......saving user')
 	await pushByUid(user.uuid, user)
 	debug('.......fixing tokens')
@@ -29,8 +30,8 @@ export const signup = async (_, { creds: { mail, pwd, rememberMe = false } }, { 
 
 export const signin = async (_, { creds: { mail, pwd, rememberMe = false } }, { env, userOps: { loadSession, loadAccessToken, loadRefreshToken }, crud: { fetchByMail, pushByUid }, eventOps: { parseUserAgent, addAccessToken, addRefreshToken, sendRefreshToken, sendAccessToken } }) => {
 	debug('.......checking password and mail format')
-	pwd.match(env.PWD_REGEX) || throw new BadPwdFormatError()
-	mail.match(env.EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!pwd.match(env.PWD_REGEX)) throw new BadPwdFormatError()
+	if (!mail.match(env.EMAIL_REGEX)) throw new BadMailFormatError()
 	debug('.......finding user matching %s', mail)
 	// user from database
 	const user = await fetchByMail(mail)
@@ -38,7 +39,7 @@ export const signin = async (_, { creds: { mail, pwd, rememberMe = false } }, { 
 	// verifying password
 	if (!user || !(await verify(pwd)(user.hash))) throw new UserNotFoundError()
 	debug('.......loading tokens')
-	user |> loadSession(env.IP, parseUserAgent()) |> loadRefreshToken(env) |> loadAccessToken(env)
+	loadAccessToken(env)(loadRefreshToken(env)(loadSession(env.IP, parseUserAgent())(user)))
 	if (user[Symbol.transient].newSession) {
 		debug('.......new session detected, saving user')
 		await pushByUid(user.uuid, user)
@@ -57,7 +58,7 @@ const signWithGoogle = async (idToken, { verifyGoogleIdToken }, { fetchByMail, p
 	const user = (await fetchByMail(mail)) || { mail, [Symbol.transient]: { newAccount: true } }
 	if (user[Symbol.transient]?.newAccount) {
 		debug(`.......user doesn't exist yet`)
-		env.ALLOW_REGISTRATION || throw new RegistrationDisabledError()
+		if (!env.ALLOW_REGISTRATION) throw new RegistrationDisabledError()
 		debug('.......generating uuid')
 		user.uuid = uuidv4()
 		debug.extend('uuid')(user.uuid)
@@ -75,7 +76,7 @@ export const sign = async (_, { provider, idToken }, { sso, crud, env, eventOps:
 		default:
 			throw new UnknowProviderError()
 	}
-	user |> loadSession(env.IP, parseUserAgent()) |> loadRefreshToken(env) |> loadAccessToken(env)
+	loadAccessToken(env)(loadRefreshToken(env)(loadSession(env.IP, parseUserAgent())(user)))
 	if (user[Symbol.transient].newSession) {
 		debug('.......new session detected, saving user')
 		await pushByUid(user.uuid, user)
@@ -91,7 +92,7 @@ export const signout = async (_, __, { eventOps: { removeCookies }, getUser, cru
 	debug('......loging out')
 	const user = await getUser({ canAccessTokenBeExpired: true, checkForCurrentSessionChanges: false })
 	debug('......deleting session')
-	user |> deleteSessionByHash(user[Symbol.transient].session.hash)
+	deleteSessionByHash(user[Symbol.transient].session.hash)(user)
 	debug('......saving user')
 	await pushByUid(user.uuid, user)
 	debug('......removing cookies')

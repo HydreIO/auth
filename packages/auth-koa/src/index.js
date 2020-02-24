@@ -1,12 +1,15 @@
 import Koa from 'koa'
 import cors from '@koa/cors'
-import { ApolloServer, ApolloError } from 'apollo-server-koa'
-import { createContext, schema, events, types, EVENTS, formatError } from '@hydre/auth-core'
+import { createContext, schema, events, EVENTS, formatError } from '@hydre/auth-core'
+import apolloServer from 'apollo-server-koa'
+import Debug from 'debug'
+
+const { ApolloServer, ApolloError } = apolloServer
 
 // #################
 // Loggers
 // -----------------
-const debug = require('debug')('auth').extend('koa')
+const debug = Debug('auth').extend('koa')
 const logIncommingQuery = debug.extend('<-').extend('|')
 const logError = debug.extend('err')
 const logResponse = debug.extend('->')
@@ -68,7 +71,7 @@ const connector = async src => {
       const MongoConnector = await import('@hydre/datas-mongo')
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
     case 'REDISGRAPH':
-      const RedisGraphConnector = await import('@hydre/datas-redisgraph')
+      const { default: RedisGraphConnector } = await import('@hydre/datas-redisgraph')
       return RedisGraphConnector({ uri: REDIS_URI, graph: GRAPH_NAME })
     case 'NEO4J':
       const Neo4jConnector = await import('@hydre/datas-neo4j')
@@ -109,9 +112,9 @@ void async function() {
   const serverOpt = {
     schema,
     context: ({ ctx }) => {
-      new Date().toLocaleString() |> logDate
-      const { query } = ctx.request.body
-      ctx.introspection = !!query?.includes('__schema')
+      logDate(new Date().toLocaleString())
+      const { query = '' } = ctx.request.body
+      ctx.introspection = !!query.includes('__schema')
       if (!ctx.introspection) logIncommingQuery(query)
       else logIncommingQuery('Introspection query (hidden)')
       return createContext({

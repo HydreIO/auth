@@ -1,2 +1,2 @@
-export const me = ~({})
-export const authenticate = ~({})
+export const me = () => ({})
+export const authenticate = () => ({})

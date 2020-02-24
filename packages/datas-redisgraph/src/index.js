@@ -1,11 +1,14 @@
 import rgraph from '@hydre/rgraph'
-import { plusEquals } from '@hydre/rgraph/operators'
+import { plusEquals } from '@hydre/rgraph/src/operators'
 import redis from 'redis'
 import { inspect, promisify } from 'util'
-import { interval } from 'rxjs'
-import { concatMapTo, map } from 'rxjs/operators'
+import rxjs from 'rxjs'
+import operators from 'rxjs/operators'
+import Debug from 'debug'
 
-const debug = require('debug')('auth').extend('graph')
+const { interval } = rxjs
+const { map } = operators
+const debug = Debug('auth').extend('graph')
 const extractUser = result => result?.user
 
 export default ({ uri, graph }) => {

@@ -10,6 +10,8 @@ const googleVerify = client => async ({ idToken, audience }) => {
 
 export const verifyGoogleIdToken = client => clientId => async idToken => {
 	const verified = await googleVerify(client)({ idToken, audience: clientId })
-	const { sub: userid = throw new GoogleIdNotFoundError(), mail = throw new GoogleMailNotFoundError() } = verified.getPayload()
+	const { sub: userid, mail } = verified.getPayload()
+	if (!userid) throw new GoogleIdNotFoundError()
+	if (!mail) throw new GoogleMailNotFoundError()
 	return { userid, mail }
 }

@@ -1,5 +1,9 @@
-import { SchemaDirectiveVisitor } from 'apollo-server'
-import { defaultFieldResolver } from 'graphql'
+import apolloServer from 'apollo-server'
+import graphql from 'graphql'
+
+// thanks esm :wojak:
+const { defaultFieldResolver } = graphql
+const { SchemaDirectiveVisitor } = apolloServer
 
 export class Auth extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field) {

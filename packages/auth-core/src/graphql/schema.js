@@ -1,4 +1,5 @@
-import { gql } from 'apollo-server'
+import apolloServer from 'apollo-server'
+const { gql } = apolloServer
 export default gql`
 directive @Auth(canAccessTokenBeExpired: Boolean, checkForCurrentSessionChanges: Boolean) on FIELD_DEFINITION
 

@@ -1,7 +1,9 @@
 import version from 'project-version'
-const debug = 'query' |> require('debug')('internal').extend
+import Debug from 'debug'
 
-export const ping = ~'subscribe to pewdiepie'
+const debug = Debug('internal').extend('query')
+
+export const ping = () => 'subscribe to pewdiepie'
 export const cert = (_, __, { env: { PUB_KEY } }) => PUB_KEY
 export const me = async (_, __, { getUser }) => {
 	debug('......asking identity')

@@ -1,5 +1,7 @@
-import { ApolloError } from 'apollo-server'
 import PrettyError from 'pretty-error'
+import Debug from 'debug'
+import apolloServer from 'apollo-server'
+const { ApolloError } = apolloServer
 
 const CODES = {
 	EMAIL_USED: 'EMAIL_USED',
@@ -23,13 +25,13 @@ const CODES = {
 	UNKNOW_CODE: 'UNKNOW_CODE'
 }
 
-const pe = new PrettyError()
-const debug = require('debug')('auth')
+const prettyError = new PrettyError()
+const debug = Debug('auth')
 
 export const formatError = error => {
 	let { message, extensions: { code: type } } = error
 	if (type === 'INTERNAL_SERVER_ERROR') {
-		console.error(pe.render({ ...error, stack: error.extensions?.exception?.stacktrace?.join('\n') }))
+		console.error(prettyError.render({ ...error, stack: error.extensions?.exception?.stacktrace?.join('\n') }))
 		message = 'Oops.. something went wrong! Contact us if this error persist !'
 	}
 	return { message, type }

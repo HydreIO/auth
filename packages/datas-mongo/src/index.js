@@ -1,10 +1,15 @@
 import { MongoClient, ObjectID } from 'mongodb'
+import Debug from 'debug'
 
-const debug = 'mongo' |> require('debug')('auth').extend
+const debug = Debug('auth').extend('mongo')
 
 export default ({ uri, collection, db }) => {
   let coll
-  const fetch = async user => coll.find(user).limit(1).toArray().then(([user]) => user ? user |> (({ _id, ...u }) => u) : undefined)
+  const fetch = async user => coll.find(user).limit(1).toArray().then(([user]) => {
+    if (!user) return undefined
+    const { _id, ...u } = user
+    return u
+  })
   const fetchByUid = async uuid => fetch({ uuid })
   const fetchByMail = async mail => fetch({ mail })
   const pushByUid = async (uuid, user) => coll.updateOne({ uuid }, { $set: user }, { upsert: true })

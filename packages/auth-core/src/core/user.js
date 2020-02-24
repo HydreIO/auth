@@ -4,14 +4,17 @@ import jwt from 'jsonwebtoken'
 import { hash } from './utils/crypt'
 import { UserAgentError, InvalidAccessTokenError } from '../graphql/errors'
 import { verifyAccessToken, createRefreshToken, signJwt, buildJwtOptions } from './tokens'
+import Debug from 'debug'
 
-const debug = require('debug')('internal').extend('user')
+const debug = Debug('internal').extend('user')
 
 Symbol.transient = Symbol('transient')
 
 const fromCredentials = mail => async pwd => ({ mail, hash: await hash(pwd), verified: false })
 const fromToken = env => token => {
-	const { sub: uuid, jti: sessionHash, exp, ...end } = verifyAccessToken(env.PUB_KEY)(token) || throw new InvalidAccessTokenError()
+	const jwt = verifyAccessToken(env.PUB_KEY)(token)
+	if (!jwt) throw new InvalidAccessTokenError()
+	const { sub: uuid, jti: sessionHash, exp, ...end } = jwt
 	return {
 		uuid, [Symbol.transient]: {
 			sessionHash,
@@ -25,7 +28,8 @@ const fromToken = env => token => {
 const getSessionByHash = hash => user => user.sessions.find(s => s.hash === hash)
 const deleteSessionByHash = hash => user => ((user.sessions = user.sessions.filter(s => s.hash !== hash)), user)
 
-const loadSession = (ip, userAgent = throw new UserAgentError()) => user => {
+const loadSession = (ip, userAgent) => user => {
+	if (!userAgent) throw new UserAgentError()
 	const ua = new Parser(userAgent)
 	const { name: browserName } = ua.getBrowser()
 	const { model: deviceModel, type: deviceType, vendor: deviceVendor } = ua.getDevice()
@@ -40,8 +44,9 @@ const loadSession = (ip, userAgent = throw new UserAgentError()) => user => {
 		osName
 	}
 	const session = { ...sessionFields, hash: crypto.createHash('md5').update(JSON.stringify(sessionFields)).digest('hex') }
-	Object.assign(user[Symbol.transient] ||= {}, { session })
-	user.sessions ||=[]
+	if (!user[Symbol.transient]) user[Symbol.transient] = {}
+	Object.assign(user[Symbol.transient], { session })
+	if (!user.sessions) user.sessions = []
 	// session loading always need to be called after a database fetching so we're sure to have latest session in memory
 	// in case of a registration it's not important because no sessions exist so we just append it for later saving
 	if (!getSessionByHash(session.hash)(user)) {
@@ -54,8 +59,8 @@ const loadSession = (ip, userAgent = throw new UserAgentError()) => user => {
 }
 
 const loadRefreshToken = ({ REFRESH_TOKEN_SECRET }) => user => {
-	const session = user |> getSessionByHash(user[Symbol.transient].session.hash)
-	session.refreshToken ||= createRefreshToken(REFRESH_TOKEN_SECRET)(session.hash)
+	const session = getSessionByHash(user[Symbol.transient].session.hash)(user)
+	if (!session.refreshToken) session.refreshToken = createRefreshToken(REFRESH_TOKEN_SECRET)(session.hash)
 	user[Symbol.transient].session.refreshToken = session.refreshToken
 	return user
 }

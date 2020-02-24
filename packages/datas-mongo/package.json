@@ -2,12 +2,8 @@
 	"name": "@hydre/datas-mongo",
 	"version": "0.1.0",
 	"description": "mongodb io auth connector",
-	"source": "src/index.js",
-	"main": "index.js",
-	"module": "modules.js",
-	"engines": {
-		"node": "current"
-	},
+	"main": "src/index.js",
+	"type": "module",
 	"author": "HydreIO",
 	"dependencies": {
 		"debug": "^4.1.1",

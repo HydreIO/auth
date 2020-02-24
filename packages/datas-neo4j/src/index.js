@@ -1,8 +1,9 @@
 import { interval } from 'rxjs'
 import { map, concat } from 'rxjs/operators'
 import neo4j from 'neo4j-driver'
+import Debug from 'debug'
 
-const debug = require('debug')('auth').extend('graph')
+const debug = Debug('auth').extend('graph')
 
 export default ({ uri, graph }) => {
   let driver

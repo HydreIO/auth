@@ -1,11 +1,12 @@
 import { operate as userOps } from './user'
-import User from './user'
 import { SessionError, CookiesError, UserNotFoundError } from '../graphql/errors'
 import EventOps from './event'
-import { OAuth2Client } from 'google-auth-library'
 import { verifyGoogleIdToken } from './sso/google'
+import gal from 'google-auth-library'
+import Debug from 'debug'
 
-const debug = require('debug')('internal').extend('context')
+const { OAuth2Client } = gal
+const debug = Debug('internal').extend('context')
 const googleClient = new OAuth2Client(process.env.GOOGLE_ID)
 
 export const buildContext = ({ env, event, crud }) => {
@@ -23,17 +24,18 @@ export const buildContext = ({ env, event, crud }) => {
 			// as the data could be fetched twice, better to be careful with arguments than spending bandwith
 			if (cachedUser) return cachedUser
 			debug('.......retrieving user %O', { canAccessTokenBeExpired, checkForCurrentSessionChanges })
-			const token = eventOps.parseAccessToken() || throw new CookiesError()
-			const user = userOps.fromToken(env)(token) |> userOps.loadSession(env.IP, eventOps.parseUserAgent(event))
+			const token = eventOps.parseAccessToken()
+			if (!token) throw new CookiesError()
+			const user = userOps.loadSession(env.IP, eventOps.parseUserAgent(event))(userOps.fromToken(env)(token))
 
 			// The user must exist in the database
 			const dbUser = await crud.fetchByUid(user.uuid)
-			dbUser || throw new UserNotFoundError()
+			if (!dbUser) throw new UserNotFoundError()
 
 			// The user current session must be valid
 			// notice that we check on the DBUSER with the sessionHash from the received JWT
-			const session = dbUser |> userOps.getSessionByHash(user[Symbol.transient].sessionHash)
-			session || throw new SessionError()
+			const session = userOps.getSessionByHash(user[Symbol.transient].sessionHash)(dbUser)
+			if (!session) throw new SessionError()
 			if (checkForCurrentSessionChanges)
 				// This should not happen unless the user cookies are stolen or user-agent update on the same session
 				if (user[Symbol.transient].session.hash !== user[Symbol.transient].sessionHash) throw new SessionError()

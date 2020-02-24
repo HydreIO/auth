@@ -5,23 +5,24 @@ import { EVENTS } from '../../core/utils/constant'
 import { hash } from '../../core/utils/crypt'
 import { TooManyRequestError, BadMailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
 import uuidv4 from 'uuid/v4'
+import Debug from 'debug'
 
-const debug = 'me' |> require('debug')('internal').extend
+const debug = Debug('internal').extend('me')
 
 const shaCode = mail => crypto.createHash('sha256').update(`${mail}${crypto.randomBytes(32).toString('hex')}`).digest('hex')
 
 export const refresh = async (_, __, { getUser, env, userOps: { loadAccessToken, loadSession, getSessionByHash }, eventOps: { sendAccessToken, parseUserAgent, parseRefreshToken } }) => {
 	debug('......asking for an accessToken')
-	const user = (await getUser({ canAccessTokenBeExpired: true })) |> loadSession(env.IP, parseUserAgent())
-	const sess = user |> getSessionByHash(user[Symbol.transient].sessionHash)
+	const user = loadSession(env.IP, parseUserAgent())((await getUser({ canAccessTokenBeExpired: true })))
+	const sess = getSessionByHash(user[Symbol.transient].sessionHash)(user)
 	if (sess.refreshToken !== parseRefreshToken()) throw new InvalidRefreshTokenError()
-	user |> loadAccessToken(env)
+	loadAccessToken(env)(user)
 	sendAccessToken(user[Symbol.transient].accessToken, true)
 	return `And you're full of gas!`
 }
 
 export const confirmMail = async (_, { mail, code }, { getUser, env, crud: { fetchByMail, pushByUid } }) => {
-	mail.match(env.EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!mail.match(env.EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await fetchByMail(mail)
 	if (user) { // we don't notify the client if there is no user
 		debug('......User with mail %s was found', mail)
@@ -35,7 +36,7 @@ export const confirmMail = async (_, { mail, code }, { getUser, env, crud: { fet
 
 export const inviteUser = async (_, { mail }, { getUser, crud: { existByMail, pushByUid }, env: { PRV_KEY, LABEL, EMAIL_REGEX, INVITE_USER_DELAY } }) => {
 	debug('......inviting user %s', mail)
-	mail.match(EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await getUser()
 	// allowing this query only once every X ms
 	if (user.lastInvitationSent + INVITE_USER_DELAY > Date.now()) throw new TooManyRequestError()
@@ -57,7 +58,7 @@ export const inviteUser = async (_, { mail }, { getUser, crud: { existByMail, pu
 
 export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, crud: { pushByUid, fetchByMail } }) => {
 	debug('......asking code')
-	mail.match(EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await fetchByMail(mail)
 	// we don't want our api to notify anything in case the mail is not associated
 	// with an account, so we act like nothing hapenned in case there is no user
@@ -68,7 +69,7 @@ export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DEL
 				// allowing this query only once every X ms
 				if (user.lastResetMailSent + RESET_PASS_DELAY > Date.now()) throw new TooManyRequestError()
 				// if the code already exist we retrieve it, if not we create a new one
-				user.resetCode ||= shaCode(mail)
+				if (!user.resetCode) user.resetCode = shaCode(mail)
 				user.lastResetMailSent = Date.now()
 				debug('......mailing reset code')
 				events.emit(EVENTS.RESET_PWD, { to: mail, code: user.resetCode })
@@ -80,7 +81,7 @@ export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DEL
 				if (user.verified) return `You're verified already billy!`
 				if (user.lastVerifMailSent + CONFIRM_ACCOUNT_DELAY > Date.now()) throw new TooManyRequestError()
 				// if the code already exist we retrieve it, if not we create a new one
-				user.verificationCode ||= shaCode(mail)
+				if (!user.verificationCode) user.verificationCode = shaCode(mail)
 				user.lastVerifMailSent = Date.now()
 				debug('......mailing confirm code')
 				events.emit(EVENTS.CONFIRM_EMAIL, { to: mail, code: user.verificationCode })
@@ -94,12 +95,12 @@ export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DEL
 }
 
 export const resetPassword = async (_, { mail, newPwd, resetCode }, { crud: { fetchByMail, pushByUid }, env: { PWD_REGEX, EMAIL_REGEX } }) => {
-	mail.match(EMAIL_REGEX) || throw new BadMailFormatError()
+	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await fetchByMail(mail)
 	debug('......asking pwd reset')
 	if (user) {
 		debug('......user found, checking password format')
-		newPwd.match(PWD_REGEX) || throw new BadPwdFormatError()
+		if (!newPwd.match(PWD_REGEX)) throw new BadPwdFormatError()
 		if (!user.resetCode || user.resetCode !== resetCode) throw new InvalidResetCodeError()
 		user.hash = await hash(newPwd)
 		user.resetCode = ''
