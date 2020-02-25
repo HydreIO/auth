@@ -18,10 +18,13 @@ Lightweight authentication server built on GraphQL
 
 # Quick Start
 
-```
-git clone git@github.com:HydreIO/hydre.auth.git
-cd hydre.auth/packages/auth-<integration>
+```sh
+git clone git@github.com:HydreIO/auth.git
+cd auth
 touch .env
+# fill .env
+npm i -g pnpm
+pnpm i -r # recursive install
 ```
 Test it locally by fill the `.env` file according to the chosen `integration`
 ```
