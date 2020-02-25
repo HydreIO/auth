@@ -20,6 +20,18 @@ Also suport multiple datasource
 - Mongodb
 - RedisGraph (WIP)
 
+## TL:DR
+
+```sh
+git clone git@github.com:HydreIO/auth.git
+cd auth
+touch .env
+# fill .env
+npm i -g pnpm
+pnpm i -r
+npm run start:koa
+```
+
 ## :book: Documentation (WIP)
 
 See [here](https://docs.auth.hydre.io/)
