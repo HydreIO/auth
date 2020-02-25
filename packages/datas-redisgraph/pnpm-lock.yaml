@@ -1,10 +1,18 @@
 dependencies:
-  '@hydre/rgraph': 'link:../../../hydre.rgraph'
+  '@hydre/rgraph': 2.0.2
   debug: 4.1.1
   redis: 3.0.2
   rxjs: 6.5.4
 lockfileVersion: 5.1
 packages:
+  /@hydre/rgraph/2.0.2:
+    dependencies:
+      debug: 4.1.1
+      redis: 3.0.2
+      rxjs: 6.5.4
+    dev: false
+    resolution:
+      integrity: sha512-pk/OM9cblbkaaXge+WcS2Ok+UQsEkX0mU9/Im9B3G64O2q9j1jN0tikJqN6MAV2XUNrUWAYHN9S1hrh1Sdljyw==
   /debug/4.1.1:
     dependencies:
       ms: 2.1.2
@@ -63,7 +71,7 @@ packages:
     resolution:
       integrity: sha512-BmndXUtiTn/VDDrJzQE7Mm22Ix3PxgLltW9bSNLoeCY31gnG2OPx0QqJnuc9oMIKioYrz487i6K9o4Pdn0j+Kg==
 specifiers:
-  '@hydre/rgraph': 'link:../../../hydre.rgraph'
+  '@hydre/rgraph': ^2.0.2
   debug: ^4.1.1
   redis: ^3.0.2
   rxjs: ^6.5.4

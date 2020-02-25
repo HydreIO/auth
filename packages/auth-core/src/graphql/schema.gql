@@ -1,6 +1,3 @@
-import apolloServer from 'apollo-server'
-const { gql } = apolloServer
-export default gql`
 directive @Auth(canAccessTokenBeExpired: Boolean, checkForCurrentSessionChanges: Boolean) on FIELD_DEFINITION
 
 type Query {
@@ -83,4 +80,3 @@ type UserOps {
 	sendCode(code: Code!, mail: String!): String # void
 	resetPassword(mail: String!, newPwd: String!, resetCode: String!): String # void
 }
-`

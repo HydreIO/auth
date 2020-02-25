@@ -1,10 +1,9 @@
 {
  "scripts": {
-  "dev:koa": "node --harmony --experimental-specifier-resolution=node -r dotenv/config packages/auth-koa/src/index.js",
+  "start:koa": "node --harmony --experimental-specifier-resolution=node -r dotenv/config packages/auth-koa/src/index.js",
   "postversion": "git push && git push --tags"
  },
  "devDependencies": {
-  "dotenv": "^8.2.0",
-  "parcel": "^2.0.0-alpha.3.2"
+  "dotenv": "^8.2.0"
  }
 }

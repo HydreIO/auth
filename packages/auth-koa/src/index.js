@@ -1,10 +1,11 @@
 import Koa from 'koa'
 import cors from '@koa/cors'
-import { createContext, schema, events, EVENTS, formatError } from '@hydre/auth-core'
-import apolloServer from 'apollo-server-koa'
+import authCore from '@hydre/auth-core'
+import apolloKoa from 'apollo-server-koa'
+import graphql from 'graphql'
 import Debug from 'debug'
 
-const { ApolloServer, ApolloError } = apolloServer
+const { createContext, schema, events, constants: { EVENTS }, formatError } = authCore({ apollo: apolloKoa, graphql })
 
 // #################
 // Loggers
@@ -26,6 +27,8 @@ const {
   COLLECTION, // auth collection name
   REDIS_URI,
   GRAPH_NAME,
+  NEO4J_URI,
+  NEO4J_PWD,
   PUB_KEY, // ES512
   PRV_KEY, // ES512
   REFRESH_TOKEN_SECRET, // secret string
@@ -68,14 +71,14 @@ const env = {
 const connector = async src => {
   switch (src) {
     case 'MONGO':
-      const MongoConnector = await import('@hydre/datas-mongo')
+      const { default: MongoConnector } = await import('@hydre/datas-mongo')
       return MongoConnector({ uri: MONGO_URI, collection: COLLECTION, db: DATABASE })
     case 'REDISGRAPH':
       const { default: RedisGraphConnector } = await import('@hydre/datas-redisgraph')
       return RedisGraphConnector({ uri: REDIS_URI, graph: GRAPH_NAME })
     case 'NEO4J':
-      const Neo4jConnector = await import('@hydre/datas-neo4j')
-      return Neo4jConnector({ uri: NEO4J_URI })
+      const { default: Neo4jConnector } = await import('@hydre/datas-neo4j')
+      return Neo4jConnector({ uri: NEO4J_URI, pwd: NEO4J_PWD })
     default:
       throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\nhttps://docs.auth.hydre.io/#/koa/?id=environement')
   }
@@ -138,6 +141,6 @@ void async function() {
   new Koa()
     .use(cors(corsOpt))
     .use(loggerMiddleware)
-    .use(new ApolloServer(serverOpt).getMiddleware({ path: '/' }))
+    .use(new apolloKoa.ApolloServer(serverOpt).getMiddleware({ path: '/' }))
     .listen(PORT, () => debug(`Now online! (:${PORT})`))
 }()

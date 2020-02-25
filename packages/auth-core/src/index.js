@@ -1,7 +1,13 @@
 import { buildContext } from './core/context'
+import * as constants from './core/utils/constant'
+import makeSchema from './graphql/index'
+import events from './core/utils/events'
+import { formatError } from './graphql/errors'
 
-export const createContext = opt => buildContext(opt)
-export { default as schema } from './graphql/index'
-export { default as events } from './core/utils/events'
-export { formatError } from './graphql/errors'
-export * from './core/utils/constant'
+export default ({ apollo, graphql }) => ({
+  createContext: opt => buildContext(opt),
+  schema: makeSchema({ ...apollo, ...graphql }),
+  events,
+  formatError,
+  constants
+})

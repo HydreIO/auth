@@ -6,7 +6,7 @@
 	"type": "module",
 	"author": "HydreIO",
 	"dependencies": {
-		"@hydre/rgraph": "link:../../../hydre.rgraph",
+		"@hydre/rgraph": "^2.0.2",
 		"debug": "^4.1.1",
 		"redis": "^3.0.2",
 		"rxjs": "^6.5.4"
