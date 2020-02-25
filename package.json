@@ -1,4 +1,6 @@
 {
+ "name": "@hydre/auth",
+ "version": "0.1.0",
  "scripts": {
   "start:koa": "node --harmony --experimental-specifier-resolution=node -r dotenv/config packages/auth-koa/src/index.js",
   "postversion": "git push && git push --tags"
