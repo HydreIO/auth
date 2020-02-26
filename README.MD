@@ -18,7 +18,10 @@ Serverless authentication built on GraphQL with multi packages
 Also suport multiple datasource
 
 - Mongodb
-- RedisGraph (WIP)
+- Neo4j
+- RedisGraph (can't be used because Redisgraph cypher support is not mature enough)
+
+Or in docker `docker pull hydre/auth-koa`
 
 ## TL:DR
 
