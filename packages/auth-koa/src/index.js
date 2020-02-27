@@ -111,7 +111,6 @@ const loggerMiddleware = async (ctx, next) => {
 
 void async function() {
   const { connect, crud } = await connector(DATASOURCE)
-
   const serverOpt = {
     schema,
     context: ({ ctx }) => {
