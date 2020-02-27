@@ -80,7 +80,7 @@ const connector = async src => {
       const { default: Neo4jConnector } = await import('@hydre/datas-neo4j')
       return Neo4jConnector({ uri: NEO4J_URI, pwd: NEO4J_PWD })
     default:
-      throw new Error('no datasrouce defined, please provide a DATASOURCE en variable.\nhttps://docs.auth.hydre.io/#/koa/?id=environement')
+      throw new Error('no datasource defined, please provide a DATASOURCE en variable. https://docs.auth.hydre.io/#/koa/?id=environement')
   }
 }
 
