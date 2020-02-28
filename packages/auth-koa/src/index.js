@@ -80,7 +80,7 @@ const connector = async src => {
       return RedisGraphConnector({ uri: REDIS_URI, graph: GRAPH_NAME })
     case 'NEO4J':
       const { default: Neo4jConnector } = await import('@hydre/datas-neo4j')
-      return Neo4jConnector({ uri: NEO4J_URI, pwd: NEO4J_PWD, user: NEO4J_USER, encryption: NEO4J_ENCRYPTION })
+      return Neo4jConnector({ uri: NEO4J_URI, pwd: NEO4J_PWD, user: NEO4J_USER, encryption: NEO4J_ENCRYPTION?.toLowerCase() === 'true' })
     default:
       throw new Error('no datasource defined, please provide a DATASOURCE en variable. https://docs.auth.hydre.io/#/koa/?id=environement')
   }
