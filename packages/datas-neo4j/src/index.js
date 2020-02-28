@@ -7,10 +7,10 @@ const { map, concat, tap } = operators
 const { interval } = rxjs
 const debug = Debug('auth').extend('graph')
 
-export default ({ uri, pwd }) => {
+export default ({ uri, pwd, user = 'neo4j', encryption }) => {
   let driver
   return {
-    connect: async () => { driver = neo4j.driver(uri, neo4j.auth.basic('neo4j', pwd)) },
+    connect: async () => { driver = neo4j.driver(uri, pwd ? neo4j.auth.basic(user, pwd) : undefined, { encrypted: encryption ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF' }) },
     crud: {
       fetchByUid: async uuid => {
         const rxSession = driver.rxSession()
