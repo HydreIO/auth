@@ -44,6 +44,7 @@ docker run -t \
   -e DEBUG="auth* internal*" \
   -e PORT=3000 \
   -e LOCALHOST=true \
+  --network host \
   hydre/auth:mongo-edge
 ```
 
