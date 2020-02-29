@@ -30,7 +30,7 @@ Use your favorite database, we currently support
 
 ## Quickstart
 
-Assuming you run a mongodb instance to `localhost:27017` and you configured your host file to allow `127.0.0.1 dev.local`
+Assuming you run a mongodb instance to `localhost:27017` and you configured your host file to allow `dev.local`
 ```sh
 docker run \
   -p 3000:3000 \
@@ -44,6 +44,6 @@ you can now execute graphql queries against `http://dev.local:3000`
 
 > Don't use this in production as it's configured with default secrets
 
-<a href="https://docs.auth.hydre.io/" target="_blank">
-  <h2 align=center>Documentation</h3>
-</a>
+---
+
+<a href="https://docs.auth.hydre.io/"><h2 align=center>Documentation</h3></a>
