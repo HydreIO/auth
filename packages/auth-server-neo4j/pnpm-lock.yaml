@@ -1,0 +1,7 @@
+dependencies:
+  '@hydre/auth-server-core': 'link:../auth-server-core'
+  '@hydre/datas-neo4j': 'link:../datas-neo4j'
+lockfileVersion: 5.1
+specifiers:
+  '@hydre/auth-server-core': 'link:../auth-server-core'
+  '@hydre/datas-neo4j': 'link:../datas-neo4j'
