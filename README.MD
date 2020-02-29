@@ -1,42 +1,44 @@
-![][licence]
-
 <h1 align=center>@hydre/auth</h1>
+<p align=center>
+  <img src="https://img.shields.io/github/license/HydreIO/doubt.svg?style=for-the-badge" />
+  <a href="https://hub.docker.com/r/hydre/auth">
+    <img src="https://img.shields.io/docker/cloud/build/hydre/auth?logo=docker&style=for-the-badge" />
+  </a>
+  <a href="https://discord.gg/bRSpRpD">
+    <img src="https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge" />
+  </a>
+</p>
 
-[![][discord]][discordlink] [![][twitter]][twitterlink]
+<h3 align=center>A simple and fast authentication server built on KoaJS</h3>
 
-[licence]: https://img.shields.io/github/license/HydreIO/doubt.svg?style=for-the-badge
-[twitter]: https://img.shields.io/badge/follow-us-blue.svg?logo=twitter&style=for-the-badge
-[twitterlink]: https://twitter.com/hydreio
-[discord]: https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge
-[discordlink]: https://discord.gg/bRSpRpD
+- Graphql API
+- Production ready (Almost)
+- Support multiple databases
+- Highly configurable
 
-Serverless authentication built on GraphQL with multi packages
-
-- auth-koa
-- auth-lambda (WIP)
-
-Also suport multiple datasource
+Use your favorite database, we currently support
 
 - Mongodb
 - Neo4j
-- RedisGraph (can't be used because Redisgraph cypher support is not mature enough)
+- Memgraph
+- RedisGraph (can't be used yet as Redisgraph cypher support is not mature enough)
 
-Or in docker `docker pull hydre/auth-koa`
 
-## TL:DR
+## Quickstart
 
+Assuming you run a mongodb instance to `localhost:27017` and you configured your host file to allow `127.0.0.1 dev.local`
 ```sh
-git clone git@github.com:HydreIO/auth.git
-cd auth
-touch .env
-# fill .env
-npm i -g pnpm
-pnpm i -r
-npm run start:koa
+docker run \
+  -p 3000:3000 \
+  -e DEBUG="auth* internal*" \
+  -e PORT=3000 \
+  hydre/auth:latest-mongo
 ```
 
-## :book: Documentation (WIP)
+you can now execute graphql queries against `http://dev.local:3000`
 
-See [here](https://docs.auth.hydre.io/)
+> Don't use this in production as it's configured with default secrets
 
-[![](https://img.shields.io/badge/READ-THE%20DOCS-green?style=for-the-badge)](https://docs.auth.hydre.io/)
+<a href="https://docs.auth.hydre.io/" target="_blank">
+  <h2 align=center>Documentation</h3>
+</a>

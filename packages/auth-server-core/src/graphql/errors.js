@@ -1,5 +1,8 @@
 import PrettyError from 'pretty-error'
 import Debug from 'debug'
+import apolloServer from 'apollo-server-koa'
+
+const { ApolloError } = apolloServer
 
 const CODES = {
 	EMAIL_USED: 'EMAIL_USED',
@@ -35,127 +38,120 @@ export const formatError = error => {
 	return { message, type }
 }
 
-export class BaseError extends Error {
-	constructor(msg, type) {
-		super(msg)
-		Object.assign(this, { message: msg, extensions: { code: type } })
-	}
-}
-
-export class UnknowCodeError extends BaseError {
+export class UnknowCodeError extends ApolloError {
 	constructor() {
 		super(`This code doesn't exist`, CODES.UNKNOW_CODE)
 	}
 }
 
-export class InvalidVerificationCodeError extends BaseError {
+export class InvalidVerificationCodeError extends ApolloError {
 	constructor() {
 		super(`This code doesn't exist`, CODES.VERIFICATION_CODE_INVALID)
 	}
 }
 
-export class GoogleTokenError extends BaseError {
+export class GoogleTokenError extends ApolloError {
 	constructor() {
 		super(`Google idToken invalid`, CODES.GOOGLE_TOKEN)
 	}
 }
 
-export class GoogleIdNotFoundError extends BaseError {
+export class GoogleIdNotFoundError extends ApolloError {
 	constructor() {
 		super(`Google user id not found`, CODES.GOOGLE_ID)
 	}
 }
 
-export class GoogleMailNotFoundError extends BaseError {
+export class GoogleMailNotFoundError extends ApolloError {
 	constructor() {
 		super(`Google user mail not found, app need to grant access in request`, CODES.GOOGLE_EMAIL_NOT_GRANTED)
 	}
 }
 
-export class InvalidResetCodeError extends BaseError {
+export class InvalidResetCodeError extends ApolloError {
 	constructor() {
 		super(`The reset code is invalid`, CODES.RESET_CODE_INVALID)
 	}
 }
 
-export class TooManyRequestError extends BaseError {
+export class TooManyRequestError extends ApolloError {
 	constructor() {
 		super(`This request is protected against spam`, CODES.SPAM)
 	}
 }
-export class InvalidAccessTokenError extends BaseError {
+export class InvalidAccessTokenError extends ApolloError {
 	constructor() {
 		super(`The access token is invalid or expired`, CODES.ACCESS_TOKEN)
 	}
 }
 
-export class InvalidRefreshTokenError extends BaseError {
+export class InvalidRefreshTokenError extends ApolloError {
 	constructor() {
 		super(`The refresh token is invalid`, CODES.REFRESH_TOKEN)
 	}
 }
 
-export class HeadersError extends BaseError {
+export class HeadersError extends ApolloError {
 	constructor() {
 		super(`Headers are invalid or missing`, CODES.HEADERS)
 	}
 }
 
-export class CookiesError extends BaseError {
+export class CookiesError extends ApolloError {
 	constructor() {
 		super(`Cookies are invalid or missing`, CODES.COOKIES)
 	}
 }
 
-export class UserAgentError extends BaseError {
+export class UserAgentError extends ApolloError {
 	constructor() {
 		super(`The user agent is invalid`, CODES.USER_AGENT)
 	}
 }
 
-export class SessionError extends BaseError {
+export class SessionError extends ApolloError {
 	constructor() {
 		super(`The session doesn't exist, is expired, or was revoked`, CODES.SESSION)
 	}
 }
 
-export class CSRFError extends BaseError {
+export class CSRFError extends ApolloError {
 	constructor() {
 		super('Invalid or missing csrf token in request', CODES.CSRF)
 	}
 }
 
-export class MailUsedError extends BaseError {
+export class MailUsedError extends ApolloError {
 	constructor(mail) {
 		super(`The mail address ${mail} is already in use.`, CODES.EMAIL_USED)
 	}
 }
 
-export class UserNotFoundError extends BaseError {
+export class UserNotFoundError extends ApolloError {
 	constructor() {
 		super('User not found', CODES.USER_INCORRECT)
 	}
 }
 
-export class UnknowProviderError extends BaseError {
+export class UnknowProviderError extends ApolloError {
 	constructor(provider) {
 		super(`The provider ${provider} is not implemented`, CODES.UNKNOW_PROVIDER)
 	}
 }
 
-export class BadPwdFormatError extends BaseError {
+export class BadPwdFormatError extends ApolloError {
 	constructor() {
 		super('Incorrect password format', CODES.PWD_FORMAT)
 	}
 }
 
-export class BadMailFormatError extends BaseError {
+export class BadMailFormatError extends ApolloError {
 	constructor() {
 		super('Incorrect mail format', CODES.EMAIL_FORMAT)
 	}
 }
 
-export class RegistrationDisabledError extends BaseError {
+export class RegistrationDisabledError extends ApolloError {
 	constructor() {
 		super('Registrations are currently disabled', CODES.REGISTRATION_DISABLED)
 	}

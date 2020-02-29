@@ -2,9 +2,11 @@ import cookie from 'cookie'
 
 const aYear = 60 * 60 * 24 * 365 * 1
 
+const { LOCALHOST = false } = process.env
+
 const cookieOpt = {
 	httpOnly: true,
-	secure: process.env.LOCALHOST?.toLowerCase() !== 'true',
+	secure: `${LOCALHOST}`.toLowerCase() === 'false',
 	sameSite: 'Strict',
 	path: '/'
 }

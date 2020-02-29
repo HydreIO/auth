@@ -1,0 +1,11 @@
+{
+	"name": "@hydre/auth-server-koa-mongo",
+	"version": "1.0.0",
+	"main": "index.js",
+	"source": "src/index.js",
+	"type": "module",
+	"dependencies": {
+		"@hydre/auth-server-core": "link:../auth-server-core",
+		"@hydre/datas-mongo": "link:../datas-mongo"
+	}
+}

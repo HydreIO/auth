@@ -1,0 +1,10 @@
+{
+	"name": "@hydre/auth-server-koa-neo4j",
+	"version": "1.0.0",
+	"main": "src/index.js",
+	"type": "module",
+	"dependencies": {
+		"@hydre/auth-server-core": "link:../auth-server-core",
+		"@hydre/datas-neo4j": "link:../datas-neo4j"
+	}
+}
