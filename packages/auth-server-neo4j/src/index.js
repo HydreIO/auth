@@ -3,8 +3,8 @@ import authServer from '@hydre/auth-server-core'
 
 const {
   BOLT_URI = 'bolt://localhost:7687',
-  BOLT_USER = 'neo4j',
-  BOLT_PWD = 'admin',
+  BOLT_USER = '',
+  BOLT_PWD = '',
   BOLT_ENCRYPTION = false
 } = process.env
 
