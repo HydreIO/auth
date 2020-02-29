@@ -97,12 +97,12 @@ Here are all the main options you can (and should) pass to your env
 
 ### Bolt (Neoj4 & Memgraph)
 
-| Variable        | Default value           | Description                                             |
-| --------------- | ----------------------- | ------------------------------------------------------- |
-| BOLT_URI        | `bolt://localhost:7687` | Bolt uri                                                |
-| BOLT_USER       | `neo4j`                 | Bolt user (specify an empty string to disable auth)     |
-| BOLT_PWD        | `admin`                 | Bolt pwd (specify also an empty string to disable auth) |
-| BOLT_ENCRYPTION | `false`                 | SSL                                                     |
+| Variable        | Default value           | Description                              |
+| --------------- | ----------------------- | ---------------------------------------- |
+| BOLT_URI        | `bolt://localhost:7687` | Bolt uri                                 |
+| BOLT_USER       | ``                      | Bolt user (empty string to disable auth) |
+| BOLT_PWD        | ``                      | Bolt pwd (empty string to disable auth)  |
+| BOLT_ENCRYPTION | `false`                 | SSL                                      |
 
 ### RedisGraph
 
