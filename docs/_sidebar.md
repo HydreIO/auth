@@ -1,5 +1,6 @@
 * **Getting Started**
-  * [Quick Start](/#quick-start)
+  * [Quick Start](/#quickstart)
+  * [Configuration](/#configuration)
   * [How it Works](/#how-it-works)
   * [Client Usage](/#client-usage)
   * [Client Error Handling](/#client-error-handling)
@@ -7,6 +8,3 @@
 * **Api**
   * [Queries](queries/#ping)
   * [Mutations](mutations/#mutations)
-* **Implementations**
-  * [hydre-auth-koa](koa/#requirements)
-  * [hydre-auth-lambda](lambda/#requirements)

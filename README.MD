@@ -26,6 +26,7 @@ Use your favorite database, we currently support
 - Memgraph
 - RedisGraph (can't be used yet as Redisgraph cypher support is not mature enough)
 
+> if you need any help feel free to join the discord above to get a fast reply!
 
 ## Quickstart
 
@@ -35,7 +36,8 @@ docker run \
   -p 3000:3000 \
   -e DEBUG="auth* internal*" \
   -e PORT=3000 \
-  hydre/auth:latest-mongo
+  -e LOCALHOST=true \
+  hydre/auth:mongo-edge
 ```
 
 you can now execute graphql queries against `http://dev.local:3000`
