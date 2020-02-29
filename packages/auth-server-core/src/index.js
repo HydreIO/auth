@@ -28,8 +28,8 @@ const {
   REFRESH_TOKEN_SECRET="63959228FC8584C314ETGVC7H2441", // secret string
   GOOGLE_ID="xxxx.apps.googleusercontent.com`", // google app id (sso)
   ALLOW_REGISTRATION=true, // can we register ?
-  PWD_REGEX='^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})', // accept which type of pwd
-  EMAIL_REGEX='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$', // accept wich type of mail
+  PWD_REGEX= /^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})/, // accept which type of pwd
+  EMAIL_REGEX= /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, // accept wich type of mail
   ACCESS_COOKIE_NAME='another-cookie-name', // name of the accessToken cookie (share this with your others services)
   REFRESH_COOKIE_NAME='a-cookie-name', // refresh cookie name (only used by auth)
   COOKIE_DOMAIN='dev.local', // domain for the refresh
