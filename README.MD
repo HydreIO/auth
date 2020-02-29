@@ -32,7 +32,7 @@ Use your favorite database, we currently support
 
 Assuming you run a mongodb instance to `localhost:27017` and you configured your host file to allow `dev.local`
 ```sh
-docker run \
+docker run -t \
   -p 3000:3000 \
   -e DEBUG="auth* internal*" \
   -e PORT=3000 \

@@ -1,7 +1,8 @@
-import { MongoClient, ObjectID } from 'mongodb'
+import mongodb from 'mongodb'
 import Debug from 'debug'
 
 const debug = Debug('auth').extend('mongo')
+const { MongoClient, ObjectID } = mongodb
 
 export default ({ uri, collection, db }) => {
   let coll
@@ -19,7 +20,7 @@ export default ({ uri, collection, db }) => {
     const mongo = await MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
     coll = mongo.db(db).collection(collection)
   }
-  return { connect, crud: { fetchByUid, fetchByMail, existByMail, push } }
+  return { connect, crud: { fetchByUid, fetchByMail, existByMail, pushByUid } }
 }
 
 

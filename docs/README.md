@@ -39,7 +39,7 @@ Assuming you run a mongodb instance to `localhost:27017` and you configured your
 - **with Docker 🐋**
 
 ```bash
-docker run \
+docker run -t \
   -p 3000:3000 \
   -e DEBUG="auth* internal*" \
   -e PORT=3000 \
@@ -88,11 +88,11 @@ Here are all the main options you can (and should) pass to your env
 
 ### Mongodb
 
-| Variable   | Default value     | Description              |
-| ---------- | ----------------- | ------------------------ |
-| DATABASE   | `authentication`  | Mongo database name      |
-| COLLECTION | `users`           | Mongo collection name    |
-| MONGO_URI  | `localhost:27017` | Uri (mongodb+srv) format |
+| Variable   | Default value               | Description              |
+| ---------- | --------------------------- | ------------------------ |
+| DATABASE   | `authentication`            | Mongo database name      |
+| COLLECTION | `users`                     | Mongo collection name    |
+| MONGO_URI  | `mongodb://localhost:27017` | Uri (mongodb+srv) format |
 
 ### Bolt (Neoj4 & Memgraph)
 
