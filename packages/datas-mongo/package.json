@@ -1,6 +1,5 @@
 {
 	"name": "@hydre/datas-mongo",
-	"version": "1.0.0",
 	"main": "src/index.js",
 	"type": "module",
 	"dependencies": {

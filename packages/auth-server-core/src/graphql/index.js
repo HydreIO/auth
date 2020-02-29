@@ -7,13 +7,13 @@ import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
 import apolloServer from 'apollo-server-koa'
-import typeDefs from './schema.gql'
 
+const dir = dirname(fileURLToPath(import.meta.url))
 const { makeExecutableSchema } = apolloServer
 const resolvers = { AuthOps, Mutation, Query, UserOps }
 
 export default makeExecutableSchema({
-	typeDefs,
+	typeDefs: fs.readFileSync(`${dir}/schema.gql`, 'utf8'),
 	resolvers,
 	schemaDirectives,
 	inheritResolversFromInterfaces: true,
