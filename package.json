@@ -2,13 +2,12 @@
  "name": "@hydre/auth",
  "version": "1.2.0",
  "scripts": {
-  "start:mongo": "node --harmony --experimental-specifier-resolution=node -r dotenv/config packages/auth-server-mongo/src/index.js",
-  "start:neo": "node --harmony --experimental-specifier-resolution=node -r dotenv/config packages/auth-server-neo4j/src/index.js",
-  "update:all": "sh update-dependencies.sh",
+  "start:mongo": "node --harmony --experimental-specifier-resolution=node services/auth-server-mongo/src/index.js",
+  "start:neo": "node --harmony --experimental-specifier-resolution=node services/auth-server-neo4j/src/index.js",
+  "removeModules:all": "pnpm recursive exec -- rm -rf node_modules",
+  "update:all": "pnpm recursive exec -- ncu -u",
+  "prune:all": "pnpm recursive prune --prod",
+  "install:all": "pnpm i -r",
   "postversion": "git push && git push --tags"
- },
- "devDependencies": {
-  "dotenv": "^8.2.0",
-  "npm-check-updates": "^4.0.2"
  }
 }

@@ -1,5 +1,5 @@
 import mongoConnector from '@hydre/datas-mongo'
-import authServer from '@hydre/auth-server-core'
+import authServer from '@hydre/auth-core'
 
 const { MONGO_URI = 'mongodb://localhost:27017', COLLECTION = 'users', DATABASE = 'authentication' } = process.env
 

@@ -1,5 +1,5 @@
 {
-	"name": "@hydre/auth-server-core",
+	"name": "@hydre/auth-core",
 	"main": "src/index.js",
 	"type": "module",
 	"dependencies": {

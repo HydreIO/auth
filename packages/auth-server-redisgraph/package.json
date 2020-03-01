@@ -1,9 +1,0 @@
-{
-	"name": "@hydre/auth-server-koa-redisgraph",
-	"main": "src/index.js",
-	"type": "module",
-	"dependencies": {
-		"@hydre/auth-server-core": "link:../auth-server-core",
-		"@hydre/datas-redisgraph": "link:../datas-redisgraph"
-	}
-}

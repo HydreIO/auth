@@ -1,5 +1,5 @@
 import boltConnector from '@hydre/datas-neo4j'
-import authServer from '@hydre/auth-server-core'
+import authServer from '@hydre/auth-core'
 
 const {
   BOLT_URI = 'bolt://localhost:7687',

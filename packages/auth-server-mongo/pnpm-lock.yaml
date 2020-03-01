@@ -1,7 +1,0 @@
-dependencies:
-  '@hydre/auth-server-core': 'link:../auth-server-core'
-  '@hydre/datas-mongo': 'link:../datas-mongo'
-lockfileVersion: 5.1
-specifiers:
-  '@hydre/auth-server-core': 'link:../auth-server-core'
-  '@hydre/datas-mongo': 'link:../datas-mongo'

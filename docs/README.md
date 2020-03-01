@@ -55,8 +55,13 @@ git clone git@github.com:HydreIO/auth.git
 cd auth
 
 npm i -g pnpm
-pnpm i -r
-DEBUG="auth* internal*" PORT=3000 LOCALHOST=true pnpm run start:mongo
+npm run install:all
+DEBUG="auth* internal*" PORT=3000 LOCALHOST=true npm run start:mongo
+
+# For a more advanced configuration
+npm i -g dotenv-cli
+touch .env
+dotenv -- npm run start:mongo
 ```
 
 you can now execute graphql queries against `http://dev.local:3000`

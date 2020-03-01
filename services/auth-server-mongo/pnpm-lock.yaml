@@ -1,0 +1,7 @@
+dependencies:
+  '@hydre/auth-core': 'link:../../packages/auth-core'
+  '@hydre/datas-mongo': 'link:../../packages/datas-mongo'
+lockfileVersion: 5.1
+specifiers:
+  '@hydre/auth-core': 'link:../../packages/auth-core'
+  '@hydre/datas-mongo': 'link:../../packages/datas-mongo'

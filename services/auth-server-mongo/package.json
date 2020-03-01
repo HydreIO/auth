@@ -4,7 +4,7 @@
 	"source": "src/index.js",
 	"type": "module",
 	"dependencies": {
-		"@hydre/auth-server-core": "link:../auth-server-core",
-		"@hydre/datas-mongo": "link:../datas-mongo"
+		"@hydre/auth-core": "link:../../packages/auth-core",
+		"@hydre/datas-mongo": "link:../../packages/datas-mongo"
 	}
 }
