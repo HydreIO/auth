@@ -24,6 +24,5 @@ RUN pnpm install --reporter=silent --production --recursive
 COPY $CORE $CORE
 COPY $DATA $DATA
 COPY $SERVICE $SERVICE
-RUN ls
 
 CMD npm run start:mongo
