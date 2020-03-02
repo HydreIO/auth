@@ -1,7 +1,7 @@
 import { operate as userOps } from './user'
 import { SessionError, CookiesError, UserNotFoundError } from '../graphql/errors'
 import EventOps from './event'
-import { verifyGoogleIdToken } from './sso/google'
+import { verifyGoogleIdToken } from './io/google'
 import gal from 'google-auth-library'
 import Debug from 'debug'
 
@@ -9,7 +9,7 @@ const { OAuth2Client } = gal
 const debug = Debug('internal').extend('context')
 const googleClient = new OAuth2Client(process.env.GOOGLE_ID)
 
-export const buildContext = ({ env, event, crud }) => {
+export const buildContext = ({ env, event, crud, socketOps }) => {
 	const eventOps = EventOps({ env, headers: event.headers, addCookie: event.addCookie })
 	let cachedUser
 	return {
@@ -49,7 +49,7 @@ export const buildContext = ({ env, event, crud }) => {
 			// no data should be added localy unless it is a signup/signin operation
 			cachedUser = { ...user, ...dbUser }
 			return cachedUser
-		}, env, userOps, crud, eventOps, sso: { verifyGoogleIdToken: verifyGoogleIdToken(googleClient)(env.GOOGLE_ID) }
+		}, env, userOps, crud, eventOps, socketOps, sso: { verifyGoogleIdToken: verifyGoogleIdToken(googleClient)(env.GOOGLE_ID) }
 	}
 }
 

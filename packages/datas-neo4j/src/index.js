@@ -2,21 +2,43 @@ import rxjs from 'rxjs'
 import operators from 'rxjs/operators'
 import neo4j from 'neo4j-driver'
 import Debug from 'debug'
+import backoffs from 'backoff-rxjs'
 
-const { map, concat, tap } = operators
-const { interval } = rxjs
+const { map, concat, tap, retryWhen, concatMapTo, concatMap, take, delay, debounce } = operators
+const { interval, from, of, throwError, Subject } = rxjs
+const { retryBackoff } = backoffs
 const debug = Debug('auth').extend('graph')
 
-export default ({ uri, pwd = '', user = '', encryption }) => {
+export default ({ uri, pwd = '', user = '', encryption, maxRetries }) => {
   let driver
+  let retried = 0
+  let session
+
+  const getSession = () => {
+    if (!session) session = driver.rxSession()
+    else if (!session._session._open) session = driver.rxSession()
+    return session
+  }
+
+
   return {
     connect: async () => {
-      debug(`Bolt connection [auth: %O] [encryption: %O]`, !!user, encryption)
+      debug(`Bolt connection [auth: %O] [encryption: %O] [maxRetries: %d]`, !!user, encryption, maxRetries)
       driver = neo4j.driver(uri, neo4j.auth.basic(user, pwd), { encrypted: encryption ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF' })
+      await of(undefined).pipe(
+        tap(() => { debug('connecting to bolt uri.. [%d]', ++retried) }),
+        concatMapTo(from(driver.verifyConnectivity())),
+        retryBackoff({ initialInterval: 500, maxRetries })
+      ).toPromise().catch(e => {
+        console.error(e)
+        debug.extend('error')('unable to reach bolt instance after %d tries.. exit', maxRetries)
+        process.exit(1)
+      })
+      debug('connected!')
     },
     crud: {
       fetchByUid: async uuid => {
-        const rxSession = driver.rxSession()
+        const rxSession = getSession()
         return rxSession.run('MATCH (user:User {uuid: $uuid})-[:HAS_SESSION]->(session:Session) RETURN user, COLLECT(session) AS sessions', { uuid })
           .records()
           .pipe(
@@ -29,12 +51,11 @@ export default ({ uri, pwd = '', user = '', encryption }) => {
               return { ...properties, sessions }
             }),
             tap(debug),
-            concat(rxSession.close())
           ).toPromise()
 
       },
       fetchByMail: async mail => {
-        const rxSession = driver.rxSession()
+        const rxSession = getSession()
         return rxSession.run('MATCH (user:User {mail: $mail})-[:HAS_SESSION]->(session:Session) RETURN user, COLLECT(session) AS sessions', { mail })
           .records()
           .pipe(
@@ -47,12 +68,11 @@ export default ({ uri, pwd = '', user = '', encryption }) => {
               return { ...properties, sessions }
             }),
             tap(debug),
-            concat(rxSession.close())
           ).toPromise()
       },
       pushByUid: async (uuid, user) => {
         const { sessions, ...userWithoutSessions } = user
-        const rxSession = driver.rxSession()
+        const rxSession = getSession()
         return rxSession.run(
           `MERGE (user:User {uuid: $uuid})
            SET user += $user
@@ -64,16 +84,13 @@ export default ({ uri, pwd = '', user = '', encryption }) => {
            MATCH (user)-->(s:Session)
            WHERE NOT s.hash IN newSessionHash
            DETACH DELETE s`, { user: userWithoutSessions, sessions, uuid })
-          .records().pipe(concat(rxSession.close())).toPromise()
+          .records().toPromise()
       },
       existByMail: async mail => {
         const rxSession = driver.rxSession()
         return rxSession.run('MATCH (user:User {mail: $mail}) RETURN user', { mail })
           .records()
-          .pipe(
-            map(records => !!records.get('user')),
-            concat(rxSession.close())
-          ).toPromise()
+          .pipe(map(records => !!records.get('user'))).toPromise()
       }
     }
   }

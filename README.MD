@@ -17,7 +17,9 @@
 - Graphql API
 - Production ready (Almost)
 - Support multiple databases
+- ZeroMQ for cluster communication
 - Highly configurable
+- Kubernetes ready
 
 Use your favorite database, we currently support
 

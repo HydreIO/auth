@@ -1,11 +1,12 @@
 import { buildContext } from './core/context'
 import { EVENTS } from './core/utils/constant'
-import events from './core/utils/events'
+import events from './core/io/socket'
 import schema from './graphql/index'
 import { formatError } from './graphql/errors'
 import Koa from 'koa'
 import cors from '@koa/cors'
 import apolloKoa from 'apollo-server-koa'
+import zeroSocket from './core/io/socket'
 import Debug from 'debug'
 
 // #################
@@ -23,21 +24,22 @@ const logDate = debug.extend('time')
 const {
   PORT = 3615, // app port
   ORIGINS = '*', // supported origins (regex)
-  PUB_KEY="-----BEGIN PUBLIC KEY-----\nMIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAaW4NpvoFJ6r0q4Cg5y4V9fTkk/RM\n+XYzFWST7bOog8k/5TBYvEHZoyHpsI/9KSQ6Bk0cjCeR9HuUvUW/PTQPu6YB61Wh\nwPVCjYEZKjPLiVJvo44Ck4fada/CBuSgwdTviU+SFUTU1v/nOy89IMjF4Wa0QjXw\ndL2UmIx6GiXqQYebdxw=\n-----END PUBLIC KEY-----", // ES512
-  PRV_KEY="-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIAumGgZ9d0sD4A1Ch6vLWcF2ryd7o49Mz7F/bEHjYZcMRopsazPXzs\nDj+wZzoqCYE2uEXcl+1kS/hBsubqwZ+kLD+gBwYFK4EEACOhgYkDgYYABABpbg2m\n+gUnqvSrgKDnLhX19OST9Ez5djMVZJPts6iDyT/lMFi8QdmjIemwj/0pJDoGTRyM\nJ5H0e5S9Rb89NA+7pgHrVaHA9UKNgRkqM8uJUm+jjgKTh9p1r8IG5KDB1O+JT5IV\nRNTW/+c7Lz0gyMXhZrRCNfB0vZSYjHoaJepBh5t3HA==\n-----END EC PRIVATE KEY-----", // ES512
-  REFRESH_TOKEN_SECRET="63959228FC8584C314ETGVC7H2441", // secret string
-  GOOGLE_ID="xxxx.apps.googleusercontent.com`", // google app id (sso)
-  ALLOW_REGISTRATION=true, // can we register ?
-  PWD_REGEX= /^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})/, // accept which type of pwd
-  EMAIL_REGEX= /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, // accept wich type of mail
-  ACCESS_COOKIE_NAME='another-cookie-name', // name of the accessToken cookie (share this with your others services)
-  REFRESH_COOKIE_NAME='a-cookie-name', // refresh cookie name (only used by auth)
-  COOKIE_DOMAIN='dev.local', // domain for the refresh
-  RESET_PASS_DELAY=5000, // ms between two pwd reset code request
-  CONFIRM_ACCOUNT_DELAY=5000, // ms between two verification code request,
-  INVITE_USER_DELAY=5000, // ms between two user invitation
-  ACCESS_TOKEN_EXPIRATION=1200000, // ms before access token expiration
+  PUB_KEY = "-----BEGIN PUBLIC KEY-----\nMIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAaW4NpvoFJ6r0q4Cg5y4V9fTkk/RM\n+XYzFWST7bOog8k/5TBYvEHZoyHpsI/9KSQ6Bk0cjCeR9HuUvUW/PTQPu6YB61Wh\nwPVCjYEZKjPLiVJvo44Ck4fada/CBuSgwdTviU+SFUTU1v/nOy89IMjF4Wa0QjXw\ndL2UmIx6GiXqQYebdxw=\n-----END PUBLIC KEY-----", // ES512
+  PRV_KEY = "-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIAumGgZ9d0sD4A1Ch6vLWcF2ryd7o49Mz7F/bEHjYZcMRopsazPXzs\nDj+wZzoqCYE2uEXcl+1kS/hBsubqwZ+kLD+gBwYFK4EEACOhgYkDgYYABABpbg2m\n+gUnqvSrgKDnLhX19OST9Ez5djMVZJPts6iDyT/lMFi8QdmjIemwj/0pJDoGTRyM\nJ5H0e5S9Rb89NA+7pgHrVaHA9UKNgRkqM8uJUm+jjgKTh9p1r8IG5KDB1O+JT5IV\nRNTW/+c7Lz0gyMXhZrRCNfB0vZSYjHoaJepBh5t3HA==\n-----END EC PRIVATE KEY-----", // ES512
+  REFRESH_TOKEN_SECRET = "63959228FC8584C314ETGVC7H2441", // secret string
+  GOOGLE_ID = "xxxx.apps.googleusercontent.com`", // google app id (sso)
+  ALLOW_REGISTRATION = true, // can we register ?
+  PWD_REGEX = /^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})/, // accept which type of pwd
+  EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, // accept wich type of mail
+  ACCESS_COOKIE_NAME = 'another-cookie-name', // name of the accessToken cookie (share this with your others services)
+  REFRESH_COOKIE_NAME = 'a-cookie-name', // refresh cookie name (only used by auth)
+  COOKIE_DOMAIN = 'dev.local', // domain for the refresh
+  RESET_PASS_DELAY = 5000, // ms between two pwd reset code request
+  CONFIRM_ACCOUNT_DELAY = 5000, // ms between two verification code request,
+  INVITE_USER_DELAY = 5000, // ms between two user invitation
+  ACCESS_TOKEN_EXPIRATION = 1200000, // ms before access token expiration
   PLAYGROUND = false, // graphql playground
+  SOCKET = 'tcp://127.0.0.1:3001'
 } = process.env
 
 const env = {
@@ -86,6 +88,9 @@ const loggerMiddleware = async (ctx, next) => {
 // -----------------
 export default async crud => {
   debug('loading..')
+
+  const socketOps = await zeroSocket(SOCKET)
+
   const serverOpt = {
     schema,
     context: ({ ctx }) => {
@@ -97,16 +102,13 @@ export default async crud => {
       return buildContext({
         env: { ...env, IP: ctx.request.ip },
         crud,
-        event: { headers: ctx.headers, addCookie: addCookie(ctx) }
+        event: { headers: ctx.headers, addCookie: addCookie(ctx) },
+        socketOps
       })
     },
     playground: PLAYGROUND,
     formatError
   }
-
-  events.on(EVENTS.CONFIRM_EMAIL, a => { debug('Confirm mail %O', a) })
-  events.on(EVENTS.INVITE_USER, a => { debug('Invite user %O', a) })
-  events.on(EVENTS.RESET_PWD, a => { debug('Reset pwd %O', a) })
 
   new Koa()
     .use(cors(corsOpt))

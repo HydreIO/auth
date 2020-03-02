@@ -271,10 +271,10 @@ a string: `And you're full of gas!`
 ---
 
 # sendCode
-Ask a code to perform different actions and then notify SNS topics below
+Ask a code to perform different actions and then send a zmq socket message
 
-- **CONFIRM_EMAIL**: `${LABEL}:auth:confirm_mail` will be notified
-- **RESET_PWD**: `${LABEL}:auth:reset_pass` wil be notified
+- **CONFIRM_EMAIL**: `['CONFIRM_EMAIL', 'TO', 'CODE']` will be notified
+- **RESET_PWD**: `['RESET_PWD', 'TO', 'CODE']` wil be notified
 
 > The auth doesn't say anything in case the mail doesn't correspond to any account
 
@@ -314,7 +314,9 @@ mail: String!
 ---
 
 # inviteUser
-Create an account for someone and notify SNS topic `${LABEL}:auth:invite_user`
+Create an account for someone and then send a zmq socket message
+
+- **CONFIRM_EMAIL**: `['INVITE_USER', 'TO', 'CODE']` will be notified
 
 ```graphql
 mutation {

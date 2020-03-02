@@ -91,23 +91,26 @@ Here are all the main options you can (and should) pass to your env
 | EMAIL_REGEX             | Regex (way too long)                                | Enforce mail policy                                                                                                                                           |
 | ACCESS_TOKEN_EXPIRATION | `1200000`                                           | Duration in milliseconds of an accessToken validity                                                                                                           |
 | LOCALHOST               | `false`                                             | Wether or not the auth is running in local, cookies are https only if the value is false                                                                      |
+| SOCKET                  | `tcp://127.0.0.1:3001`                              | ZeroMQ will bind here to send datas like password_reset etc.. (see [server usage](#server-usage))                                                             |
 
 ### Mongodb
 
-| Variable   | Default value               | Description              |
-| ---------- | --------------------------- | ------------------------ |
-| DATABASE   | `authentication`            | Mongo database name      |
-| COLLECTION | `users`                     | Mongo collection name    |
-| MONGO_URI  | `mongodb://localhost:27017` | Uri (mongodb+srv) format |
+| Variable   | Default value               | Description                      |
+| ---------- | --------------------------- | -------------------------------- |
+| DATABASE   | `authentication`            | Mongo database name              |
+| COLLECTION | `users`                     | Mongo collection name            |
+| MONGO_URI  | `mongodb://localhost:27017` | Uri (mongodb+srv) format         |
+| RETRIES    | `5`                         | max connection retries at launch |
 
 ### Bolt (Neoj4 & Memgraph)
 
-| Variable        | Default value           | Description                              |
-| --------------- | ----------------------- | ---------------------------------------- |
-| BOLT_URI        | `bolt://localhost:7687` | Bolt uri                                 |
-| BOLT_USER       | ``                      | Bolt user (empty string to disable auth) |
-| BOLT_PWD        | ``                      | Bolt pwd (empty string to disable auth)  |
-| BOLT_ENCRYPTION | `false`                 | SSL                                      |
+| Variable        | Default value           | Description                                                        |
+| --------------- | ----------------------- | ------------------------------------------------------------------ |
+| BOLT_URI        | `bolt://localhost:7687` | Bolt uri                                                           |
+| BOLT_USER       | ``                      | Bolt user (empty string to disable auth)                           |
+| BOLT_PWD        | ``                      | Bolt pwd (empty string to disable auth)                            |
+| BOLT_ENCRYPTION | `false`                 | SSL                                                                |
+| RETRIES         | `10`                    | max connection retries at launch (exponentials with 500ms initial) |
 
 ### RedisGraph
 
@@ -266,3 +269,63 @@ export const auth = async (ctx, next) => {
 	await next()
 }
 ```
+
+## Listen for ZeroMQ events
+
+The auth server doesn't implement email sending nor external computation. Instead it send you a msg over a configurablesocket binding.
+
+Here is a simple exemple on how to receive those messages and distribute them randomly against 3 workers
+
+```js
+import zmq from 'zeromq'
+import Debug from 'debug'
+
+const debug = Debug('worker')
+const socketAddress = 'tcp://127.0.0.1:3001'
+
+class Worker {
+  constructor(name) {
+    this.sock = new zmq.Pull
+    this.log = debug.extend(name)
+  }
+
+  async listen(socketAddress) {
+    this.sock.connect(socketAddress)
+    this.log('is online!')
+    for await (const [key, ...rest] of this.sock) {
+      const datas = rest.map(v => v.toString())
+      switch (key.toString()) {
+        case 'INVITE_USER':
+          const [from, to, code] = datas
+          break
+        case 'CONFIRM_EMAIL':
+          const [to, code] = datas
+          break
+        case 'RESET_PWD':
+          const [to, code] = datas
+          break
+      }
+
+    }
+    this.log('is offline...')
+  }
+}
+
+void async function() {
+  const workers = [new Worker('A'), new Worker('B'), new Worker('C')]
+  await Promise.all(workers.map(w => w.listen()))
+}()
+```
+
+They possible keys are :
+
+- `INVITE_USER` which notify that you should send an email to the invited user to welcome him
+  - `from` is the mail of the personne who invited the user
+  - `to` is the invited user mail
+  - `code` is the reset code of the invited user
+- `CONFIRM_EMAIL` which notify that you should send an email to the user allowing him to confirm his email
+  - `to` is the user mail
+  - `code` is the confirm code of the user
+- `RESET_PWD` which notify that you should send an email to the user allowing him to reset his pwd
+  - `to` is the user mail
+  - `code` is the reset code of the user

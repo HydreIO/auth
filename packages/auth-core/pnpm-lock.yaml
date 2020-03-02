@@ -12,6 +12,7 @@ dependencies:
   project-version: 1.2.0
   ua-parser-js: 0.7.21
   uuid: 7.0.1
+  zeromq: 6.0.0-beta.6
 lockfileVersion: 5.1
 packages:
   /@apollo/protobufjs/1.0.3:
@@ -1326,6 +1327,11 @@ packages:
       node: '>= 4.5.0'
     resolution:
       integrity: sha512-G6RlQt5Sb4GMBzXvhfkeFmbqR6MzhtnT7VTHuLadjkii3rdYHNdw0m8zA4BTxVIh68FicCQ2NSUANpsqkr9jvQ==
+  /node-gyp-build/4.2.0:
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-4oiumOLhCDU9Rronz8PZ5S4IvT39H5+JEv/hps9V8s7RSLhsac0TCP78ulnHXOo8X1wdpPiTayGlM1jr4IbnaQ==
   /normalize-package-data/2.5.0:
     dependencies:
       hosted-git-info: 2.8.7
@@ -1730,6 +1736,15 @@ packages:
     dev: false
     resolution:
       integrity: sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
+  /zeromq/6.0.0-beta.6:
+    dependencies:
+      node-gyp-build: 4.2.0
+    dev: false
+    engines:
+      node: '>= 10.2'
+    requiresBuild: true
+    resolution:
+      integrity: sha512-wLf6M7pBHijl+BRltUL2VoDpgbQcOZetiX8UzycHL8CcYFxYnRrpoG5fi3UX3+Umavz1lk4/dGaQez8qiDgr/Q==
 specifiers:
   '@koa/cors': ^3.0.0
   apollo-server-koa: ^2.10.1
@@ -1744,3 +1759,4 @@ specifiers:
   project-version: ^1.2.0
   ua-parser-js: ^0.7.21
   uuid: ^7.0.1
+  zeromq: 6.0.0-beta.6

@@ -1,7 +1,5 @@
 import { signJwt, buildJwtOptions } from '../../core/tokens'
 import crypto from 'crypto'
-import events from '../../core/utils/events'
-import { EVENTS } from '../../core/utils/constant'
 import { hash } from '../../core/utils/crypt'
 import { TooManyRequestError, BadMailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
 import uuidv4 from 'uuid/v4'
@@ -34,7 +32,7 @@ export const confirmMail = async (_, { mail, code }, { getUser, env, crud: { fet
 	return `You're one with the force`
 }
 
-export const inviteUser = async (_, { mail }, { getUser, crud: { existByMail, pushByUid }, env: { PRV_KEY, LABEL, EMAIL_REGEX, INVITE_USER_DELAY } }) => {
+export const inviteUser = async (_, { mail }, { getUser, socketOps: { notifyInviteUser }, crud: { existByMail, pushByUid }, env: { PRV_KEY, LABEL, EMAIL_REGEX, INVITE_USER_DELAY } }) => {
 	debug('......inviting user %s', mail)
 	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await getUser()
@@ -51,12 +49,12 @@ export const inviteUser = async (_, { mail }, { getUser, crud: { existByMail, pu
 	debug('......presaving invited user')
 	await pushByUid(invited.uuid, invited)
 	const jwtOptions = buildJwtOptions('auth::service')(user.uuid)(user[Symbol.transient].sessionHash)('20s')
-	events.emit(EVENTS.INVITE_USER, { to: mail, code: resetCode })
+	await notifyInviteUser({ from: user.mail, to: mail, code: resetCode })
 	debug('......signing jwt')
 	return signJwt(PRV_KEY)(jwtOptions)({ uuid: invited.uuid, mail })
 }
 
-export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, crud: { pushByUid, fetchByMail } }) => {
+export const sendCode = async (_, { code, mail }, { socketOps: { notifyConfirmEmail, notifyResetPwd }, env: { LABEL, RESET_PASS_DELAY, CONFIRM_ACCOUNT_DELAY, EMAIL_REGEX }, crud: { pushByUid, fetchByMail } }) => {
 	debug('......asking code')
 	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await fetchByMail(mail)
@@ -72,7 +70,7 @@ export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DEL
 				if (!user.resetCode) user.resetCode = shaCode(mail)
 				user.lastResetMailSent = Date.now()
 				debug('......mailing reset code')
-				events.emit(EVENTS.RESET_PWD, { to: mail, code: user.resetCode })
+				await notifyResetPwd({ to: mail, code: user.resetCode })
 				debug('......updating user')
 				await pushByUid(user.uuid, user)
 				break
@@ -84,7 +82,7 @@ export const sendCode = async (_, { code, mail }, { env: { LABEL, RESET_PASS_DEL
 				if (!user.verificationCode) user.verificationCode = shaCode(mail)
 				user.lastVerifMailSent = Date.now()
 				debug('......mailing confirm code')
-				events.emit(EVENTS.CONFIRM_EMAIL, { to: mail, code: user.verificationCode })
+				await notifyConfirmEmail({ to: mail, code: user.verificationCode })
 				debug('......updating user')
 				await pushByUid(user.uuid, user)
 				break

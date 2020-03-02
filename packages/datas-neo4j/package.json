@@ -3,6 +3,7 @@
 	"main": "src/index.js",
 	"type": "module",
 	"dependencies": {
+		"backoff-rxjs": "^6.3.3",
 		"debug": "^4.1.1",
 		"neo4j-driver": "^4.0.1",
 		"rxjs": "^6.5.4"
