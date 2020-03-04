@@ -4,7 +4,7 @@
 	"type": "module",
 	"dependencies": {
 		"@koa/cors": "^3.0.0",
-		"apollo-server-koa": "^2.10.1",
+		"apollo-server-koa": "^2.11.0",
 		"bcryptjs": "^2.4.3",
 		"cookie": "^0.4.0",
 		"debug": "^4.1.1",
@@ -14,8 +14,9 @@
 		"koa": "^2.11.0",
 		"pretty-error": "^2.1.1",
 		"project-version": "^1.2.0",
+		"rxjs": "^6.5.4",
 		"ua-parser-js": "^0.7.21",
-		"uuid": "^7.0.1",
+		"uuid": "^7.0.2",
 		"zeromq": "6.0.0-beta.6"
 	}
 }

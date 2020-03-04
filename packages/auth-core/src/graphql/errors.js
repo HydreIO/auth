@@ -23,7 +23,8 @@ const CODES = {
 	GOOGLE_ID: 'GOOGLE_ID',
 	GOOGLE_EMAIL_NOT_GRANTED: 'GOOGLE_EMAIL_NOT_GRANTED',
 	GOOGLE_TOKEN: 'GOOGLE_TOKEN',
-	UNKNOW_CODE: 'UNKNOW_CODE'
+	UNKNOW_CODE: 'UNKNOW_CODE',
+	MAIL_SENDING_ERROR: 'MAIL_SENDING_ERROR'
 }
 
 const prettyError = new PrettyError()
@@ -36,6 +37,12 @@ export const formatError = error => {
 		message = 'Oops.. something went wrong! Contact us if this error persist !'
 	}
 	return { message, type }
+}
+
+export class MailNotSentError extends ApolloError {
+	constructor() {
+		super(`Mail service is unreachable, can't send any mails`, CODES.MAIL_SENDING_ERROR)
+	}
 }
 
 export class UnknowCodeError extends ApolloError {

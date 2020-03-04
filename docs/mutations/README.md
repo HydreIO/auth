@@ -305,11 +305,12 @@ mail: String!
 
 ## @throws
 
-| Error          | Why                                 |
-| -------------- | ----------------------------------- |
-| `SPAM`         | Wow slow down Barry Allen           |
-| `UNKNOW_CODE`  | When the code type is not supported |
-| `EMAIL_FORMAT` | when the mail format is invalid     |
+| Error                | Why                                 |
+| -------------------- | ----------------------------------- |
+| `SPAM`               | Wow slow down Barry Allen           |
+| `UNKNOW_CODE`        | When the code type is not supported |
+| `EMAIL_FORMAT`       | when the mail format is invalid     |
+| `MAIL_SENDING_ERROR` | when the mail could not be sent     |
 
 ---
 
@@ -335,13 +336,14 @@ The JWT `{ invitedId, mail }` of the invited user, or `null` if already exist
 
 ## @throws
 
-| Error            | Why                             |
-| ---------------- | ------------------------------- |
-| `COOKIES`        | when auth cookies are missing   |
-| `USER_INCORRECT` | when you doesn't exist :shrug:  |
-| `SPAM`           | Wow slow down Barry Allen       |
-| `SESSION`        | when the session is invalid     |
-| `EMAIL_FORMAT`   | when the mail format is invalid |
+| Error                | Why                             |
+| -------------------- | ------------------------------- |
+| `COOKIES`            | when auth cookies are missing   |
+| `USER_INCORRECT`     | when you doesn't exist :shrug:  |
+| `SPAM`               | Wow slow down Barry Allen       |
+| `SESSION`            | when the session is invalid     |
+| `EMAIL_FORMAT`       | when the mail format is invalid |
+| `MAIL_SENDING_ERROR` | when the mail could not be sent |
 
 ---
 
