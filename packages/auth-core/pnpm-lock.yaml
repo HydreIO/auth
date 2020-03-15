@@ -5,7 +5,7 @@ dependencies:
   cookie: 0.4.0
   debug: 4.1.1
   google-auth-library: 5.10.1
-  googleapis: 47.0.0
+  googleapis: 48.0.0
   jsonwebtoken: 8.5.1
   koa: 2.11.0
   pretty-error: 2.1.1
@@ -881,7 +881,7 @@ packages:
       node: '>=8.10.0'
     resolution:
       integrity: sha512-lPAJXYpZLvY4AZp57RWj1eUXS2D5LxS3y6W0n9Jbl6eKOWmyLgz99f84XVCxVnyq8DcgV/ZAxt1lpFEzGZkVvQ==
-  /googleapis/47.0.0:
+  /googleapis/48.0.0:
     dependencies:
       google-auth-library: 5.10.1
       googleapis-common: 3.2.1
@@ -889,7 +889,7 @@ packages:
     engines:
       node: '>=8.10.0'
     resolution:
-      integrity: sha512-+Fnjgcc3Na/rk57dwxqW1V0HJXJFjnt3aqFlckULqAqsPkmex/AyJJe6MSlXHC37ZmlXEb9ZtPGUp5ZzRDXpHg==
+      integrity: sha512-ysp0/GN1BdOC8no1M6Pn/jS445xLL/FiTRa+aYJXD/HhtWFb+NOlNSfHIVnLjlQZsCn6L4qj1EpOaM/979nnEw==
   /graphql-extensions/0.11.0:
     dependencies:
       '@apollographql/apollo-tools': 0.4.3
@@ -1761,7 +1761,7 @@ specifiers:
   cookie: ^0.4.0
   debug: ^4.1.1
   google-auth-library: ^5.10.1
-  googleapis: ^47.0.0
+  googleapis: ^48.0.0
   jsonwebtoken: ^8.5.1
   koa: ^2.11.0
   pretty-error: ^2.1.1

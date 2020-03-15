@@ -8,6 +8,8 @@
   "update:all": "pnpm recursive exec -- ncu -u",
   "prune:all": "pnpm recursive prune --prod",
   "install:all": "pnpm i -r",
-  "postversion": "git push && git push --tags"
+  "postversion": "git push && git push --tags",
+  "build:mongo": "docker build -t hydre/auth:local-mongo -f services/auth-server-mongo/Dockerfile .",
+  "build:neo": "docker build -t hydre/auth:local-bolt -f services/auth-server-neo4j/Dockerfile ."
  }
 }

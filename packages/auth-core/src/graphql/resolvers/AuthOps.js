@@ -91,11 +91,15 @@ export const sign = async (_, { provider, idToken }, { sso, crud, env, eventOps:
 
 export const signout = async (_, __, { eventOps: { removeCookies }, getUser, crud: { pushByUid }, userOps: { deleteSessionByHash } }) => {
 	debug('......loging out')
-	const user = await getUser({ canAccessTokenBeExpired: true, checkForCurrentSessionChanges: false })
-	debug('......deleting session')
-	deleteSessionByHash(user[Symbol.transient].session.hash)(user)
-	debug('......saving user')
-	await pushByUid(user.uuid, user)
+	try {
+		const user = await getUser({ canAccessTokenBeExpired: true, checkForCurrentSessionChanges: false })
+		debug('......deleting session')
+		deleteSessionByHash(user[Symbol.transient].session.hash)(user)
+		debug('......saving user')
+		await pushByUid(user.uuid, user)
+	} catch {
+		debug('......user not found, skipping session deletion')
+	}
 	debug('......removing cookies')
 	removeCookies()
 	return "Bye."

@@ -1,7 +1,7 @@
 dependencies:
   backoff-rxjs: 6.3.3_rxjs@6.5.4
   debug: 4.1.1
-  neo4j-driver: 4.0.1
+  neo4j-driver: 4.0.2
   rxjs: 6.5.4
 lockfileVersion: 5.1
 packages:
@@ -29,7 +29,7 @@ packages:
     dev: false
     resolution:
       integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
-  /neo4j-driver/4.0.1:
+  /neo4j-driver/4.0.2:
     dependencies:
       '@babel/runtime': 7.8.4
       rxjs: 6.5.4
@@ -37,7 +37,7 @@ packages:
       uri-js: 4.2.2
     dev: false
     resolution:
-      integrity: sha512-SqBhXyyyayVs5gV/6BrgdKbcmU5AsYQXkFAiYO74XAE8XPLJ1HVR/Hu4wjonAX7+70DsalkWEiFN1c6UaCVzlQ==
+      integrity: sha512-xQN4BZZsweaNNac7FDYAV6f/JybghwY3lk4fwblS8V5KQ+DBMPe4Pthh672mp+wEYZGyzPalq5CfpcBrWaZ4Gw==
   /punycode/2.1.1:
     dev: false
     engines:
@@ -73,5 +73,5 @@ packages:
 specifiers:
   backoff-rxjs: ^6.3.3
   debug: ^4.1.1
-  neo4j-driver: ^4.0.1
+  neo4j-driver: ^4.0.2
   rxjs: ^6.5.4

@@ -224,8 +224,8 @@ type AuthResponse {
 ---
 
 # signout
-!> require to be logged in
 Sign out the user by removing all cookies
+> also remove the session if the user is logged
 
 ```graphql
 mutation {
@@ -236,14 +236,6 @@ mutation {
 ```
 ## @return
 a string: `Bye!`
-## @throws
-
-| Error            | Why                                           |
-| ---------------- | --------------------------------------------- |
-| `COOKIES`        | when cookies are not found                    |
-| `USER_AGENT`     | when the user agent is invalid or not found   |
-| `USER_INCORRECT` | when the user is not found                    |
-| `SESSION`        | when the session doesn't exist or was revoked |
 
 ---
 

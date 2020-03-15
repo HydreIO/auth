@@ -40,7 +40,7 @@ type AuthOps {
 	# welcome sso
 	sign(provider: Provider!, idToken: String!): AuthResponse!
 	# see ya
-	signout: String @Auth(canAccessTokenBeExpired: true, checkForCurrentSessionChanges: false)
+	signout: String
 }
 
 type AuthResponse {
