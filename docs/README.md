@@ -26,6 +26,13 @@ Use your favorite database, we currently support
 - Memgraph
 - RedisGraph (can't be used yet as Redisgraph cypher support is not mature enough)
 
+Docker tags:
+
+- `hydre/auth:edge-mongo`
+- `hydre/auth:<version>-mongo`
+- `hydre/auth:edge-bolt` (neo4j & memgraph)
+- `hydre/auth:<version>-bolt`
+
 > if you need any help feel free to join the discord above to get a fast reply!
 
 ---
@@ -45,7 +52,7 @@ docker run -t \
   -e PORT=3000 \
   -e LOCALHOST=true \
   --network host \
-  hydre/auth:mongo-edge
+  hydre/auth:edge-mongo
 ```
 
 - **with Node >= 13.7 ☘️**

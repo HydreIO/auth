@@ -40,7 +40,7 @@ docker run -t \
   -e PORT=3000 \
   -e LOCALHOST=true \
   --network host \
-  hydre/auth:mongo-edge
+  hydre/auth:edge-mongo
 ```
 
 you can now execute graphql queries against `http://dev.local:3000`

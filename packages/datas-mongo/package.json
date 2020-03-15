@@ -4,7 +4,7 @@
 	"type": "module",
 	"dependencies": {
 		"debug": "^4.1.1",
-		"mongodb": "^3.5.4",
+		"mongodb": "^3.5.5",
 		"rxjs": "^6.5.4"
 	}
 }

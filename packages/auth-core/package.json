@@ -9,7 +9,7 @@
 		"cookie": "^0.4.0",
 		"debug": "^4.1.1",
 		"google-auth-library": "^5.10.1",
-		"googleapis": "^47.0.0",
+		"googleapis": "^48.0.0",
 		"jsonwebtoken": "^8.5.1",
 		"koa": "^2.11.0",
 		"pretty-error": "^2.1.1",
