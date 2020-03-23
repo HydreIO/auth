@@ -5,7 +5,7 @@ import { TooManyRequestError, BadMailFormatError, UnknowCodeError, BadPwdFormatE
 import uuidv4 from 'uuid/v4'
 import Debug from 'debug'
 
-const debug = Debug('internal').extend('me')
+const debug = Debug('auth').extend('me')
 
 const shaCode = mail => crypto.createHash('sha256').update(`${mail}${crypto.randomBytes(32).toString('hex')}`).digest('hex')
 

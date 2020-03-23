@@ -4,7 +4,7 @@ import uuid from 'uuid'
 import Debug from 'debug'
 
 const { v4: uuidv4 } = uuid
-const debug = Debug('internal').extend('authenticate')
+const debug = Debug('auth').extend('authenticate')
 
 export const signup = async (_, { creds: { mail, pwd, rememberMe = false } }, { env, eventOps: { parseUserAgent, sendAccessToken, sendRefreshToken }, crud: { existByMail, pushByUid }, userOps: { fromCredentials, loadSession, loadRefreshToken, loadAccessToken } }) => {
 	if (!env.ALLOW_REGISTRATION) throw new RegistrationDisabledError()

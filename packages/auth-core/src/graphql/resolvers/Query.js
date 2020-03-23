@@ -1,7 +1,7 @@
 import version from 'project-version'
 import Debug from 'debug'
 
-const debug = Debug('internal').extend('query')
+const debug = Debug('auth').extend('query')
 
 export const ping = () => 'subscribe to pewdiepie'
 export const cert = (_, __, { env: { PUB_KEY } }) => PUB_KEY

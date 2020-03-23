@@ -6,7 +6,7 @@ import { UserAgentError, InvalidAccessTokenError } from '../graphql/errors'
 import { verifyAccessToken, createRefreshToken, signJwt, buildJwtOptions } from './tokens'
 import Debug from 'debug'
 
-const debug = Debug('internal').extend('user')
+const debug = Debug('auth').extend('user')
 
 Symbol.transient = Symbol('transient')
 

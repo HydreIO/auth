@@ -6,7 +6,7 @@ import gal from 'google-auth-library'
 import Debug from 'debug'
 
 const { OAuth2Client } = gal
-const debug = Debug('internal').extend('context')
+const debug = Debug('auth').extend('context')
 const googleClient = new OAuth2Client(process.env.GOOGLE_ID)
 
 export const buildContext = ({ env, event, crud, socketOps }) => {
