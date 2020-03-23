@@ -99,6 +99,7 @@ Here are all the main options you can (and should) pass to your env
 | ACCESS_TOKEN_EXPIRATION | `1200000`                                           | Duration in milliseconds of an accessToken validity                                                                                                           |
 | LOCALHOST               | `false`                                             | Wether or not the auth is running in local, cookies are https only if the value is false                                                                      |
 | SOCKET                  | `tcp://127.0.0.1:3001`                              | ZeroMQ will bind here to send datas like password_reset etc.. (see [server usage](#server-usage))                                                             |
+| ORIGINS                 | `*`                                                 | Cors accepted origin regex, ex: to support `*.foo.bar` and `*.bar.baz` you can use `ORIGINS=".+\.foo\.bar;.+\.bar\.baz"`                                      |
 
 ### Mongodb
 
