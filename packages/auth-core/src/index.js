@@ -39,7 +39,8 @@ const {
   INVITE_USER_DELAY = 5000, // ms between two user invitation
   ACCESS_TOKEN_EXPIRATION = 1200000, // ms before access token expiration
   PLAYGROUND = false, // graphql playground
-  SOCKET = 'tcp://127.0.0.1:3001'
+  SOCKET = 'tcp://127.0.0.1:3001',
+  GRAPHQL_PATH = '/'
 } = process.env
 
 const env = {
@@ -113,6 +114,6 @@ export default async crud => {
   new Koa()
     .use(cors(corsOpt))
     .use(loggerMiddleware)
-    .use(new apolloKoa.ApolloServer(serverOpt).getMiddleware({ path: '/' }))
-    .listen(PORT, () => debug(`Now online! (:${PORT})`))
+    .use(new apolloKoa.ApolloServer(serverOpt).getMiddleware({ path: GRAPHQL_PATH }))
+    .listen(+PORT, () => debug(`🚀 Now online! (0.0.0.0:${+PORT}${GRAPHQL_PATH})`))
 }

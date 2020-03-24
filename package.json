@@ -4,6 +4,7 @@
  "scripts": {
   "start:mongo": "node --harmony --experimental-specifier-resolution=node services/auth-server-mongo/src/index.js",
   "start:neo": "node --harmony --experimental-specifier-resolution=node services/auth-server-neo4j/src/index.js",
+  "start:dgraph": "node --harmony --experimental-specifier-resolution=node services/auth-server-dgraph/src/index.js",
   "removeModules:all": "pnpm recursive exec -- rm -rf node_modules",
   "update:all": "pnpm recursive exec -- ncu -u",
   "prune:all": "pnpm recursive prune --prod",
