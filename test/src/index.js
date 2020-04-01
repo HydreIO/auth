@@ -9,9 +9,7 @@ import fetch_cookie from 'fetch-cookie/node-fetch'
 
 // initializing fetch-cookie
 fetch_cookie(fetch)
-
 const log = debug('test')
-
 const { defer, of, from } = rxjs
 const { concatMap, tap } = operators
 const { retryBackoff } = backoffs
