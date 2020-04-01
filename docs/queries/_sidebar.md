@@ -9,6 +9,5 @@
   * Queries
     * [- ping](queries/#ping)
     * [- cert](queries/#cert)
-    * [- stage](queries/#stage)
     * [- me](queries/#me)
   * [Mutations](mutations/#mutations)

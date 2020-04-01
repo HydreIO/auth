@@ -21,29 +21,6 @@ a string: `subscribe to pewdiepie`
 a string: The authentication public key
 
 ---
-
-# stage
-
-```graphql
-{
-  stage {
-    stage
-    version
-  }
-}
-```
-
-## @return
-```graphql
-type Stage {
-	# dev or prod
-	stage: String!
-	# x.x.x
-	version: String!
-}
-```
-
----
 # me
 !> require to be logged in
 

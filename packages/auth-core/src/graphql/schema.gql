@@ -47,7 +47,7 @@ type AuthResponse {
 	# you billy
 	user: User!
 	# was it a registration ?
-	newAccount : Boolean!
+	newAccount: Boolean!
 	# was it a non existing session ? usefull to implement security stuff
 	newSession: Boolean!
 }
