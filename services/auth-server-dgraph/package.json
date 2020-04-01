@@ -1,0 +1,9 @@
+{
+	"name": "@hydre/auth-server-koa-dgraph",
+	"main": "src/index.js",
+	"type": "module",
+	"dependencies": {
+		"@hydre/auth-core": "link:../../packages/auth-core",
+		"@hydre/datas-dgraph": "link:../../packages/datas-dgraph"
+	}
+}

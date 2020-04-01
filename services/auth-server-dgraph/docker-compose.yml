@@ -1,0 +1,20 @@
+version: "3.7"
+services:
+  auth:
+    build: .
+    environment:
+      LOCALHOST: true
+  zero:
+    image: dgraph/dgraph:latest
+    ports:
+      - 5080:5080
+      - 6080:6080
+    restart: never
+    command: dgraph zero --my=zero:5080
+  alpha:
+    image: dgraph/dgraph:latest
+    ports:
+      - 8080:8080
+      - 9080:9080
+    restart: never
+    command: dgraph alpha --my=server:7080 --lru_mb=2048 --zero=zero:5080

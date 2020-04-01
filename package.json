@@ -11,6 +11,7 @@
   "install:all": "pnpm i -r",
   "postversion": "git push && git push --tags",
   "build:mongo": "docker build -t hydre/auth:local-mongo -f services/auth-server-mongo/Dockerfile .",
-  "build:neo": "docker build -t hydre/auth:local-bolt -f services/auth-server-neo4j/Dockerfile ."
+  "build:neo": "docker build -t hydre/auth:local-bolt -f services/auth-server-neo4j/Dockerfile .",
+  "test": "node --harmony --experimental-specifier-resolution=node test/src/index.js"
  }
 }
