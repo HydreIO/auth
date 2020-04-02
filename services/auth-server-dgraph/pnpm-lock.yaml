@@ -1,7 +1,10 @@
 dependencies:
   '@hydre/auth-core': 'link:../../packages/auth-core'
   '@hydre/datas-dgraph': 'link:../../packages/datas-dgraph'
+devDependencies:
+  '@hydre/integration-tests': 'link:../../packages/integration-tests'
 lockfileVersion: 5.1
 specifiers:
   '@hydre/auth-core': 'link:../../packages/auth-core'
   '@hydre/datas-dgraph': 'link:../../packages/datas-dgraph'
+  '@hydre/integration-tests': 'link:../../packages/integration-tests'

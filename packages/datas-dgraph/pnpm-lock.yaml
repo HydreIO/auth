@@ -3,7 +3,6 @@ dependencies:
   debug: 4.1.1
   dgraph-js: 2.1.0
   grpc: 1.24.2
-  node-fetch: 2.6.0
   rxjs: 6.5.4
 lockfileVersion: 5.1
 packages:
@@ -211,12 +210,6 @@ packages:
     dev: false
     resolution:
       integrity: sha512-INOFj37C7k3AfaNTtX8RhsTw7qRy7eLET14cROi9+5HAVbbHuIWUHEauBv5qT4Av2tWasiTY1Jw6puUNqRJXQg==
-  /node-fetch/2.6.0:
-    dev: false
-    engines:
-      node: 4.x || >=6.0.0
-    resolution:
-      integrity: sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
   /number-is-nan/1.0.1:
     dev: false
     engines:
@@ -330,5 +323,4 @@ specifiers:
   debug: ^4.1.1
   dgraph-js: ^2.1.0
   grpc: ^1.24.2
-  node-fetch: ^2.6.0
   rxjs: ^6.5.4

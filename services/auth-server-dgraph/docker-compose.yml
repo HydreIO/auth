@@ -1,20 +1,34 @@
 version: "3.7"
+
 services:
   auth:
-    build: .
+    tty: true
+    image: hydre/auth:edge-dgraph
+    container_name: auth-dgraph
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      args:
+        NAME: dgraph
+    ports:
+      - 3615:3615
     environment:
-      LOCALHOST: true
+      LOCALHOST: "true"
+      DEBUG: "auth*"
+      DGRAPH_RPC_URI: "alpha:9080"
   zero:
     image: dgraph/dgraph:latest
+    container_name: dgraph_zero
     ports:
       - 5080:5080
       - 6080:6080
-    restart: never
+    restart: "no"
     command: dgraph zero --my=zero:5080
   alpha:
     image: dgraph/dgraph:latest
+    container_name: dgraph_alpha
     ports:
       - 8080:8080
       - 9080:9080
-    restart: never
+    restart: "no"
     command: dgraph alpha --my=server:7080 --lru_mb=2048 --zero=zero:5080

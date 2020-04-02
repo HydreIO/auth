@@ -66,10 +66,10 @@ const addNamespace = (object = {}, namespace) => Object.fromEntries(Object.entri
 export default ({ uri, maxRetries }) => {
   const clientStub = new dgraph.DgraphClientStub(uri, grpc.credentials.createInsecure())
   const client = new dgraph.DgraphClient(clientStub)
-  client.setDebugMode(true)
+  // client.setDebugMode(true)
   return {
     async connect() {
-      debug('initializing.. [maxRetries: %d]', maxRetries)
+      debug(`initializing.. [${uri}] [maxRetries: %d]`, maxRetries)
       let retried = 0
       await of(undefined).pipe(
         tap(() => debug('connecting to dgraph.. [%d]', ++retried)),
@@ -84,7 +84,7 @@ export default ({ uri, maxRetries }) => {
           op.setSchema(schema)
           await client.alter(op)
         })),
-        retryBackoff({ initialInterval: 500, maxRetries }),
+        retryBackoff({ initialInterval: 250, maxRetries }),
       ).toPromise().catch(e => {
         console.error(e)
         debug.extend('error')('unable to reach dgraph instance after %d tries.. exit', maxRetries)

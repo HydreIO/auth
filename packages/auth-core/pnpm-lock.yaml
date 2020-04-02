@@ -12,7 +12,7 @@ dependencies:
   project-version: 1.2.0
   rxjs: 6.5.4
   ua-parser-js: 0.7.21
-  uuid: 7.0.2
+  uuid: 7.0.3
   zeromq: 6.0.0-beta.6
 lockfileVersion: 5.1
 packages:
@@ -1742,11 +1742,11 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
-  /uuid/7.0.2:
+  /uuid/7.0.3:
     dev: false
     hasBin: true
     resolution:
-      integrity: sha512-vy9V/+pKG+5ZTYKf+VcphF5Oc6EFiu3W8Nv3P3zIh0EqVI80ZxOzuPfe9EHjkFNvf8+xuTHVeei4Drydlx4zjw==
+      integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
   /validate-npm-package-license/3.0.4:
     dependencies:
       spdx-correct: 3.1.0
@@ -1816,5 +1816,5 @@ specifiers:
   project-version: ^1.2.0
   rxjs: ^6.5.4
   ua-parser-js: ^0.7.21
-  uuid: ^7.0.2
+  uuid: ^7.0.3
   zeromq: 6.0.0-beta.6
