@@ -6,7 +6,7 @@ import { formatError } from './graphql/errors'
 import Koa from 'koa'
 import cors from '@koa/cors'
 import apolloKoa from 'apollo-server-koa'
-import zeroSocket from './core/io/socket'
+import { notifier, healthCheck } from './core/io/socket'
 import Debug from 'debug'
 
 // #################
@@ -22,7 +22,7 @@ const logDate = debug.extend('time')
 // Variables
 // -----------------
 const {
-  PORT = 3615, // app port
+  PORT = 3000, // app port
   ORIGINS = '*', // supported origins (regex)
   PUB_KEY = "-----BEGIN PUBLIC KEY-----\nMIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAaW4NpvoFJ6r0q4Cg5y4V9fTkk/RM\n+XYzFWST7bOog8k/5TBYvEHZoyHpsI/9KSQ6Bk0cjCeR9HuUvUW/PTQPu6YB61Wh\nwPVCjYEZKjPLiVJvo44Ck4fada/CBuSgwdTviU+SFUTU1v/nOy89IMjF4Wa0QjXw\ndL2UmIx6GiXqQYebdxw=\n-----END PUBLIC KEY-----", // ES512
   PRV_KEY = "-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIAumGgZ9d0sD4A1Ch6vLWcF2ryd7o49Mz7F/bEHjYZcMRopsazPXzs\nDj+wZzoqCYE2uEXcl+1kS/hBsubqwZ+kLD+gBwYFK4EEACOhgYkDgYYABABpbg2m\n+gUnqvSrgKDnLhX19OST9Ez5djMVZJPts6iDyT/lMFi8QdmjIemwj/0pJDoGTRyM\nJ5H0e5S9Rb89NA+7pgHrVaHA9UKNgRkqM8uJUm+jjgKTh9p1r8IG5KDB1O+JT5IV\nRNTW/+c7Lz0gyMXhZrRCNfB0vZSYjHoaJepBh5t3HA==\n-----END EC PRIVATE KEY-----", // ES512
@@ -39,7 +39,8 @@ const {
   INVITE_USER_DELAY = 5000, // ms between two user invitation
   ACCESS_TOKEN_EXPIRATION = 1200000, // ms before access token expiration
   PLAYGROUND = false, // graphql playground
-  SOCKET = 'tcp://127.0.0.1:3001',
+  SOCKET_NOTIFIER_ADDRESS = 'tcp://0.0.0.0:3001',
+  SOCKET_HEALTH_ADDRESS = 'tcp://0.0.0.0:3002',
   GRAPHQL_PATH = '/'
 } = process.env
 
@@ -90,7 +91,8 @@ const loggerMiddleware = async (ctx, next) => {
 export default async crud => {
   debug('loading..')
 
-  const socketOps = await zeroSocket(SOCKET)
+  const socketOps = await notifier(SOCKET_NOTIFIER_ADDRESS)
+  const health_check = healthCheck(SOCKET_READINESS_ADDRESS)
 
   const serverOpt = {
     schema,
@@ -116,4 +118,7 @@ export default async crud => {
     .use(loggerMiddleware)
     .use(new apolloKoa.ApolloServer(serverOpt).getMiddleware({ path: GRAPHQL_PATH }))
     .listen(+PORT, () => debug(`🚀 Now online! (0.0.0.0:${+PORT}${GRAPHQL_PATH})`))
+
+  // ready to accept queries
+  setTimeout(health_check.start, 1000)
 }
