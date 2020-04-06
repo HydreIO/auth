@@ -1,12 +1,11 @@
 import { buildContext } from './core/context'
 import { EVENTS } from './core/utils/constant'
-import events from './core/io/socket'
+import { notifier, healthCheck } from './core/io/socket'
 import schema from './graphql/index'
 import { formatError } from './graphql/errors'
 import Koa from 'koa'
 import cors from '@koa/cors'
 import apolloKoa from 'apollo-server-koa'
-import { notifier, healthCheck } from './core/io/socket'
 import Debug from 'debug'
 
 // #################
@@ -92,7 +91,7 @@ export default async crud => {
   debug('loading..')
 
   const socketOps = await notifier(SOCKET_NOTIFIER_ADDRESS)
-  const health_check = healthCheck(SOCKET_READINESS_ADDRESS)
+  const health_check = healthCheck(SOCKET_HEALTH_ADDRESS)
 
   const serverOpt = {
     schema,

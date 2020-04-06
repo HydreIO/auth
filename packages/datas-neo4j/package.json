@@ -6,6 +6,6 @@
 		"backoff-rxjs": "^6.3.3",
 		"debug": "^4.1.1",
 		"neo4j-driver": "^4.0.2",
-		"rxjs": "^6.5.4"
+		"rxjs": "^6.5.5"
 	}
 }

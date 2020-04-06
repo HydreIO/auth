@@ -5,8 +5,8 @@
 	"dependencies": {
 		"backoff-rxjs": "^6.3.3",
 		"debug": "^4.1.1",
-		"dgraph-js": "^2.1.0",
+		"dgraph-js": "^20.3.0",
 		"grpc": "^1.24.2",
-		"rxjs": "^6.5.4"
+		"rxjs": "^6.5.5"
 	}
 }

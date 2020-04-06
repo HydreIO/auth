@@ -1,41 +1,52 @@
-import graphql_request from 'graphql-request'
 import doubt from '@hydre/doubt'
 import rxjs from 'rxjs'
 import operators from 'rxjs/operators'
 import backoffs from 'backoff-rxjs'
 import debug from 'debug'
-import fetch from 'node-fetch'
-import fetch_cookie from 'fetch-cookie/node-fetch'
 import compose from 'docker-compose'
-import tap_spec from 'tap-spec'
+import tap_spec from 'tap-spec-emoji'
+import zmq from 'zeromq'
 
-// initializing fetch-cookie
-fetch_cookie(fetch)
 doubt.createStream().pipe(tap_spec()).pipe(process.stdout)
 
-const log = debug('test')
-const { defer, of, from } = rxjs
-const { concatMap, tap } = operators
+const log = debug('auth').extend('test')
+const log_docker = log.extend('docker')
+const log_tcp = log.extend('tcp')
+
+const { defer, of } = rxjs
+const { concatMap, concatMapTo, tap } = operators
 const { retryBackoff } = backoffs
-const { GraphQLClient } = graphql_request
+
+const health_address = 'tcp://0.0.0.0:3002'
+const socket_client = new zmq.Stream({ immediate: true, receiveTimeout: 300 })
+
+const authentication_up_and_running = async () => {
+  await of(socket_client.connect(health_address))
+    .pipe(
+      tap(() => { log_tcp('connecting..') }),
+      concatMapTo(defer(async () => await socket_client.receive())),
+      tap(() => log_tcp('health check succeeded')),
+      tap(() => { socket_client.disconnect(health_address) }),
+      retryBackoff({ initialInterval: 500, maxRetries: 10 })
+    ).toPromise()
+}
 
 export default async ({ compose_file, endpoint }) => {
-  const client = new GraphQLClient(endpoint, { credentials: 'include', mode: 'cors' })
-  const readiness_check = async () => { log('awaiting readiness..'); await client.request(/* GraphQL */ `{ ping }`) }
-  const query_certificate = async () => client.request(/* GraphQL */ `{ cert }`)
-  const query_whoami = async () => client.request(/* GraphQL */ `{ me { uuid } }`)
 
-  log('composing..')
-  await compose.upAll({ cwd: compose_file, log: true, commandOptions: ['--build'] })
+  log_docker('setting up containers..')
+  await compose.upAll({ cwd: compose_file, log: false, commandOptions: ['--build'] })
+
+  log_tcp('awaiting readiness..%O', health_address)
   // making sur the authentication is ready to be tested
-  await defer(readiness_check).pipe(retryBackoff({ initialInterval: 500, maxRetries: 10 })).toPromise()
+  await authentication_up_and_running()
+
   log('running tests..')
-  'Reach'.doubt(async () => {
-    await 'provide a valid certificate'.because(query_certificate).succeeds()
-    await 'fails to retrieve user when we are not authenticated'.because(query_whoami).fails()
-  })
+  process.env.ENDPOINT = endpoint
+  import('./tests')
+
+  log('cleaning up..')
   doubt.onEnd(async () => {
-    log('shutting down containers..')
-    await compose.down({ cwd: compose_file, log: true })
+    log.extend('docker')('shutting down containers..')
+    // await compose.down({ cwd: compose_file, log: true })
   })
 }
