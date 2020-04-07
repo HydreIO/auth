@@ -1,8 +1,8 @@
 dependencies:
-  backoff-rxjs: 6.3.3_rxjs@6.5.4
+  backoff-rxjs: 6.3.3_rxjs@6.5.5
   debug: 4.1.1
   neo4j-driver: 4.0.2
-  rxjs: 6.5.4
+  rxjs: 6.5.5
 lockfileVersion: 5.1
 packages:
   /@babel/runtime/7.8.4:
@@ -11,9 +11,9 @@ packages:
     dev: false
     resolution:
       integrity: sha512-neAp3zt80trRVBI1x0azq6c57aNBqYZH8KhMm3TaB7wEI5Q4A2SHfBHE8w9gOhI/lrqxtEbXZgQIrHP+wvSGwQ==
-  /backoff-rxjs/6.3.3_rxjs@6.5.4:
+  /backoff-rxjs/6.3.3_rxjs@6.5.5:
     dependencies:
-      rxjs: 6.5.4
+      rxjs: 6.5.5
     dev: false
     peerDependencies:
       rxjs: ^6.4.0
@@ -56,6 +56,14 @@ packages:
       npm: '>=2.0.0'
     resolution:
       integrity: sha512-naMQXcgEo3csAEGvw/NydRA0fuS2nDZJiw1YUWFKU7aPPAPGZEsD4Iimit96qwCieH6y614MCLYwdkrWx7z/7Q==
+  /rxjs/6.5.5:
+    dependencies:
+      tslib: 1.11.1
+    dev: false
+    engines:
+      npm: '>=2.0.0'
+    resolution:
+      integrity: sha512-WfQI+1gohdf0Dai/Bbmk5L5ItH5tYqm3ki2c5GdWhKjalzjg93N3avFjVStyZZz+A2Em+ZxKH5bNghw9UeylGQ==
   /text-encoding-utf-8/1.0.2:
     dev: false
     resolution:
@@ -74,4 +82,4 @@ specifiers:
   backoff-rxjs: ^6.3.3
   debug: ^4.1.1
   neo4j-driver: ^4.0.2
-  rxjs: ^6.5.4
+  rxjs: ^6.5.5

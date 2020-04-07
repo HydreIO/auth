@@ -122,12 +122,6 @@ export class SessionError extends ApolloError {
 	}
 }
 
-export class CSRFError extends ApolloError {
-	constructor() {
-		super('Invalid or missing csrf token in request', CODES.CSRF)
-	}
-}
-
 export class MailUsedError extends ApolloError {
 	constructor(mail) {
 		super(`The mail address ${mail} is already in use.`, CODES.EMAIL_USED)

@@ -6,7 +6,7 @@ const { LOCALHOST = false } = process.env
 
 const cookieOpt = {
 	httpOnly: true,
-	secure: `${LOCALHOST}`.toLowerCase() === 'false',
+	secure: `${LOCALHOST}`.toLowerCase() !== 'true',
 	sameSite: 'Strict',
 	path: '/'
 }

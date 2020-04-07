@@ -1,0 +1,13 @@
+{
+  "name": "@hydre/auth-server-dgraph",
+  "description": "A simple and fast authentication server built on KoaJS with a Graphql Api",
+  "main": "src/index,js",
+  "type": "module",
+  "dependencies": {
+    "@hydre/auth-core": "link:../../packages/auth-core",
+    "@hydre/datas-dgraph": "link:../../packages/datas-dgraph"
+  },
+  "devDependencies": {
+    "@hydre/integration-tests": "link:../../packages/integration-tests"
+  }
+}

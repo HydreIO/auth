@@ -80,13 +80,13 @@ type AuthResponse {
 ```
 ## @throws
 
-| Error                   | Why                                                  |
-| ----------------------- | ---------------------------------------------------- |
-| `USER_AGENT`            | when the user agent is invalid or not found          |
-| `REGISTRATION_DISABLED` | when the registratrion is not allowed                |
-| `PWD_FORMAT`            | when the password doesn't respect the allowed format |
-| `EMAIL_FORMAT`          | when the mail doesn't respect the allowed format     |
-| `EMAIL_USED`            | when the mail is already used                        |
+| Error                   | Error string                                  | Why                                                  |
+| ----------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| `USER_AGENT`            | `The user agent is invalid`                   | when the user agent is invalid or not found          |
+| `REGISTRATION_DISABLED` | `Registrations are currently disabled`        | when the registratrion is not allowed                |
+| `PWD_FORMAT`            | `Incorrect password format`                   | when the password doesn't respect the allowed format |
+| `EMAIL_FORMAT`          | `Incorrect mail format`                       | when the mail doesn't respect the allowed format     |
+| `EMAIL_USED`            | `The mail address ${mail} is already in use.` | when the mail is already used                        |
 
 ---
 
@@ -147,12 +147,12 @@ type AuthResponse {
 ```
 ## @throws
 
-| Error            | Why                                                  |
-| ---------------- | ---------------------------------------------------- |
-| `USER_AGENT`     | when the user agent is invalid or not found          |
-| `USER_INCORRECT` | when the credentials doesn't match any user          |
-| `PWD_FORMAT`     | when the password doesn't respect the allowed format |
-| `EMAIL_FORMAT`   | when the mail doesn't respect the allowed format     |
+| Error            | Error string                | Why                                                  |
+| ---------------- | --------------------------- | ---------------------------------------------------- |
+| `USER_AGENT`     | `The user agent is invalid` | when the user agent is invalid or not found          |
+| `USER_INCORRECT` | `User not found`            | when the credentials doesn't match any user          |
+| `PWD_FORMAT`     | `Incorrect password format` | when the password doesn't respect the allowed format |
+| `EMAIL_FORMAT`   | `Incorrect mail format`     | when the mail doesn't respect the allowed format     |
 
 ---
 
@@ -212,14 +212,14 @@ type AuthResponse {
 ```
 ## @throws
 
-| Error                      | Why                                                    |
-| -------------------------- | ------------------------------------------------------ |
-| `USER_AGENT`               | when the user agent is invalid or not found            |
-| `REGISTRATION_DISABLED`    | when the registratrion is not allowed                  |
-| `UNKNOW_PROVIDER`          | when the provider is not supported or incorrect        |
-| `GOOGLE_TOKEN`             | when there is something wrong with the google id token |
-| `GOOGLE_ID`                | when the google id is not found (provider error)       |
-| `GOOGLE_EMAIL_NOT_GRANTED` | when when the google mail is not granted               |
+| Error                      | Error string                                                      | Why                                                    |
+| -------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
+| `USER_AGENT`               | `The user agent is invalid`                                       | when the user agent is invalid or not found            |
+| `REGISTRATION_DISABLED`    | `Registrations are currently disabled`                            | when the registratrion is not allowed                  |
+| `UNKNOW_PROVIDER`          | `The provider ${provider} is not implemented`                     | when the provider is not supported or incorrect        |
+| `GOOGLE_TOKEN`             | `Google idToken invalid`                                          | when there is something wrong with the google id token |
+| `GOOGLE_ID`                | `Google user id not found`                                        | when the google id is not found (provider error)       |
+| `GOOGLE_EMAIL_NOT_GRANTED` | `Google user mail not found, app need to grant access in request` | when when the google mail is not granted               |
 
 ---
 
@@ -235,7 +235,7 @@ mutation {
 }
 ```
 ## @return
-a string: `Bye!`
+a string: `Bye.`
 
 ---
 
@@ -253,12 +253,13 @@ a string: `And you're full of gas!`
 
 ## @throws
 
-| Error            | Why                                           |
-| ---------------- | --------------------------------------------- |
-| `COOKIES`        | when auth cookies are missing                 |
-| `USER_INCORRECT` | when you doesn't exist :shrug:                |
-| `SESSION`        | when the session is invalid                   |
-| `REFRESH_TOKEN`  | when refresh token is invalid for the session |
+| Error            | Error string                                            | Why                                           |
+| ---------------- | ------------------------------------------------------- | --------------------------------------------- |
+| `USER_AGENT`     | `The user agent is invalid`                             | when the user agent is invalid or not found   |
+| `COOKIES`        | `Cookies are invalid or missing`                        | when auth cookies are missing                 |
+| `USER_INCORRECT` | `User not found`                                        | when you doesn't exist                        |
+| `SESSION`        | `The session doesn't exist, is expired, or was revoked` | when the session is invalid                   |
+| `REFRESH_TOKEN`  | `The refresh token is invalid`                          | when refresh token is invalid for the session |
 
 ---
 
@@ -297,12 +298,12 @@ mail: String!
 
 ## @throws
 
-| Error                | Why                                 |
-| -------------------- | ----------------------------------- |
-| `SPAM`               | Wow slow down Barry Allen           |
-| `UNKNOW_CODE`        | When the code type is not supported |
-| `EMAIL_FORMAT`       | when the mail format is invalid     |
-| `MAIL_SENDING_ERROR` | when the mail could not be sent     |
+| Error                | Error string                                        | Why                                 |
+| -------------------- | --------------------------------------------------- | ----------------------------------- |
+| `SPAM`               | `This request is protected against spam`            | Wow slow down Barry Allen           |
+| `UNKNOW_CODE`        | `This code doesn't exist`                           | When the code type is not supported |
+| `EMAIL_FORMAT`       | `Incorrect mail format`                             | when the mail format is invalid     |
+| `MAIL_SENDING_ERROR` | `Mail service is unreachable, can't send any mails` | when the mail could not be sent     |
 
 ---
 
@@ -328,14 +329,14 @@ The JWT `{ invitedId, mail }` of the invited user, or `null` if already exist
 
 ## @throws
 
-| Error                | Why                             |
-| -------------------- | ------------------------------- |
-| `COOKIES`            | when auth cookies are missing   |
-| `USER_INCORRECT`     | when you doesn't exist :shrug:  |
-| `SPAM`               | Wow slow down Barry Allen       |
-| `SESSION`            | when the session is invalid     |
-| `EMAIL_FORMAT`       | when the mail format is invalid |
-| `MAIL_SENDING_ERROR` | when the mail could not be sent |
+| Error                | Error string                                            | Why                             |
+| -------------------- | ------------------------------------------------------- | ------------------------------- |
+| `COOKIES`            | `Cookies are invalid or missing`                        | when auth cookies are missing   |
+| `USER_INCORRECT`     | `User not found`                                        | when you doesn't exist          |
+| `SPAM`               | `This request is protected against spam`                | Wow slow down Barry Allen       |
+| `SESSION`            | `The session doesn't exist, is expired, or was revoked` | when the session is invalid     |
+| `EMAIL_FORMAT`       | `Incorrect mail format`                                 | when the mail format is invalid |
+| `MAIL_SENDING_ERROR` | `Mail service is unreachable, can't send any mails`     | when the mail could not be sent |
 
 ---
 
@@ -366,10 +367,10 @@ a string: `You're one with the force`
 
 ## @throws
 
-| Error                       | Why                                                   |
-| --------------------------- | ----------------------------------------------------- |
-| `VERIFICATION_CODE_INVALID` | when the verification code is invalid or already used |
-| `EMAIL_FORMAT`              | when the mail format is invalid                       |
+| Error                       | Error string              | Why                                                   |
+| --------------------------- | ------------------------- | ----------------------------------------------------- |
+| `VERIFICATION_CODE_INVALID` | `This code doesn't exist` | when the verification code is invalid or already used |
+| `EMAIL_FORMAT`              | `Incorrect mail format`   | when the mail format is invalid                       |
 
 ---
 
@@ -402,8 +403,8 @@ resetCode: String!
 
 ## @throws
 
-| Error                | Why                                                  |
-| -------------------- | ---------------------------------------------------- |
-| `PWD_FORMAT`         | when the password doesn't respect the allowed format |
-| `RESET_CODE_INVALID` | when the reset code is invalid or already used       |
-| `EMAIL_FORMAT`       | when the mail format is invalid                      |
+| Error                | Error string                | Why                                                  |
+| -------------------- | --------------------------- | ---------------------------------------------------- |
+| `PWD_FORMAT`         | `Incorrect password format` | when the password doesn't respect the allowed format |
+| `RESET_CODE_INVALID` | `The reset code is invalid` | when the reset code is invalid or already used       |
+| `EMAIL_FORMAT`       | `Incorrect mail format`     | when the mail format is invalid                      |

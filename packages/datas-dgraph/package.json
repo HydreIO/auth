@@ -1,11 +1,12 @@
 {
-	"name": "@hydre/datas-redisgraph",
+	"name": "@hydre/datas-mongo",
 	"main": "src/index.js",
 	"type": "module",
 	"dependencies": {
-		"@hydre/rgraph": "^2.0.2",
+		"backoff-rxjs": "^6.3.3",
 		"debug": "^4.1.1",
-		"redis": "^3.0.2",
+		"dgraph-js": "^20.3.0",
+		"grpc": "^1.24.2",
 		"rxjs": "^6.5.5"
 	}
 }

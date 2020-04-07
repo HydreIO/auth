@@ -45,27 +45,27 @@ who are you ?
 ## @return
 ```graphql
 type User {
-	uuid: ID!
+  uuid: ID!
   mail: String!
-	sessions: [Session!]!
-	verified: Boolean!
+  sessions: [Session!]!
+  verified: Boolean!
 }
 ```
 ```graphql
 type Session {
-	ip: String!
-	browserName: String
-	osName: String
-	deviceModel: String
-	deviceType: String
-	deviceVendor: String
+  ip: String!
+  browserName: String
+  osName: String
+  deviceModel: String
+  deviceType: String
+  deviceVendor: String
 }
 ```
 
 ## @throws
 
-| Error | Why |
-|-------|-----|
-| `COOKIES` | when auth cookies are missing |
-| `USER_INCORRECT` | when you doesn't exist |
-| `SESSION` | when the session is invalid |
+| Error            | Error string                                            | Why                           |
+| ---------------- | ------------------------------------------------------- | ----------------------------- |
+| `COOKIES`        | `Cookies are invalid or missing`                        | when auth cookies are missing |
+| `USER_INCORRECT` | `User not found`                                        | when you doesn't exist        |
+| `SESSION`        | `The session doesn't exist, is expired, or was revoked` | when the session is invalid   |

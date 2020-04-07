@@ -36,7 +36,7 @@ export const signin = async (_, { creds: { mail, pwd, rememberMe = false } }, { 
 	debug('.......finding user matching %s', mail)
 	// user from database
 	const user = await fetchByMail(mail)
-	debug('.......verifying password hash')
+	debug('.......verifying user and password hash')
 	// verifying password
 	if (!user || !(await verify(pwd)(user.hash))) throw new UserNotFoundError()
 	debug('.......loading tokens')
@@ -73,7 +73,7 @@ export const sign = async (_, { provider, idToken }, { sso, crud, env, eventOps:
 	switch (provider) {
 		case "GOOGLE":
 			Object.assign(user, await signWithGoogle(idToken, sso, crud, env))
-			break;
+			break
 		default:
 			throw new UnknowProviderError()
 	}
