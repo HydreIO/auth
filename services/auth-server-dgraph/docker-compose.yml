@@ -12,9 +12,9 @@ services:
         NAME: dgraph
     network_mode: host
     # ports:
-      # - 3000:3000
-      # - 3001:3001
-      # - 3002:3002
+    # - 3000:3000
+    # - 3001:3001
+    # - 3002:3002
     environment:
       LOCALHOST: "true"
       DEBUG: "auth*"
@@ -24,8 +24,8 @@ services:
     container_name: dgraph_zero
     network_mode: host
     # ports:
-      # - 5080:5080
-      # - 6080:6080
+    # - 5080:5080
+    # - 6080:6080
     restart: "no"
     command: dgraph zero --my=localhost:5080
   alpha:
@@ -33,7 +33,7 @@ services:
     container_name: dgraph_alpha
     network_mode: host
     # ports:
-      # - 8080:8080
-      # - 9080:9080
+    # - 8080:8080
+    # - 9080:9080
     restart: "no"
     command: dgraph alpha --my=localhost:7080 --lru_mb=2048 --zero=localhost:5080

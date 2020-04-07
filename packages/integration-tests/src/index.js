@@ -47,6 +47,6 @@ export default async ({ compose_file, endpoint }) => {
   log('cleaning up..')
   doubt.onEnd(async () => {
     log.extend('docker')('shutting down containers..')
-    // await compose.down({ cwd: compose_file, log: true })
+    await compose.down({ cwd: compose_file, log: true })
   })
 }

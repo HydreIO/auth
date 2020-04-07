@@ -15,7 +15,6 @@
 <h3 align=center>A simple and fast authentication server built on KoaJS</h3>
 
 - Graphql API
-- Production ready (Almost)
 - Support multiple databases
 - ZeroMQ for cluster communication
 - Highly configurable
@@ -24,6 +23,7 @@
 Use your favorite database, we currently support
 
 - Mongodb
+- Dgraph
 - Neo4j
 - Memgraph
 - RedisGraph (can't be used yet as Redisgraph cypher support is not mature enough)

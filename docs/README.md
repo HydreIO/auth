@@ -30,6 +30,8 @@ Docker tags:
 
 - `hydre/auth:edge-mongo`
 - `hydre/auth:<version>-mongo`
+- `hydre/auth:edge-dgraph`
+- `hydre/auth:<version>-dgraph`
 - `hydre/auth:edge-bolt` (neo4j & memgraph)
 - `hydre/auth:<version>-bolt`
 
@@ -112,6 +114,13 @@ Here are all the main options you can (and should) pass to your env
 | COLLECTION | `users`                     | Mongo collection name            |
 | MONGO_URI  | `mongodb://localhost:27017` | Uri (mongodb+srv) format         |
 | RETRIES    | `5`                         | max connection retries at launch |
+
+### Dgraph
+
+| Variable       | Default value    | Description                                                                                          |
+| -------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| DGRAPH_RPC_URI | `localhost:9080` | Dgraph alpha uri (actually no support for multiple endpoint yet as it was first made for kubernetes) |
+| RETRIES        | `10`             | max connection retries at launch (exponentials with 500ms initial)                                   |
 
 ### Bolt (Neoj4 & Memgraph)
 

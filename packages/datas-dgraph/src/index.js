@@ -4,6 +4,7 @@ import operators from 'rxjs/operators'
 import dgraph from 'dgraph-js'
 import grpc from 'grpc'
 import backoffs from 'backoff-rxjs'
+import { inspect } from 'util'
 
 const debug = Debug('auth').extend('dgraph')
 const { of, from, defer } = rxjs
@@ -12,61 +13,46 @@ const { retryBackoff } = backoffs
 
 const schema = `
   type user {
-    user.uuid
-    user.mail
-    user.hash
-    user.verified
-    user.verificationCode
-    user.lastInvitationSent
-    user.sessions
+    uuid
+    mail
+    hash
+    verified
+    verificationCode
+    lastInvitationSent
+    sessions
   }
 
   type session {
-    session.ip
-    session.browserName
-    session.osName
-    session.deviceModel
-    session.deviceType
-    session.deviceVendor
-    session.refreshToken
+    ip
+    browserName
+    osName
+    deviceModel
+    deviceType
+    deviceVendor
+    refreshToken
+    hash
   }
 
-  user.uuid: string @index(exact) @upsert .
-  user.mail: string @index(exact) @upsert .
-  user.hash: string .
-  user.verified: bool .
-  user.verificationCode: string .
-  user.lastInvitationSent: float .
-  user.sessions: [uid] .
-
-  session.ip: string .
-  session.browserName: string .
-  session.osName: string .
-  session.deviceModel: string .
-  session.deviceType: string .
-  session.deviceVendor: string .
-  session.refreshToken: string .
+  uuid: string @index(exact) @upsert .
+  mail: string @index(exact) @upsert .
+  hash: string .
+  verified: bool .
+  verificationCode: string .
+  lastInvitationSent: float .
+  sessions: [uid] .
+  ip: string .
+  browserName: string .
+  osName: string .
+  deviceModel: string .
+  deviceType: string .
+  deviceVendor: string .
+  refreshToken: string .
 `
-
-/**
- * Dgraph use a global schema, we thus has to namespace our value using `foo.bar` instead of just `bar` inside the type `foo`
- * we here remove the namespace in case there is one, if not we just return the key (useful for Dgraph uid or non namespaced properties)
- * @param {Object} object the result
- */
-const removeNamespace = (object = {}) => {
-  const mapper = ([k, v]) => {
-    const key = k.split('.')[1]
-    return [key ?? k, v]
-  }
-  return Object.fromEntries(Object.entries(object).map(mapper))
-}
-
-const addNamespace = (object = {}, namespace) => Object.fromEntries(Object.entries(object).map(([k, v]) => [`${namespace}.${k}`, v]))
 
 export default ({ uri, maxRetries }) => {
   const clientStub = new dgraph.DgraphClientStub(uri, grpc.credentials.createInsecure())
   const client = new dgraph.DgraphClient(clientStub)
-  // client.setDebugMode(true)
+  client.setDebugMode(true)
   return {
     async connect() {
       debug(`initializing.. [${uri}] [maxRetries: %d]`, maxRetries)
@@ -84,7 +70,7 @@ export default ({ uri, maxRetries }) => {
           op.setSchema(schema)
           await client.alter(op)
         })),
-        retryBackoff({ initialInterval: 250, maxRetries }),
+        retryBackoff({ initialInterval: 500, maxRetries }),
       ).toPromise().catch(e => {
         console.error(e)
         debug.extend('error')('unable to reach dgraph instance after %d tries.. exit', maxRetries)
@@ -95,63 +81,76 @@ export default ({ uri, maxRetries }) => {
     crud: {
       async fetchByUid(uuid) {
         const query = `{
-          user(func: eq(user.uuid, "${uuid}")) {
-            user.uuid
-            user.mail
-            user.verified
-            user.sessions {
-              session.ip
-              session.browserName
-              session.osName
-              session.deviceModel
-              session.deviceType
-              session.deviceVendor
-              session.refreshToken
+          user(func: eq(uuid, "${uuid}")) {
+            uuid
+            mail
+            hash
+            verified
+            sessions {
+              ip
+              browserName
+              osName
+              deviceModel
+              deviceType
+              deviceVendor
+              refreshToken
+              hash
             }
           }
         }`
         const result = await client.newTxn().query(query)
         const { user } = result.getJson()
-        return removeNamespace(user[0])
+        debug('found %O', user[0].sessions)
+        return user[0]
       },
       async fetchByMail(mail) {
         const query = `{
-          user(func: eq(user.mail, "${mail}")) {
-            user.uuid
-            user.mail
-            user.verified
-            user.sessions {
-              session.ip
-              session.browserName
-              session.osName
-              session.deviceModel
-              session.deviceType
-              session.deviceVendor
-              session.refreshToken
+          user(func: eq(mail, "${mail}")) {
+            uuid
+            mail
+            hash
+            verified
+            sessions {
+              ip
+              browserName
+              osName
+              deviceModel
+              deviceType
+              deviceVendor
+              refreshToken
+              hash
             }
           }
         }`
         const result = await client.newTxn().query(query)
         const { user } = result.getJson()
-        return removeNamespace(user[0])
+        return user[0]
       },
       async existByMail(mail) {
-        const query = `{ user(func: eq(user.mail, "${mail}")) {} }`
+        const query = `{ user(func: eq(mail, "${mail}")) { count(uid) } }`
         const result = await client.newTxn().query(query)
         const { user } = result.getJson()
-        debug(user)
-        return !!user.length
+        return !!user[0].count
       },
       async pushByUid(uuid, user) {
-        const query = `{ user as var(func: eq(user.uuid, "${uuid}")) {} }`
-        const mutation = new dgraph.Mutation()
         const { sessions, ...userWithoutSessions } = user
+        const hashs = sessions.map(({ hash }) => `"${hash}"`)
+        const query = `
+        {
+          user as var(func: eq(uuid, "${uuid}")) {
+            user_sessions as sessions
+          }
+
+          outdated_session as var(func: uid(user_sessions)) @filter(NOT eq(hash, [${hashs.join()}])) {}
+        }`
+        const mutation = new dgraph.Mutation()
         mutation.setSetJson({
           uid: "uid(user)",
           ['dgraph.type']: 'user',
-          ...addNamespace(userWithoutSessions, 'user'),
-          ['user.sessions']: sessions.map(session => ({ ['dgraph.type']: 'session', ...addNamespace(session, 'session') }))
+          ...userWithoutSessions,
+          sessions: sessions.map(session => ({ ['dgraph.type']: 'session', ...session }))
         })
+        mutation.setDeleteJson({ uid: "uid(outdated_session)" })
         const req = new dgraph.Request()
         req.setQuery(query)
         req.setMutationsList([mutation])

@@ -1,10 +1,11 @@
 import graphql_request from 'graphql-request'
 import fetch from 'node-fetch'
 import fetch_cookie from 'fetch-cookie/node-fetch'
+import tough from 'tough-cookie'
 import debug from 'debug'
 
 // initializing fetch-cookie
-fetch_cookie(fetch)
+global['fetch'] = fetch_cookie(fetch, new tough.CookieJar(new tough.MemoryCookieStore(), { rejectPublicSuffixes: false, allowSpecialUseDomain: true }))
 
 const { GraphQLClient } = graphql_request
 const client = new GraphQLClient(process.env.ENDPOINT, {
@@ -15,7 +16,7 @@ const client = new GraphQLClient(process.env.ENDPOINT, {
 
 export const queries = {
   certificate: async () => client.request(/* GraphQL */ `{ cert }`),
-  me: async () => client.request(/* GraphQL */ `{ me { uuid } }`)
+  me: async () => client.request(/* GraphQL */ `{ me { uuid mail } }`)
 }
 
 export const mutations = {
@@ -25,7 +26,7 @@ export const mutations = {
       authenticate {
         signup(creds: $creds) {
           user {
-            uuid
+            mail
           }
           newAccount
         }
@@ -33,5 +34,28 @@ export const mutations = {
     }
     `
     return client.request(mutation, { creds })
+  },
+  signout: async () => client.request(/* GraphQL */ `
+  mutation {
+    authenticate {
+      signout
+    }
   }
+  `),
+  signin: async creds => {
+    const mutation = /* GraphQL */`
+    mutation ($creds: Creds!) {
+      authenticate {
+        signin(creds: $creds) {
+          user {
+            mail
+          }
+          newAccount
+        }
+      }
+    }
+    `
+    return client.request(mutation, { creds })
+  },
+  refresh: async () => client.request(/* GraphQL */ `mutation { me { refresh } }`)
 }
