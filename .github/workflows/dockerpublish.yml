@@ -11,23 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: echo
+        run: |
+          echo "${{ github.ref }}"
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          echo $VERSION
+          VERSION=$(echo $VERSION | sed -e 's/^v//')
+          echo $VERSION
       - name: Run tests
         run: |
           export DEBUG="auth*"
-          npm run test:dgraph
+          npm i -g pnpm
+          pnpm run install:all
+          pnpm run test:dgraph
   push:
     # Ensure test job passes before pushing image.
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: echo
-        run: |
-          echo "${{ github.ref }}" 
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          echo $VERSION
-          VERSION=$(echo $VERSION | sed -e 's/^v//')
-          echo $VERSION
       - name: Log into registry
         run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u sceat --password-stdin
 #       - name: Publish edge
