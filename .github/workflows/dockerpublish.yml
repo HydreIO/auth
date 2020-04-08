@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 13.12
       - name: echo
         run: |
           echo "${{ github.ref }}"
@@ -19,11 +22,10 @@ jobs:
           VERSION=$(echo $VERSION | sed -e 's/^v//')
           echo $VERSION
       - name: Run tests
-        run: |
-          export DEBUG="auth*"
-          npm i -g pnpm
-          pnpm run install:all
-          pnpm run test:dgraph
+        run: export DEBUG="auth*"
+        run: npm i -g pnpm
+        run: pnpm run install:all
+        run: pnpm run test:dgraph
   push:
     # Ensure test job passes before pushing image.
     needs: test
