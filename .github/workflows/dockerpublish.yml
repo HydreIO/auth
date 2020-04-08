@@ -12,8 +12,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Log into registry
         run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u sceat --password-stdin
+      - run: echo github.ref
       - name: Publish edge
-        if: github.ref == 'master'
+        if: github.ref == "master"
         run: |
           docker build . --tag hydre/auth:edge-mongo --build-arg mongo
           docker build . --tag hydre/auth:edge-bolt --build-arg bolt
