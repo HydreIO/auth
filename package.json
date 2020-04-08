@@ -1,6 +1,6 @@
 {
 	"name": "@hydre/auth",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"scripts": {
 		"start:mongo": "node --harmony --experimental-specifier-resolution=node services/auth-server-mongo/src/index.js",
 		"start:neo": "node --harmony --experimental-specifier-resolution=node services/auth-server-neo4j/src/index.js",
