@@ -16,7 +16,7 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: |
           docker build --tag hydre/auth:edge-mongo --build-arg NAME=mongo .
-          docker build --tag hydre/auth:edge-bolt --build-arg NAME=bolt .
+          docker build --tag hydre/auth:edge-bolt --build-arg NAME=neo4j .
           docker build --tag hydre/auth:edge-dgraph --build-arg NAME=dgraph .
       - name: Publish stable
         if: startsWith(github.ref, 'refs/tags/')
@@ -24,5 +24,5 @@ jobs:
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           VERSION=$(echo $VERSION | sed -e 's/^v//')
           docker build --tag hydre/auth:${VERSION}-mongo --build-arg NAME=mongo .
-          docker build --tag hydre/auth:${VERSION}-bolt --build-arg NAME=bolt .
+          docker build --tag hydre/auth:${VERSION}-bolt --build-arg NAME=neo4j .
           docker build --tag hydre/auth:${VERSION}-dgraph --build-arg NAME=dgraph .
