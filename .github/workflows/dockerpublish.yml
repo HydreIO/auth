@@ -34,14 +34,14 @@ jobs:
       - name: Log in to docker hub
         run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u sceat --password-stdin
       - name: Build stable mongo
-        run: docker build --tag hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-mongo --build-arg NAME=mongo .
-      - name: Build hydre/auth:edge-neo4j
-        run: docker build --tag hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-bolt --build-arg NAME=neo4j .
-      - name: Build hydre/auth:edge-dgraph
-        run: docker build --tag hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-dgraph --build-arg NAME=dgraph .
-      - name: Publish hydre/auth:edge-mongo
-        run: docker push hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-mongo
-      - name: Publish hydre/auth:edge-neo4j
-        run: docker push hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-bolt
-      - name: Publish hydre/auth:edge-dgraph
-        run: docker push hydre/auth:${$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')}-dgraph
+        run: docker build --tag hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-mongo --build-arg NAME=mongo .
+      - name: Build stable neo4j
+        run: docker build --tag hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-bolt --build-arg NAME=neo4j .
+      - name: Build stable dgraph
+        run: docker build --tag hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-dgraph --build-arg NAME=dgraph .
+      - name: Publish stable mongo
+        run: docker push hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-mongo
+      - name: Publish stable neo4j
+        run: docker push hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-bolt
+      - name: Publish stable dgraph
+        run: docker push hydre/auth:$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-dgraph
