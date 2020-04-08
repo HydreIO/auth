@@ -4,7 +4,7 @@
   "main": "src/index.js",
   "type": "module",
   "dependencies": {
-    "@hydre/doubt": "^2.0.5",
+    "@hydre/doubt": "^2.0.6",
     "backoff-rxjs": "^6.3.3",
     "casual": "^1.6.2",
     "debug": "^4.1.1",

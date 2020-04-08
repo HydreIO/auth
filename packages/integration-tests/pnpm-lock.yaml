@@ -1,5 +1,5 @@
 dependencies:
-  '@hydre/doubt': 2.0.5
+  '@hydre/doubt': 2.0.6
   backoff-rxjs: 6.3.3_rxjs@6.5.5
   casual: 1.6.2
   debug: 4.1.1
@@ -14,7 +14,7 @@ dependencies:
   zeromq: 6.0.0-beta.6
 lockfileVersion: 5.1
 packages:
-  /@hydre/doubt/2.0.5:
+  /@hydre/doubt/2.0.6:
     dependencies:
       callsites: 3.1.0
       colors: 1.4.0
@@ -25,7 +25,7 @@ packages:
     dev: false
     hasBin: true
     resolution:
-      integrity: sha512-02yatRlbVq9smUjZj3SxG17cJC1I4esEM0i1BTwj6fAJOL3+S4uB6JGkCn3TIyzZzU8SyByFKY/AeFskJegt8Q==
+      integrity: sha512-rwrb/K7i0FulJVMpTbfmiAux3/xd2kreRmhDvvofPq3W0/IOdClVFFqDaae9WRK0KmU1Ky1NruGLM1BtYDbyKA==
   /ansi-regex/2.1.1:
     dev: false
     engines:
@@ -483,7 +483,7 @@ packages:
     resolution:
       integrity: sha512-wLf6M7pBHijl+BRltUL2VoDpgbQcOZetiX8UzycHL8CcYFxYnRrpoG5fi3UX3+Umavz1lk4/dGaQez8qiDgr/Q==
 specifiers:
-  '@hydre/doubt': ^2.0.5
+  '@hydre/doubt': ^2.0.6
   backoff-rxjs: ^6.3.3
   casual: ^1.6.2
   debug: ^4.1.1
