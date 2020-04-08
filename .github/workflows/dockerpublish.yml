@@ -6,23 +6,7 @@ on:
     tags:
       - v*
 jobs:
-  # Run tests.
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 13.12
-      - name: Installing pnpm
-        run: npm i -g pnpm
-      - name: Installing workspace dependencies
-        run: pnpm run install:all
-      - name: Running tests
-        run: DEBUG="auth*" pnpm run test:dgraph
   push:
-    # Ensure test job passes before pushing image.
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
