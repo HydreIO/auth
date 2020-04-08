@@ -24,8 +24,8 @@ Use your favorite database, we currently support
 
 - Mongodb
 - Dgraph
-- Neo4j
-- Memgraph
+- Neo4j (bolt)
+- Memgraph (bolt)
 - RedisGraph (can't be used yet as Redisgraph cypher support is not mature enough)
 
 > if you need any help feel free to join the discord above to get a fast reply!
