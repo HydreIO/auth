@@ -21,10 +21,10 @@ jobs:
           echo $VERSION
           VERSION=$(echo $VERSION | sed -e 's/^v//')
           echo $VERSION
+      - run: export DEBUG="auth*"
+      - run: npm i -g pnpm
+      - run: pnpm run install:all
       - name: Run tests
-        run: export DEBUG="auth*"
-        run: npm i -g pnpm
-        run: pnpm run install:all
         run: pnpm run test:dgraph
   push:
     # Ensure test job passes before pushing image.
