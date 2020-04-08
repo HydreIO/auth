@@ -36,7 +36,7 @@ jobs:
       - name: Define version
         run: |
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          VERSION=$(echo $VERSION | sed -e 's/^v//')
+          export VERSION=$(echo $VERSION | sed -e 's/^v//')
       - name: Build stable mongo
         run: docker build --tag hydre/auth:${VERSION}-mongo --build-arg NAME=mongo .
       - name: Build hydre/auth:edge-neo4j
