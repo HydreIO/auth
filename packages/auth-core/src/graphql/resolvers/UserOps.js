@@ -4,6 +4,7 @@ import { hash } from '../../core/utils/crypt'
 import { TooManyRequestError, BadMailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
 import uuidv4 from 'uuid/v4'
 import Debug from 'debug'
+import ms from 'ms'
 
 const debug = Debug('auth').extend('me')
 
@@ -37,7 +38,7 @@ export const inviteUser = async (_, { mail }, { getUser, socketOps: { notifyInvi
 	if (!mail.match(EMAIL_REGEX)) throw new BadMailFormatError()
 	const user = await getUser()
 	// allowing this query only once every X ms
-	if (user.lastInvitationSent + INVITE_USER_DELAY > Date.now()) throw new TooManyRequestError()
+	if (user.lastInvitationSent + ms(INVITE_USER_DELAY) > Date.now()) throw new TooManyRequestError()
 	user.lastInvitationSent = Date.now()
 	// updating user to prevent query spaming
 	await pushByUid(user.uuid, user)
@@ -65,7 +66,7 @@ export const sendCode = async (_, { code, mail }, { socketOps: { notifyConfirmEm
 		switch (code) {
 			case 'RESET_PWD':
 				// allowing this query only once every X ms
-				if (user.lastResetMailSent + RESET_PASS_DELAY > Date.now()) throw new TooManyRequestError()
+				if (user.lastResetMailSent + ms(RESET_PASS_DELAY) > Date.now()) throw new TooManyRequestError()
 				// if the code already exist we retrieve it, if not we create a new one
 				if (!user.resetCode) user.resetCode = shaCode(mail)
 				user.lastResetMailSent = Date.now()
@@ -77,7 +78,7 @@ export const sendCode = async (_, { code, mail }, { socketOps: { notifyConfirmEm
 			case 'CONFIRM_EMAIL':
 				// allowing this query only once every X ms
 				if (user.verified) return `You're verified already billy!`
-				if (user.lastVerifMailSent + CONFIRM_ACCOUNT_DELAY > Date.now()) throw new TooManyRequestError()
+				if (user.lastVerifMailSent + ms(CONFIRM_ACCOUNT_DELAY) > Date.now()) throw new TooManyRequestError()
 				// if the code already exist we retrieve it, if not we create a new one
 				if (!user.verificationCode) user.verificationCode = shaCode(mail)
 				user.lastVerifMailSent = Date.now()

@@ -8,6 +8,7 @@ dependencies:
   googleapis: 48.0.0
   jsonwebtoken: 8.5.1
   koa: 2.11.0
+  ms: 2.1.2
   pretty-error: 2.1.1
   project-version: 1.2.0
   rxjs: 6.5.5
@@ -1819,6 +1820,7 @@ specifiers:
   googleapis: ^48.0.0
   jsonwebtoken: ^8.5.1
   koa: ^2.11.0
+  ms: ^2.1.2
   pretty-error: ^2.1.1
   project-version: ^1.2.0
   rxjs: ^6.5.5

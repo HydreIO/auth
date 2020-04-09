@@ -33,10 +33,10 @@ const {
   ACCESS_COOKIE_NAME = 'another-cookie-name', // name of the accessToken cookie (share this with your others services)
   REFRESH_COOKIE_NAME = 'a-cookie-name', // refresh cookie name (only used by auth)
   COOKIE_DOMAIN = '.dev.local', // domain for the refresh
-  RESET_PASS_DELAY = 5000, // ms between two pwd reset code request
-  CONFIRM_ACCOUNT_DELAY = 5000, // ms between two verification code request,
-  INVITE_USER_DELAY = 5000, // ms between two user invitation
-  ACCESS_TOKEN_EXPIRATION = 1200000, // ms before access token expiration
+  RESET_PASS_DELAY = '5s', // zeit/ms between two pwd reset code request
+  CONFIRM_ACCOUNT_DELAY = '5s', // zeit/ms between two verification code request,
+  INVITE_USER_DELAY = '5s', // zeit/ms between two user invitation
+  ACCESS_TOKEN_EXPIRATION = '20m', // ms before access token expiration
   PLAYGROUND = false, // graphql playground
   SOCKET_NOTIFIER_ADDRESS = 'tcp://0.0.0.0:3001',
   SOCKET_HEALTH_ADDRESS = 'tcp://0.0.0.0:3002',
@@ -55,9 +55,9 @@ const env = {
   ALLOW_REGISTRATION: `${ALLOW_REGISTRATION}`.toLowerCase() === 'true',
   PWD_REGEX: new RegExp(PWD_REGEX),
   EMAIL_REGEX: new RegExp(EMAIL_REGEX),
-  RESET_PASS_DELAY: +RESET_PASS_DELAY,
-  CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY,
-  INVITE_USER_DELAY: +INVITE_USER_DELAY
+  RESET_PASS_DELAY,
+  CONFIRM_ACCOUNT_DELAY,
+  INVITE_USER_DELAY
 }
 
 // #################

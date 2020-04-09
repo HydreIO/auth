@@ -66,7 +66,7 @@ const loadRefreshToken = ({ REFRESH_TOKEN_SECRET }) => user => {
 }
 
 const loadAccessToken = ({ ACCESS_TOKEN_EXPIRATION, PRV_KEY }) => user => {
-	const opt = buildJwtOptions('auth::service')(user.uuid)(user[Symbol.transient].session.hash)(`${ACCESS_TOKEN_EXPIRATION}`) // zeit https://github.com/zeit/ms
+	const opt = buildJwtOptions('auth::service')(user.uuid)(user[Symbol.transient].session.hash)(ACCESS_TOKEN_EXPIRATION) // zeit https://github.com/zeit/ms
 	user[Symbol.transient].accessToken = signJwt(PRV_KEY)(opt)({ mail: user.mail, verified: user.verified })
 	return user
 }
