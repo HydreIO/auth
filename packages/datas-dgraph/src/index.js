@@ -11,44 +11,6 @@ const { of, from, defer } = rxjs
 const { concatMapTo, tap } = operators
 const { retryBackoff } = backoffs
 
-const schema = `
-  type user {
-    uuid
-    mail
-    hash
-    verified
-    verificationCode
-    lastInvitationSent
-    sessions
-  }
-
-  type session {
-    ip
-    browserName
-    osName
-    deviceModel
-    deviceType
-    deviceVendor
-    refreshToken
-    hash
-  }
-
-  uuid: string @index(exact) @upsert .
-  mail: string @index(exact) @upsert .
-  hash: string .
-  verified: bool .
-  verificationCode: string .
-  lastInvitationSent: float .
-  sessions: [uid] .
-  ip: string .
-  browserName: string .
-  osName: string .
-  deviceModel: string .
-  deviceType: string .
-  deviceVendor: string .
-  refreshToken: string .
-`
-
 export default ({ uri, maxRetries }) => {
   const clientStub = new dgraph.DgraphClientStub(uri, grpc.credentials.createInsecure())
   const client = new dgraph.DgraphClient(clientStub)
@@ -59,11 +21,6 @@ export default ({ uri, maxRetries }) => {
       await of(undefined).pipe(
         tap(() => debug('connecting to dgraph.. [%d]', ++retried)),
         concatMapTo(defer(async () => await client.newTxn().query('{ a() {} }'))),
-        concatMapTo(defer(async () => {
-          const op = new dgraph.Operation()
-          op.setSchema(schema)
-          await client.alter(op)
-        })),
         retryBackoff({ initialInterval: 500, maxRetries }),
       ).toPromise().catch(e => {
         console.error(e)

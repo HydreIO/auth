@@ -123,6 +123,46 @@ Here are all the main options you can (and should) pass to your env
 | DGRAPH_RPC_URI | `localhost:9080` | Dgraph alpha uri (actually no support for multiple endpoint yet as it was first made for kubernetes) |
 | RETRIES        | `10`             | max connection retries at launch (exponentials with 500ms initial)                                   |
 
+The auth will not manage the dgraph schema for you as it would conflict with your others service, here is what you need to allow in order for this package to work
+
+```graphql
+type user {
+  uuid
+  mail
+  hash
+  verified
+  verificationCode
+  lastInvitationSent
+  sessions
+}
+
+type session {
+  ip
+  browserName
+  osName
+  deviceModel
+  deviceType
+  deviceVendor
+  refreshToken
+  hash
+}
+
+uuid: string @index(exact) @upsert .
+mail: string @index(exact) @upsert .
+hash: string .
+verified: bool .
+verificationCode: string .
+lastInvitationSent: float .
+sessions: [uid] .
+ip: string .
+browserName: string .
+osName: string .
+deviceModel: string .
+deviceType: string .
+deviceVendor: string .
+refreshToken: string .
+```
+
 ### Bolt (Neoj4 & Memgraph)
 
 | Variable        | Default value           | Description                                                        |
