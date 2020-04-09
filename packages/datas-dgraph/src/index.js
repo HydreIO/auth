@@ -52,7 +52,6 @@ const schema = `
 export default ({ uri, maxRetries }) => {
   const clientStub = new dgraph.DgraphClientStub(uri, grpc.credentials.createInsecure())
   const client = new dgraph.DgraphClient(clientStub)
-  client.setDebugMode(true)
   return {
     async connect() {
       debug(`initializing.. [${uri}] [maxRetries: %d]`, maxRetries)
@@ -60,11 +59,6 @@ export default ({ uri, maxRetries }) => {
       await of(undefined).pipe(
         tap(() => debug('connecting to dgraph.. [%d]', ++retried)),
         concatMapTo(defer(async () => await client.newTxn().query('{ a() {} }'))),
-        concatMapTo(defer(async () => {
-          const op = new dgraph.Operation()
-          op.setDropAll(true)
-          await client.alter(op)
-        })),
         concatMapTo(defer(async () => {
           const op = new dgraph.Operation()
           op.setSchema(schema)
