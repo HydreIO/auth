@@ -97,7 +97,8 @@ export const signout = async (_, __, { eventOps: { removeCookies }, getUser, cru
 		deleteSessionByHash(user[Symbol.transient].session.hash)(user)
 		debug('......saving user')
 		await pushByUid(user.uuid, user)
-	} catch {
+	} catch (e) {
+		console.error(e)
 		debug('......user not found, skipping session deletion')
 	}
 	debug('......removing cookies')

@@ -28,11 +28,51 @@ export default ({ uri, maxRetries }) => {
         process.exit(1)
       })
       debug('connected!')
+      const op = new dgraph.Operation()
+      op.setSchema(`
+      type user {
+        uuid
+        mail
+        hash
+        verified
+        verificationCode
+        lastInvitationSent
+        sessions
+      }
+
+      type session {
+        ip
+        browserName
+        osName
+        deviceModel
+        deviceType
+        deviceVendor
+        refreshToken
+        hash
+      }
+
+      uuid: string @index(exact) @upsert .
+      mail: string @index(exact) @upsert .
+      hash: string @index(exact) .
+      verified: bool .
+      verificationCode: string .
+      lastInvitationSent: float .
+      sessions: [uid] .
+      ip: string .
+      browserName: string .
+      osName: string .
+      deviceModel: string .
+      deviceType: string .
+      deviceVendor: string .
+      refreshToken: string .
+      `)
+      await client.alter(op)
     },
     crud: {
-      async fetchByUid(uuid) {
-        const query = `{
-          user(func: eq(uuid, "${uuid}")) {
+      async fetchByUid($uuid) {
+        const query = `
+        query q($uuid: string!) {
+          user(func: eq(uuid, $uuid)) {
             uuid
             mail
             hash
@@ -49,14 +89,14 @@ export default ({ uri, maxRetries }) => {
             }
           }
         }`
-        const result = await client.newTxn().query(query)
+        const result = await client.newTxn().queryWithVars(query, { $uuid })
         const { user } = result.getJson()
-        debug('found %O', user[0].sessions)
         return user[0]
       },
-      async fetchByMail(mail) {
-        const query = `{
-          user(func: eq(mail, "${mail}")) {
+      async fetchByMail($mail) {
+        const query = `
+        query q($mail: string!) {
+          user(func: eq(mail, $mail)) {
             uuid
             mail
             hash
@@ -73,7 +113,7 @@ export default ({ uri, maxRetries }) => {
             }
           }
         }`
-        const result = await client.newTxn().query(query)
+        const result = await client.newTxn().queryWithVars(query, { $mail })
         const { user } = result.getJson()
         return user[0]
       },
@@ -85,26 +125,40 @@ export default ({ uri, maxRetries }) => {
       },
       async pushByUid(uuid, user) {
         const { sessions, ...userWithoutSessions } = user
-        const hashs = sessions.map(({ hash }) => `"${hash}"`)
-        const query = `
-        {
-          user as var(func: eq(uuid, "${uuid}")) {
-            user_sessions as sessions
-          }
 
-          outdated_session as var(func: uid(user_sessions)) @filter(NOT eq(hash, [${hashs.join()}])) {}
+        const hashs = sessions.map(({ hash }) => hash)
+        const hashs_to_strings = hashs.map(hash => `"${hash}"`)
+        const outdated_session_query = `outdated_session as var(func: uid(session)) @filter(NOT eq(hash, [${(hashs_to_strings.length && hashs_to_strings || ['""']).join()}]))`
+        const hashs_to_queries = hashs.map(hash => `h_${hash} as var(func: uid(session)) @filter(eq(hash, "${hash}"))`)
+
+        const query = `
+        query q($uuid: string!) {
+          user as var(func: eq(uuid, $uuid)) {
+            session as sessions
+          }
+          ${[outdated_session_query, ...hashs_to_queries].join('\n')}
         }`
-        const mutation = new dgraph.Mutation()
-        mutation.setSetJson({
+        const upsert_user = new dgraph.Mutation()
+        upsert_user.setSetJson({
           uid: "uid(user)",
           ['dgraph.type']: 'user',
           ...userWithoutSessions,
-          sessions: sessions.map(session => ({ ['dgraph.type']: 'session', ...session }))
+          sessions: sessions.map(session => ({
+            ['dgraph.type']: 'session',
+            uid: `uid(h_${session.hash})`,
+            ...session
+          }))
         })
-        mutation.setDeleteJson({ uid: "uid(outdated_session)" })
+        const delete_outdated_sessions = new dgraph.Mutation()
+        delete_outdated_sessions.setCond('@if(gt(len(outdated_session), 0))')
+        delete_outdated_sessions.setDelNquads(`
+          uid(user) <sessions> uid(outdated_session) .
+          uid(outdated_session) * * .
+          `)
         const req = new dgraph.Request()
         req.setQuery(query)
-        req.setMutationsList([mutation])
+        req.getVarsMap().set('$uuid', uuid)
+        req.setMutationsList([upsert_user, delete_outdated_sessions])
         req.setCommitNow(true)
         await client.newTxn().doRequest(req)
       }

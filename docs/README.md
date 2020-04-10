@@ -149,7 +149,7 @@ type session {
 
 uuid: string @index(exact) @upsert .
 mail: string @index(exact) @upsert .
-hash: string .
+hash: string @index(exact) .
 verified: bool .
 verificationCode: string .
 lastInvitationSent: float .
