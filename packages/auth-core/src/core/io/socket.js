@@ -18,7 +18,7 @@ export const notifier = async socketAddress => {
   const send = async (key, datas) => {
     logNotifier('sending %O : %O', key, datas)
     try {
-      await socket.send([key, ...datas])
+      await sock.send([key, ...datas])
       logNotifier('socket sent')
     } catch (error) {
       console.error(error)
