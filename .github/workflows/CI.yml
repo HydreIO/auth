@@ -19,7 +19,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
-          tag: $TAG
+          tag: ${{ env.TAG }}
           username: sceat
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           buildargs: NAME=${{ matrix.image }}
@@ -40,7 +40,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
-          tag: $TAG
+          tag: ${{ env.TAG }}
           username: sceat
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           buildargs: NAME=${{ matrix.image }}
