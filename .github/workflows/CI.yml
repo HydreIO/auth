@@ -19,7 +19,7 @@ jobs:
       fail-fast: true
     steps:
       - uses: actions/checkout@v2
-      - name: Build and publish hydre/auth:${{ TAG }}
+      - name: Build and publish hydre/auth
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
@@ -44,7 +44,7 @@ jobs:
       fail-fast: true
     steps:
       - uses: actions/checkout@v2
-      - name: Build and publish hydre/auth:${{ TAG }}
+      - name: Build and publish
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
