@@ -1,12 +1,7 @@
-import threadPool from 'node-worker-threads-pool'
-import os from 'os'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-
-const pool = new threadPool.StaticPool({
-  size: os.cpus().length,
-  task: `${dirname(fileURLToPath(import.meta.url))}/bcrypt_worker.js`
-})
-
-export const hash = async pwd => pool.exec({ hash_operation: { pwd } })
-export const verify = pwd => async hash => pool.exec({ verify_operation: { pwd, hash } })
+import bcrypt from 'bcryptjs'
+export const hash = async pwd => bcrypt.hash(pwd, 10)
+export const verify = pwd => async hash => {
+  if (!pwd) throw new Error('pwd is undefined')
+  if (!hash) throw new Error('hash is undefined')
+  return bcrypt.compare(pwd, hash)
+}
