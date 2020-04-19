@@ -7,7 +7,6 @@ on:
       - v*
 jobs:
   edge:
-    name: Build and publish edge
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/edge'
     strategy:
@@ -19,7 +18,7 @@ jobs:
       fail-fast: true
     steps:
       - uses: actions/checkout@v2
-      - name: Build and publish hydre/auth
+      - name: Build and publish
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
@@ -32,7 +31,6 @@ jobs:
           TAG: edge-${{ matrix.image }}
 
   stable:
-    name: Build and publish stable
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     strategy:
