@@ -7,14 +7,12 @@ ARG DATA=packages/datas-${NAME}
 
 WORKDIR /app
 
-RUN npm i -g pnpm
-
 COPY package.json pnpm-workspace.yml ./
 COPY ${CORE}/package.json ${CORE}/pnpm-lock.yaml ${CORE}/
 COPY ${DATA}/package.json ${DATA}/pnpm-lock.yaml ${DATA}/
 COPY ${SERVICE}/package.json ${SERVICE}/pnpm-lock.yaml ${SERVICE}/
 
-RUN pnpm recursive install --prod
+RUN npx pnpm recursive install --prod
 
 COPY $CORE $CORE
 COPY $DATA $DATA

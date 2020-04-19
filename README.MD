@@ -1,6 +1,6 @@
 <h1 align=center>@hydre/auth</h1>
 <p align=center>
-  <img src="https://img.shields.io/github/license/HydreIO/doubt.svg?style=for-the-badge" />
+  <img src="https://img.shields.io/github/license/HydreIO/auth.svg?style=for-the-badge" />
   <a href="https://hub.docker.com/r/hydre/auth">
     <img src="https://img.shields.io/docker/cloud/build/hydre/auth?label=build&logo=docker&style=for-the-badge" />
   </a>
