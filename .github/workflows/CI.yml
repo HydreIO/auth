@@ -19,7 +19,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
-          tag: edge-${{ matrix.image }}
+          tags: edge-${{ matrix.image }}
           username: sceat
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           buildargs: NAME=${{ matrix.image }}
@@ -38,7 +38,7 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@2.14
         with:
           name: hydre/auth
-          tag: $(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-${{ matrix.image }}
+          tags: $(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,' | sed -e 's/^v//')-${{ matrix.image }}
           username: sceat
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
           buildargs: NAME=${{ matrix.image }}
