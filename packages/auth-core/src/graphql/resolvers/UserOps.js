@@ -2,7 +2,7 @@ import { signJwt, buildJwtOptions } from '../../core/tokens'
 import crypto from 'crypto'
 import { hash } from '../../core/utils/crypt'
 import { TooManyRequestError, BadMailFormatError, UnknowCodeError, BadPwdFormatError, InvalidResetCodeError, InvalidVerificationCodeError, InvalidRefreshTokenError } from '../errors'
-import uuidv4 from 'uuid/v4'
+import { v4 as uuidv4 } from 'uuid'
 import Debug from 'debug'
 import ms from 'ms'
 

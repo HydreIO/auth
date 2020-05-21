@@ -1,9 +1,8 @@
 import { verify } from '../../core/utils/crypt'
 import { UserNotFoundError, BadPwdFormatError, BadMailFormatError, MailUsedError, RegistrationDisabledError, UnknowProviderError } from '../errors'
-import uuid from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import Debug from 'debug'
 
-const { v4: uuidv4 } = uuid
 const debug = Debug('auth').extend('authenticate')
 
 export const signup = async (_, { creds: { mail, pwd, rememberMe = false } }, { env, eventOps: { parseUserAgent, sendAccessToken, sendRefreshToken }, crud: { existByMail, pushByUid }, userOps: { fromCredentials, loadSession, loadRefreshToken, loadAccessToken } }) => {
