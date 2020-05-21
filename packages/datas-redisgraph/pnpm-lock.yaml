@@ -1,18 +1,18 @@
 dependencies:
-  '@hydre/rgraph': 2.0.2
+  '@hydre/rgraph': 2.0.3
   debug: 4.1.1
   redis: 3.0.2
   rxjs: 6.5.5
 lockfileVersion: 5.1
 packages:
-  /@hydre/rgraph/2.0.2:
+  /@hydre/rgraph/2.0.3:
     dependencies:
       debug: 4.1.1
       redis: 3.0.2
-      rxjs: 6.5.4
+      rxjs: 6.5.5
     dev: false
     resolution:
-      integrity: sha512-pk/OM9cblbkaaXge+WcS2Ok+UQsEkX0mU9/Im9B3G64O2q9j1jN0tikJqN6MAV2XUNrUWAYHN9S1hrh1Sdljyw==
+      integrity: sha512-FE8PejmthkRczIznqiFazgjMduPriunuJNrV2RatiBqnLNErpSevn3V2otEecl1mudIt4uC8vfL1RZzozI/6Ug==
   /debug/4.1.1:
     dependencies:
       ms: 2.1.2
@@ -58,14 +58,6 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-PNhLCrjU6vKVuMOyFu7oSP296mwBkcE6lrAjruBYG5LgdSqtRBoVQIylrMyVZD/lkF24RSNNatzvYag6HRBHjQ==
-  /rxjs/6.5.4:
-    dependencies:
-      tslib: 1.11.1
-    dev: false
-    engines:
-      npm: '>=2.0.0'
-    resolution:
-      integrity: sha512-naMQXcgEo3csAEGvw/NydRA0fuS2nDZJiw1YUWFKU7aPPAPGZEsD4Iimit96qwCieH6y614MCLYwdkrWx7z/7Q==
   /rxjs/6.5.5:
     dependencies:
       tslib: 1.11.1
@@ -79,7 +71,7 @@ packages:
     resolution:
       integrity: sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
 specifiers:
-  '@hydre/rgraph': ^2.0.2
+  '@hydre/rgraph': ^2.0.3
   debug: ^4.1.1
   redis: ^3.0.2
   rxjs: ^6.5.5

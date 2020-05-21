@@ -1,5 +1,5 @@
 dependencies:
-  backoff-rxjs: 6.3.3_rxjs@6.5.5
+  backoff-rxjs: 6.5.7_rxjs@6.5.5
   debug: 4.1.1
   dgraph-js: 20.3.0
   grpc: 1.24.2
@@ -34,14 +34,14 @@ packages:
     dev: false
     resolution:
       integrity: sha1-vPpZdKYvGOgcq660lzKrSoj5Brw=
-  /backoff-rxjs/6.3.3_rxjs@6.5.5:
+  /backoff-rxjs/6.5.7_rxjs@6.5.5:
     dependencies:
       rxjs: 6.5.5
     dev: false
     peerDependencies:
-      rxjs: ^6.4.0
+      rxjs: ^6.5.5
     resolution:
-      integrity: sha512-+NfPlA9GYB+6gFk7wDTsUMUecqHLmikt/yfUmddPPUNT9DzmU/p31CTsZT4b3S2g46q87fP34gwPJsZ66Eyedg==
+      integrity: sha512-j3pEcM5ivIxZhkZ+CcF8LVb5/jORNT4HCEnzavFfBkXSEJfx/WMtq79NKKp8Z0IDThgXxnlvzf41Gvajb4C2NQ==
   /balanced-match/1.0.0:
     dev: false
     resolution:
@@ -319,7 +319,7 @@ packages:
     resolution:
       integrity: sha1-AwiOnr+edWtpdRYR0qXvWRSCyZU=
 specifiers:
-  backoff-rxjs: ^6.3.3
+  backoff-rxjs: ^6.5.7
   debug: ^4.1.1
   dgraph-js: ^20.3.0
   grpc: ^1.24.2

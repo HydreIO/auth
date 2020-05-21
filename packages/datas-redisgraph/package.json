@@ -3,7 +3,7 @@
 	"main": "src/index.js",
 	"type": "module",
 	"dependencies": {
-		"@hydre/rgraph": "^2.0.2",
+		"@hydre/rgraph": "^2.0.3",
 		"debug": "^4.1.1",
 		"redis": "^3.0.2",
 		"rxjs": "^6.5.5"

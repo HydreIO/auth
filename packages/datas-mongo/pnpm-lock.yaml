@@ -1,6 +1,6 @@
 dependencies:
   debug: 4.1.1
-  mongodb: 3.5.6
+  mongodb: 3.5.7
   rxjs: 6.5.5
 lockfileVersion: 5.1
 packages:
@@ -46,7 +46,7 @@ packages:
     optional: true
     resolution:
       integrity: sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg==
-  /mongodb/3.5.6:
+  /mongodb/3.5.7:
     dependencies:
       bl: 2.2.0
       bson: 1.1.4
@@ -59,7 +59,7 @@ packages:
     optionalDependencies:
       saslprep: 1.0.3
     resolution:
-      integrity: sha512-sh3q3GLDLT4QmoDLamxtAECwC3RGjq+oNuK1ENV8+tnipIavss6sMYt77hpygqlMOCt0Sla5cl7H4SKCVBCGEg==
+      integrity: sha512-lMtleRT+vIgY/JhhTn1nyGwnSMmJkJELp+4ZbrjctrnBxuLbj6rmLuJFz8W2xUzUqWmqoyVxJLYuC58ZKpcTYQ==
   /ms/2.1.2:
     dev: false
     resolution:
@@ -146,5 +146,5 @@ packages:
       integrity: sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=
 specifiers:
   debug: ^4.1.1
-  mongodb: ^3.5.6
+  mongodb: ^3.5.7
   rxjs: ^6.5.5
