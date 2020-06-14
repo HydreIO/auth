@@ -7,7 +7,7 @@ const logZmq = Debug('auth').extend('ømq')
 const logNotifier = logZmq.extend('notifier')
 const logHealth = logZmq.extend('health')
 const sock = new zmq.Push({ sendTimeout: 300 })
-const healthSock = new zmq.Stream
+const healthSock = new zmq.Stream()
 const { CONFIRM_EMAIL, INVITE_USER, RESET_PWD } = EVENTS
 
 export const notifier = async socketAddress => {
@@ -26,9 +26,10 @@ export const notifier = async socketAddress => {
     }
   }
   return {
-    notifyInviteUser: async ({ from, to, code }) => send(INVITE_USER, [from, to, code]),
+    notifyInviteUser: async ({ from, to, code }) =>
+      send(INVITE_USER, [from, to, code]),
     notifyConfirmEmail: async ({ to, code }) => send(CONFIRM_EMAIL, [to, code]),
-    notifyResetPwd: async ({ to, code }) => send(RESET_PWD, [to, code])
+    notifyResetPwd: async ({ to, code }) => send(RESET_PWD, [to, code]),
   }
 }
 
@@ -42,6 +43,5 @@ export const healthCheck = socketAddress => ({
     logHealth('unbinding from %s', socketAddress)
     await healthSock.unbind(socketAddress)
     logHealth('socket unbound')
-  }
+  },
 })
-

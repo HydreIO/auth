@@ -1,0 +1,88 @@
+type Query {
+  """pong"""
+  ping: String!
+  """The public key"""
+  public_key: String!
+  """The logged user"""
+  me: User!
+}
+
+type Mutation {
+  """
+  Register an user, if the pwd is empty it will send an email with a reset code
+
+  Returns: true
+  Throws: if the email is already in use
+  """
+  create_user(credentials: Credentials!): Boolean!
+
+  """
+  Create an user session and fix sessions cookies.
+  If the credentials are ommited then it will just
+  refresh the session (the user must be logged in that case)
+
+  Returns: true if the session was created, false if it already existed
+  Throws: if either the password, the session, or the user is invalid
+  """
+  create_session(credentials: Credentials): Boolean!
+
+  """
+  If the email exist, send a reset code
+
+  Returns: true
+  """
+  create_pwd_reset_code(mail: String!): Boolean!
+
+  """
+  Update an user's password with a reset code
+
+  Returns: true
+  """
+  update_pwd(code: String!, pwd: String!): Boolean!
+
+  """
+  Try to delete a session.
+  If the ID is provided and the session exist it will be deleted.
+  If the ID is not provided it will delete the current session
+  If the user is not logged then it just remove session cookies
+
+  Returns: true
+  """
+  delete_session(id: ID): Boolean!
+
+  """
+  Delete an user (requires admin rights)
+
+  Returns: weither the user was deleted
+  Throws: if the user is not an admin
+  """
+  admin_delete_user(id: ID!): Boolean!
+
+  """
+  Update an user's password (requires admin rights)
+  """
+  admin_update_pwd(id: ID!, pwd: String!): Boolean!
+}
+
+input Credentials {
+  mail: String
+  pwd: String
+  remember_me: Boolean = false
+}
+
+type Session {
+  uuid: ID!
+  ip: String!
+  browserName: String
+  osName: String
+  deviceModel: String
+  deviceType: String
+  deviceVendor: String
+}
+
+type User {
+  uuid: ID!
+  mail: String!
+  sessions: [Session!]!
+  verified: Boolean!
+}

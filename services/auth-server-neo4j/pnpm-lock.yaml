@@ -1,7 +1,0 @@
-dependencies:
-  '@hydre/auth-core': 'link:../../packages/auth-core'
-  '@hydre/datas-neo4j': 'link:../../packages/datas-neo4j'
-lockfileVersion: 5.1
-specifiers:
-  '@hydre/auth-core': 'link:../../packages/auth-core'
-  '@hydre/datas-neo4j': 'link:../../packages/datas-neo4j'

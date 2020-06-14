@@ -1,7 +1,0 @@
-dependencies:
-  '@hydre/auth-core': 'link:../../packages/auth-core'
-  '@hydre/datas-redisgraph': 'link:../../packages/datas-redisgraph'
-lockfileVersion: 5.1
-specifiers:
-  '@hydre/auth-core': 'link:../../packages/auth-core'
-  '@hydre/datas-redisgraph': 'link:../../packages/datas-redisgraph'

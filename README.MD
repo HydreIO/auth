@@ -12,7 +12,7 @@
   </a>
 </p>
 
-<h3 align=center>A simple and fast authentication server built on KoaJS</h3>
+<h3 align=center>A light authentication server using redis and graphql</h3>
 
 - Graphql API
 - Support multiple databases
