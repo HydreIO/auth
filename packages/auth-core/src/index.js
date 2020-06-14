@@ -23,10 +23,10 @@ const logDate = debug.extend('time')
 const {
   PORT = 3000, // app port
   ORIGINS = '*', // supported origins (regex)
-  PUB_KEY = "-----BEGIN PUBLIC KEY-----\nMIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAaW4NpvoFJ6r0q4Cg5y4V9fTkk/RM\n+XYzFWST7bOog8k/5TBYvEHZoyHpsI/9KSQ6Bk0cjCeR9HuUvUW/PTQPu6YB61Wh\nwPVCjYEZKjPLiVJvo44Ck4fada/CBuSgwdTviU+SFUTU1v/nOy89IMjF4Wa0QjXw\ndL2UmIx6GiXqQYebdxw=\n-----END PUBLIC KEY-----", // ES512
-  PRV_KEY = "-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIAumGgZ9d0sD4A1Ch6vLWcF2ryd7o49Mz7F/bEHjYZcMRopsazPXzs\nDj+wZzoqCYE2uEXcl+1kS/hBsubqwZ+kLD+gBwYFK4EEACOhgYkDgYYABABpbg2m\n+gUnqvSrgKDnLhX19OST9Ez5djMVZJPts6iDyT/lMFi8QdmjIemwj/0pJDoGTRyM\nJ5H0e5S9Rb89NA+7pgHrVaHA9UKNgRkqM8uJUm+jjgKTh9p1r8IG5KDB1O+JT5IV\nRNTW/+c7Lz0gyMXhZrRCNfB0vZSYjHoaJepBh5t3HA==\n-----END EC PRIVATE KEY-----", // ES512
-  REFRESH_TOKEN_SECRET = "63959228FC8584C314ETGVC7H2441", // secret string
-  GOOGLE_ID = "xxxx.apps.googleusercontent.com`", // google app id (sso)
+  PUB_KEY = '-----BEGIN PUBLIC KEY-----\nMIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQAaW4NpvoFJ6r0q4Cg5y4V9fTkk/RM\n+XYzFWST7bOog8k/5TBYvEHZoyHpsI/9KSQ6Bk0cjCeR9HuUvUW/PTQPu6YB61Wh\nwPVCjYEZKjPLiVJvo44Ck4fada/CBuSgwdTviU+SFUTU1v/nOy89IMjF4Wa0QjXw\ndL2UmIx6GiXqQYebdxw=\n-----END PUBLIC KEY-----', // ES512
+  PRV_KEY = '-----BEGIN EC PRIVATE KEY-----\nMIHcAgEBBEIAumGgZ9d0sD4A1Ch6vLWcF2ryd7o49Mz7F/bEHjYZcMRopsazPXzs\nDj+wZzoqCYE2uEXcl+1kS/hBsubqwZ+kLD+gBwYFK4EEACOhgYkDgYYABABpbg2m\n+gUnqvSrgKDnLhX19OST9Ez5djMVZJPts6iDyT/lMFi8QdmjIemwj/0pJDoGTRyM\nJ5H0e5S9Rb89NA+7pgHrVaHA9UKNgRkqM8uJUm+jjgKTh9p1r8IG5KDB1O+JT5IV\nRNTW/+c7Lz0gyMXhZrRCNfB0vZSYjHoaJepBh5t3HA==\n-----END EC PRIVATE KEY-----', // ES512
+  REFRESH_TOKEN_SECRET = '63959228FC8584C314ETGVC7H2441', // secret string
+  GOOGLE_ID = 'xxxx.apps.googleusercontent.com`', // google app id (sso)
   ALLOW_REGISTRATION = true, // can we register ?
   PWD_REGEX = /^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})/, // accept which type of pwd
   EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, // accept wich type of mail
@@ -40,7 +40,7 @@ const {
   PLAYGROUND = false, // graphql playground
   SOCKET_NOTIFIER_ADDRESS = 'tcp://0.0.0.0:3001',
   SOCKET_HEALTH_ADDRESS = 'tcp://0.0.0.0:3002',
-  GRAPHQL_PATH = '/'
+  GRAPHQL_PATH = '/',
 } = process.env
 
 const env = {
@@ -57,7 +57,7 @@ const env = {
   EMAIL_REGEX: new RegExp(EMAIL_REGEX),
   RESET_PASS_DELAY,
   CONFIRM_ACCOUNT_DELAY,
-  INVITE_USER_DELAY
+  INVITE_USER_DELAY,
 }
 
 // #################
@@ -69,15 +69,26 @@ const addCookie = ctx => serialized => {
 }
 
 const corsOpt = {
-  origin: ({ req: { headers: { origin } } }) => ORIGINS.split(';').reduce((a, b) => a || !!origin.match(b), '') && origin,
-  credentials: true
+  origin: ({
+    req: {
+      headers: { origin },
+    },
+  }) =>
+    ORIGINS.split(';').reduce((a, b) => a || !!origin.match(b), '') && origin,
+  credentials: true,
 }
 
 // #################
 // Middlewares
 // -----------------
 
-const parsed = body => { try { return JSON.parse(body) } catch { return body } }
+const parsed = body => {
+  try {
+    return JSON.parse(body)
+  } catch {
+    return body
+  }
+}
 const loggerMiddleware = async (ctx, next) => {
   await next()
   if (ctx.introspection) logResponse('Introspection result (hidden)')
@@ -104,19 +115,28 @@ export default async crud => {
       return buildContext({
         env: { ...env, IP: ctx.request.ip },
         crud,
-        event: { headers: ctx.headers, addCookie: addCookie(ctx) },
-        socketOps
+        event: {
+          headers: ctx.headers,
+          addCookie: addCookie(ctx),
+        },
+        socketOps,
       })
     },
     playground: PLAYGROUND,
-    formatError
+    formatError,
   }
 
   new Koa()
     .use(cors(corsOpt))
     .use(loggerMiddleware)
-    .use(new apolloKoa.ApolloServer(serverOpt).getMiddleware({ path: GRAPHQL_PATH }))
-    .listen(+PORT, () => debug(`🚀 Now online! (0.0.0.0:${+PORT}${GRAPHQL_PATH})`))
+    .use(
+      new apolloKoa.ApolloServer(serverOpt).getMiddleware({
+        path: GRAPHQL_PATH,
+      })
+    )
+    .listen(+PORT, () =>
+      debug(`🚀 Now online! (0.0.0.0:${+PORT}${GRAPHQL_PATH})`)
+    )
 
   // ready to accept queries
   setTimeout(health_check.start, 1000)

@@ -13,9 +13,11 @@ const { makeExecutableSchema } = apolloServer
 const resolvers = { AuthOps, Mutation, Query, UserOps }
 
 export default makeExecutableSchema({
-	typeDefs: fs.readFileSync(`${dir}/schema.gql`, 'utf8'),
-	resolvers,
-	schemaDirectives,
-	inheritResolversFromInterfaces: true,
-	resolverValidationOptions: { requireResolversForResolveType: false, }
+  typeDefs: fs.readFileSync(`${dir}/schema.gql`, 'utf8'),
+  resolvers,
+  schemaDirectives,
+  inheritResolversFromInterfaces: true,
+  resolverValidationOptions: {
+    requireResolversForResolveType: false,
+  },
 })

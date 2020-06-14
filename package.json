@@ -1,18 +1,70 @@
 {
-	"name": "@hydre/auth",
-	"version": "2.5.0",
-	"scripts": {
-		"start:mongo": "node --harmony --experimental-specifier-resolution=node services/auth-server-mongo/src/index.js",
-		"start:neo": "node --harmony --experimental-specifier-resolution=node services/auth-server-neo4j/src/index.js",
-		"start:dgraph": "node --harmony --experimental-specifier-resolution=node services/auth-server-dgraph/src/index.js",
-		"uninstall:all": "pnpm recursive exec -- rm -rf node_modules",
-		"update:all": "pnpm recursive exec -- ncu -u",
-		"prune:all": "pnpm recursive prune --prod",
-		"install:all": "pnpm i -r",
-		"postversion": "git push && git push --tags",
-		"build:mongo": "docker build -t hydre/auth:local-mongo -f services/auth-server-mongo/Dockerfile .",
-		"build:neo": "docker build -t hydre/auth:local-bolt -f services/auth-server-neo4j/Dockerfile .",
-		"compose:dgraph": "docker-compose -f services/auth-server-dgraph/docker-compose.yml up --build",
-		"test:dgraph": "node --harmony --experimental-specifier-resolution=node services/auth-server-dgraph/test/index.js"
-	}
+  "name": "@hydre/auth",
+  "version": "0.1.0",
+  "description": "A light authentication server using redis and graphql",
+  "type": "module",
+  "scripts": {
+    "test": "node --harmony-top-level-await --harmony-private-methods test/index.js",
+    "coverage": "c8 --check-coverage node --harmony-top-level-await --harmony-private-methods test/index.js",
+    "lint": "prettier-eslint $PWD/\"**/*.js\" --print-width 80 --list-different && eslint --color .",
+    "format": "prettier-eslint $PWD/\"**/*.js\" --print-width 80 --write",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hydreio/auth.git"
+  },
+  "author": "Hydre",
+  "license": "UNLICENSE",
+  "bugs": {
+    "url": "https://github.com/hydreio/auth/issues"
+  },
+  "keywords": [
+    "authentication",
+    "graphql",
+    "redis",
+    "auth",
+    "hydre"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "babel": {
+    "parserOpts": {
+      "allowAwaitOutsideFunction": true
+    },
+    "plugins": [
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-numeric-separator",
+      "@babel/plugin-proposal-private-methods"
+    ]
+  },
+  "homepage": "https://github.com/hydreio/auth#readme",
+  "dependencies": {
+    "@koa/cors": "^3.1.0",
+    "bcryptjs": "^2.4.3",
+    "debug": "^4.1.1",
+    "graphql": "^15.1.0",
+    "graphql-extract": "gist:c16fbe164fb263f2553a0a0f67a11f02",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.12.1",
+    "koa-bodyparser": "^4.3.0",
+    "redis": "^3.0.2",
+    "ua-parser-js": "^0.7.21",
+    "uuid": "^8.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.2",
+    "@babel/plugin-proposal-class-properties": "^7.10.1",
+    "@babel/plugin-proposal-numeric-separator": "^7.10.1",
+    "@babel/plugin-proposal-private-methods": "^7.10.1",
+    "@hydre/doubt": "^6.1.0",
+    "@sidy/eslint-config-sidy": "^1.4.12",
+    "babel-eslint": "^11.0.0-beta.2",
+    "c8": "^7.2.0",
+    "eslint": "^7.2.0",
+    "eslint-plugin-unicorn": "^20.1.0",
+    "prettier-eslint-cli": "^5.0.0",
+    "tap-spec-emoji": "^6.1.2"
+  }
 }
