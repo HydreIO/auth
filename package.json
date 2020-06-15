@@ -43,15 +43,16 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "bcryptjs": "^2.4.3",
-    "debug": "^4.1.1",
     "graphql": "^15.1.0",
     "graphql-extract": "gist:c16fbe164fb263f2553a0a0f67a11f02",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.12.1",
     "koa-bodyparser": "^4.3.0",
+    "koa-router": "^9.0.1",
     "redis": "^3.0.2",
     "ua-parser-js": "^0.7.21",
-    "uuid": "^8.1.0"
+    "uuid": "^8.1.0",
+    "zeromq": "^6.0.0-beta.6"
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",

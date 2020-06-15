@@ -9,36 +9,70 @@ type Query {
 
 type Mutation {
   """
-  Register an user, if the pwd is empty it will send an email with a reset code
+  Create an user account and send a ACCOUNT_CREATE socket message
+  If the pwd is omitted it will send a ACCOUNT_INVITE socket message
 
   Returns: true
-  Throws: if the email is already in use
+  Throws:
+    - MAIL_INVALID: If the mail doesn't respect the policy
+    - PASSWORD_INVALID: If the pwd doesn't respect the policy
+    - MAIL_USED: If the mail is already used
+    - REGISTRATION_DISABLED: If the registration is disabled
+    - ILLEGAL_SESSION: If the user agent is invalid
   """
-  create_user(credentials: Credentials!): Boolean!
+  create_user(mail: String!, pwd: String): Boolean!
 
   """
-  Create an user session and fix sessions cookies.
-  If the credentials are ommited then it will just
-  refresh the session (the user must be logged in that case)
+  Creating a session means authenticating an user
+  and saving a session hash which can be revoked later
 
   Returns: true if the session was created, false if it already existed
   Throws: if either the password, the session, or the user is invalid
   """
-  create_session(credentials: Credentials): Boolean!
+  create_session(mail: String!, pwd: String!, remember: Boolean = false): Boolean!
 
   """
-  If the email exist, send a reset code
+  Create and fix a fresh access token
+
+  Returns: true
+  Throws: if the user is not found or the session revoked
+  """
+  refresh_session: Boolean!
+
+  """
+  If the email exist, send a reset code.
+  The code is only valid for a short configurable period
 
   Returns: true
   """
   create_pwd_reset_code(mail: String!): Boolean!
 
   """
-  Update an user's password with a reset code
+  Resend an account confirmation code
 
   Returns: true
   """
-  update_pwd(code: String!, pwd: String!): Boolean!
+  create_account_comfirm_code: Boolean!
+
+  """
+  Update an user's password with a reset code
+
+  Returns: true
+  Throws:
+    - PASSWORD_INVALID: If the pwd doesn't respect the policy
+    - USER_NOT_FOUND: If the mail doesn't exist
+    - INVALID_CODE: If the reset code is invalid
+  """
+  update_pwd(code: String!, mail: String! pwd: String!): Boolean!
+
+  """
+  Confirm the user account
+
+  Returns: true
+  Throws:
+    - USER_NOT_FOUND: If the user is not logged
+  """
+  verify_account(code: String!): Boolean!
 
   """
   Try to delete a session.
@@ -47,31 +81,35 @@ type Mutation {
   If the user is not logged then it just remove session cookies
 
   Returns: true
+  Throws:
+    - ILLEGAL_SESSION: If the provided id doesn't exist
   """
   delete_session(id: ID): Boolean!
 
   """
-  Delete an user (requires admin rights)
+  Attempt to delete some users
 
-  Returns: weither the user was deleted
-  Throws: if the user is not an admin
+  Returns: true
+  Throws:
+    - USER_NOT_FOUND: If the user is not logged
+    - UNAUTHORIZED: If the user is not an admin
   """
-  admin_delete_user(id: ID!): Boolean!
+  admin_delete_users(ids: [ID!]!): Boolean!
 
   """
   Update an user's password (requires admin rights)
+
+  Returns: true
+  Throws:
+    - USER_NOT_FOUND: If the user is not logged
+    - UNAUTHORIZED: If the user is not an admin
   """
   admin_update_pwd(id: ID!, pwd: String!): Boolean!
 }
 
-input Credentials {
-  mail: String
-  pwd: String
-  remember_me: Boolean = false
-}
-
 type Session {
   uuid: ID!
+  hash: String!
   ip: String!
   browserName: String
   osName: String

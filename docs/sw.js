@@ -29,7 +29,6 @@ const getFixedUrl = request => {
   if (url.hostname === self.location.hostname)
     url.search += (url.search ? '&' : '?') + 'cache-bust=' + now
 
-
   return url.href
 }
 
