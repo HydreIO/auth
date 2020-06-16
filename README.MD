@@ -12,7 +12,7 @@
   </a>
 </p>
 
-<h3 align=center>A light authentication server using redis and graphql</h3>
+<h3 align=center>A light graphql authentication server built on Redis</h3>
 
 - Graphql API
 - Support multiple databases
