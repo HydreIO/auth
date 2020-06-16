@@ -1,7 +1,7 @@
 {
   "name": "@hydre/auth",
   "version": "0.1.0",
-  "description": "A light authentication server using redis and graphql",
+  "description": "A light graphql authentication server built on Redis",
   "type": "module",
   "scripts": {
     "test": "node --harmony-top-level-await --harmony-private-methods test/index.js",

@@ -7,17 +7,26 @@ export default async ({ mail }) => {
   const [user] = await DISK.User({
     type  : DISK.GET,
     match : { mail },
-    fields: ['last_reset_code_sent'],
+    fields: ['last_reset_code_sent', 'uuid'],
   })
 
   if (user) {
-    if (user.last_reset_code_sent + ENVIRONMENT.RESET_PASS_DELAY > Date.now())
+    const { last_reset_code_sent } = user
+    const { RESET_PASS_DELAY } = ENVIRONMENT
+
+    if (last_reset_code_sent + RESET_PASS_DELAY > Date.now())
       throw new GraphQLError(ERRORS.SPAM)
+
+    const reset_code = [...new Array(64)]
+        .map(() => (~~(Math.random() * 36)).toString(36))
+        .join('')
+
+    await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code])
     await DISK.User({
       type  : DISK.SET,
       filter: { uuids: [user.uuid] },
       fields: {
-        reset_code          : await MAIL.reset(mail),
+        reset_code,
         last_reset_code_sent: Date.now(),
       },
     })

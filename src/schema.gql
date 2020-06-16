@@ -9,8 +9,7 @@ type Query {
 
 type Mutation {
   """
-  Create an user account and send a ACCOUNT_CREATE socket message
-  If the pwd is omitted it will send a ACCOUNT_INVITE socket message
+  Create an user account and send an ACCOUNT_CREATE socket message
 
   Returns: true
   Throws:
@@ -18,22 +17,36 @@ type Mutation {
     - PASSWORD_INVALID: If the pwd doesn't respect the policy
     - MAIL_USED: If the mail is already used
     - REGISTRATION_DISABLED: If the registration is disabled
-    - ILLEGAL_SESSION: If the user agent is invalid
   """
-  create_user(mail: String!, pwd: String): Boolean!
+  create_user(mail: String!, pwd: String!): Boolean!
+
+  """
+  Create an user account for another person
+  and send an ACCOUNT_INVITE socket message
+
+  Returns: true
+  Throws:
+    - USER_NOT_FOUND: If the user is not logged
+    - MAIL_INVALID: If the mail doesn't respect the policy
+    - MAIL_USED: If the mail is already used
+    - REGISTRATION_DISABLED: If the registration is disabled
+  """
+  invite_user(mail: String!, payload: String): Boolean!
 
   """
   Creating a session means authenticating an user
   and saving a session hash which can be revoked later
 
   Returns: true if the session was created, false if it already existed
-  Throws: if either the password, the session, or the user is invalid
+  Throws:
+    - ILLEGAL_SESSION: If the user agent is invalid
   """
   create_session(mail: String!, pwd: String!, remember: Boolean = false): Boolean!
 
   """
   Create and fix a fresh access token
 
+  Require logged: true
   Returns: true
   Throws: if the user is not found or the session revoked
   """
@@ -51,6 +64,8 @@ type Mutation {
   Resend an account confirmation code
 
   Returns: true
+  Throws:
+    - USER_NOT_FOUND: If the user is not logged
   """
   create_account_comfirm_code: Boolean!
 
@@ -72,7 +87,7 @@ type Mutation {
   Throws:
     - USER_NOT_FOUND: If the user is not logged
   """
-  verify_account(code: String!): Boolean!
+  confirm_account(code: String!): Boolean!
 
   """
   Try to delete a session.

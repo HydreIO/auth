@@ -7,20 +7,26 @@ export default async ({ mail }) => {
   const [user] = await DISK.User({
     type  : DISK.GET,
     match : { mail },
-    fields: ['last_verification_code_sent'],
+    fields: ['last_verification_code_sent', 'uuid'],
   })
 
   if (user) {
-    if (
-      user.last_verification_code_sent + ENVIRONMENT.RESET_PASS_DELAY
-      > Date.now()
-    )
+    const { last_verification_code_sent } = user
+    const { CONFIRM_ACCOUNT_DELAY } = ENVIRONMENT
+
+    if (last_verification_code_sent + CONFIRM_ACCOUNT_DELAY > Date.now())
       throw new GraphQLError(ERRORS.SPAM)
+
+    const verification_code = [...new Array(64)]
+        .map(() => (~~(Math.random() * 36)).toString(36))
+        .join('')
+
+    await MAIL.send([MAIL.ACCOUNT_CONFIRM, user.uuid, mail, verification_code])
     await DISK.User({
       type  : DISK.SET,
       filter: { uuids: [user.uuid] },
       fields: {
-        verification_code          : await MAIL.verify(mail),
+        verification_code,
         last_verification_code_sent: Date.now(),
       },
     })
