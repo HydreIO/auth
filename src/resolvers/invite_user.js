@@ -1,11 +1,9 @@
 import { ERRORS, ENVIRONMENT } from '../constant.js'
-import DISK from '../disk.js'
 import MAIL from '../mail.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
-import { v4 as uuid4 } from 'uuid'
 
-export default async ({ mail, payload }, { koa_context }) => {
+export default async ({ mail, payload }, { koa_context, Disk, sanitize }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -16,27 +14,24 @@ export default async ({ mail, payload }, { koa_context }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const user_exist = await DISK.User({
-    type : DISK.EXIST,
-    match: { mail },
+  const [user_id] = await Disk.KEYS.User({
+    search: `@mail:{${ sanitize(mail) }}`,
+    limit : 1,
   })
 
-  if (user_exist) throw new GraphQLError(ERRORS.MAIL_USED)
+  if (user_id) throw new GraphQLError(ERRORS.MAIL_USED)
 
-  const uuid = uuid4()
-
-  await MAIL.send([MAIL.ACCOUNT_INVITE, bearer.uuid, uuid, payload, mail])
-  await DISK.User({
-    type  : DISK.CREATE,
-    fields: {
-      uuid,
+  const uuid = await Disk.CREATE.User({
+    document: {
       mail,
       // verified because the invitation already prove the mail identity
       verified                   : true,
-      sessions                   : [],
+      sessions                   : JSON.stringify([]),
       last_reset_code_sent       : 0,
       last_verification_code_sent: 0,
     },
   })
+
+  await MAIL.send([MAIL.ACCOUNT_INVITE, bearer.uuid, uuid, payload, mail])
   return true
 }

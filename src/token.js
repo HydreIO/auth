@@ -41,9 +41,11 @@ export default koa_context => ({
       expiresIn: ACCESS_TOKEN_EXPIRATION,
     })
 
-    koa_context
-        .cookies
-        .set(ACCESS_TOKEN_COOKIE_NAME, access_token, cookie_options)
+    koa_context.cookies.set(
+        ACCESS_TOKEN_COOKIE_NAME,
+        access_token,
+        cookie_options,
+    )
   },
   rm: () => {
     koa_context.cookies.set(ACCESS_TOKEN_COOKIE_NAME)

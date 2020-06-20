@@ -1,16 +1,15 @@
 import { ERRORS, ENVIRONMENT } from '../constant.js'
-import DISK from '../disk.js'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 
 export default async (
   { mail, pwd, remember },
-  { build_session, koa_context },
+  { build_session, koa_context, Disk, sanitize },
 ) => {
-  const [user] = await DISK.User({
-    type  : DISK.GET,
-    match : { mail },
+  const [user] = await Disk.GET.User({
+    search: `@mail:{${ sanitize(mail) }}`,
+    limit : 1,
     fields: ['hash', 'sessions'],
   })
 
@@ -26,12 +25,9 @@ export default async (
   if (!session.browserName && !session.deviceVendor)
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
 
-  const { sessions } = user
+  const sessions = JSON.parse(user.sessions)
   const deprecated_sessions = []
-  const session_uuid = await DISK.Session({
-    type  : DISK.CREATE,
-    fields: session,
-  })
+  const session_uuid = await Disk.CREATE.Session({ document: session })
 
   Token(koa_context).set({
     uuid   : user.uuid,
@@ -44,15 +40,17 @@ export default async (
   while (sessions.length > ENVIRONMENT.MAX_SESSION_PER_USER)
     deprecated_sessions.push(sessions.shift())
 
-  await DISK.user({
-    type  : DISK.SET,
-    filter: { uuids: [user.uuid] },
-    fields: { sessions },
+  await Disk.SET.user({
+    keys    : [user.uuid],
+    limit   : 1,
+    search  : '*',
+    document: { sessions: JSON.stringify(sessions) },
   })
 
-  // noop if uuids empty
-  await DISK.Session({
-    type  : DISK.DELETE,
-    filter: { uuids: deprecated_sessions },
-  })
+  if (deprecated_sessions.length) {
+    await Disk.DELETE.Session({
+      keys  : deprecated_sessions,
+      search: '*',
+    })
+  }
 }

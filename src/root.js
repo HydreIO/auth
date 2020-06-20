@@ -13,8 +13,8 @@ import admin_update_pwd from './resolvers/admin_update_pwd.js'
 import { ENVIRONMENT } from './constant.js'
 
 export default {
-  ping: () => 'pong',
-  cert: () => ENVIRONMENT.PUBLIC_KEY,
+  ping      : () => 'pong',
+  public_key: () => ENVIRONMENT.PUBLIC_KEY,
   me,
   create_user,
   create_session,
