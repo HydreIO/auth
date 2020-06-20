@@ -1,13 +1,12 @@
 import MAIL from '../mail.js'
-import DISK from '../disk.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 
-export default async ({ mail }) => {
-  const [user] = await DISK.User({
-    type  : DISK.GET,
-    match : { mail },
+export default async ({ mail }, { Disk, sanitize }) => {
+  const [user] = await Disk.GET.User({
+    search: `@mail:{${ sanitize(mail) }}`,
     fields: ['last_reset_code_sent', 'uuid'],
+    limit : 1,
   })
 
   if (user) {
@@ -22,10 +21,11 @@ export default async ({ mail }) => {
         .join('')
 
     await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code])
-    await DISK.User({
-      type  : DISK.SET,
-      filter: { uuids: [user.uuid] },
-      fields: {
+    await Disk.SET.User({
+      keys    : [user.uuid],
+      search  : '*',
+      limit   : 1,
+      document: {
         reset_code,
         last_reset_code_sent: Date.now(),
       },
