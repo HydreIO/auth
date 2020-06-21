@@ -1,23 +1,20 @@
-FROM node:13.8-alpine
+# ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
+FROM node:14.4-alpine as build
 
-ARG NAME
-ARG SERVICE=services/auth-server-${NAME}
-ARG CORE=packages/auth-core
-ARG DATA=packages/datas-${NAME}
+RUN apk add git
 
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yml ./
-COPY ${CORE}/package.json ${CORE}/pnpm-lock.yaml ${CORE}/
-COPY ${DATA}/package.json ${DATA}/pnpm-lock.yaml ${DATA}/
-COPY ${SERVICE}/package.json ${SERVICE}/pnpm-lock.yaml ${SERVICE}/
+COPY package.json package-lock.json ./
 
-RUN npx pnpm recursive install --prod
+RUN npm ci --prod
 
-COPY $CORE $CORE
-COPY $DATA $DATA
-COPY $SERVICE $SERVICE
+# ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
+FROM node:14.4-alpine as production
 
-ENV DOCKERFILE_START_CMD start:${NAME}
+WORKDIR /app
 
-CMD npm run $DOCKERFILE_START_CMD
+COPY --from=build /app .
+COPY . .
+
+CMD npm run start

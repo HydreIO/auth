@@ -1,3 +1,7 @@
+directive @MAXTEXTFIELDS on OBJECT
+directive @NOFREQS on OBJECT
+directive @TAG on FIELD_DEFINITION
+
 type Query {
   """pong"""
   ping: String!
@@ -133,9 +137,9 @@ type Session {
   deviceVendor: String
 }
 
-type User {
+type User @NOFREQS {
   uuid: ID!
-  mail: String!
+  mail: String! @TAG
   sessions: [Session!]!
   verified: Boolean!
 }
