@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  auth:
+    tty: true
+    image: hydre/auth:latest
+    container_name: authentication
+    build: .
+    network_mode: host
+  redis:
+    image: redislabs/redisearch:latest
+    container_name: redisearch
+    network_mode: host
