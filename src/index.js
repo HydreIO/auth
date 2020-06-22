@@ -6,31 +6,31 @@ import Koa from 'koa'
 import body_parser from 'koa-bodyparser'
 import Router from 'koa-router'
 import cors from '@koa/cors'
-import { buildSchema } from 'graphql/index.mjs'
+import { buildSchema, GraphQLError } from 'graphql/index.mjs'
 import graphql_http from '@hydre/graphql-http/koa'
 import Mount from '@hydre/disk'
+import sync from '@hydre/disk/src/synchronize.js'
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
 import redis from 'redis'
 import rootValue from './root.js'
+import Token from './token.js'
 
 import { ENVIRONMENT } from './constant.js'
 
-redis.addCommand('FT.ADD')
-redis.addCommand('FT.SEARCH')
 redis.addCommand('FT.CREATE')
+redis.addCommand('FT.INFO')
+redis.addCommand('FT.ADD')
+redis.addCommand('FT.ADDHASH')
+redis.addCommand('FT.SEARCH')
 redis.addCommand('FT.DEL')
 
-const {
-  PORT,
-  GRAPHQL_PATH,
-  SERVER_HOST,
-  ORIGINS,
-  REDIS_URL,
-} = ENVIRONMENT
+const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS, REDIS_URL } = ENVIRONMENT
 const client = redis.createClient({
   url           : REDIS_URL,
   retry_strategy: ({ attempt }) => {
+    /* c8 ignore next 6 */
+    // no testing of redis reconnection
     console.warn(`Unable to reach redis instance, retrying.. [${ attempt }]`)
     if (attempt > 10)
       return new Error(`Can't connect to redis after ${ attempt } tries..`)
@@ -41,6 +41,7 @@ const client = redis.createClient({
 await new Promise(resolve => {
   client.on('ready', resolve)
 })
+await sync(client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
 
 const directory = dirname(fileURLToPath(import.meta.url))
 const schema = readFileSync(`${ directory }/schema.gql`, 'utf8')
@@ -51,17 +52,22 @@ const router = new Router()
     .all(
         GRAPHQL_PATH,
         graphql_http({
-          schema      : buildSchema(schema),
+          schema     : buildSchema(schema),
           rootValue,
+          formatError: error => {
+            if (error?.originalError?.name === 'GraphQLError')
+              return new GraphQLError(error.message)
+            /* c8 ignore next 3 */
+            // no testing of internal errors, they should not happen
+            console.error(error)
+            return new GraphQLError('Internal server error.. :(')
+          },
           buildContext: async context => {
             return {
               build_session: () => {
                 const { headers } = context.req
-                const {
-                  'user-agent': user_agent,
-                  'x-forwarded-for': ip,
-                } = headers
-                const parser = new Parser(user_agent ?? '')
+                const { 'user-agent': ua, 'x-forwarded-for': ip } = headers
+                const parser = new Parser(ua || '')
                 const { name: browserName } = parser.getBrowser()
                 const {
                   model: deviceModel,
@@ -91,15 +97,20 @@ const router = new Router()
                 events_enabled: true,
                 events_name   : '__disk__',
               }),
-              sanitize: input => input
-                  .replaceAll(/[!"#$%&'()*+,.:;<=>?@[\\\]^{|}~]/g, '\\$&'),
+              sanitize: input =>
+                input.replaceAll(/[!"#$%&'()*+,.:;<=>?@[\\\]^{|}~]/g, '\\$&'),
+              koa_context : context,
+              force_logout: () => {
+                Token(context).rm()
+              },
             }
           },
         }),
     )
-
-new Koa()
+const http_server = new Koa()
     .use(cors({
+      /* c8 ignore next 11 */
+      // no cors testing
       origin: ({
         req: {
           headers: { origin },
@@ -130,3 +141,9 @@ new Koa()
       `)
         },
     )
+
+http_server.on('close', () => {
+  client.quit()
+})
+
+export default http_server

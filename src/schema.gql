@@ -7,7 +7,12 @@ type Query {
   ping: String!
   """The public key"""
   public_key: String!
-  """The logged user"""
+  """
+  The logged user
+
+  Throws:
+    - USER_NOT_FOUND: If the user is not found
+  """
   me: User!
 }
 
@@ -17,10 +22,10 @@ type Mutation {
 
   Returns: true
   Throws:
+    - REGISTRATION_DISABLED: If the registration is disabled
     - MAIL_INVALID: If the mail doesn't respect the policy
     - PASSWORD_INVALID: If the pwd doesn't respect the policy
     - MAIL_USED: If the mail is already used
-    - REGISTRATION_DISABLED: If the registration is disabled
   """
   create_user(mail: String!, pwd: String!): Boolean!
 
@@ -30,10 +35,10 @@ type Mutation {
 
   Returns: true
   Throws:
-    - USER_NOT_FOUND: If the user is not logged
-    - MAIL_INVALID: If the mail doesn't respect the policy
-    - MAIL_USED: If the mail is already used
     - REGISTRATION_DISABLED: If the registration is disabled
+    - MAIL_INVALID: If the mail doesn't respect the policy
+    - USER_NOT_FOUND: If the user is not found
+    - MAIL_USED: If the mail is already used
   """
   invite_user(mail: String!, payload: String): Boolean!
 
@@ -41,8 +46,13 @@ type Mutation {
   Creating a session means authenticating an user
   and saving a session hash which can be revoked later
 
-  Returns: true if the session was created, false if it already existed
+  Returns: true if the session is new, false if it already existed
   Throws:
+    - USER_NOT_FOUND: If the user doesn't exist or the password is invalid
+    - MAIL_INVALID: If the mail doesn't respect the policy
+    - PASSWORD_INVALID: If the pwd doesn't respect the policy
+    - NO_PASSWORD: If the user has no password and first need to
+      request a reset code to reset his password
     - ILLEGAL_SESSION: If the user agent is invalid
   """
   create_session(mail: String!, pwd: String!, remember: Boolean = false): Boolean!
@@ -50,17 +60,20 @@ type Mutation {
   """
   Create and fix a fresh access token
 
-  Require logged: true
   Returns: true
-  Throws: if the user is not found or the session revoked
+  Throws:
+    - USER_NOT_FOUND: If the user is not found
+    - ILLEGAL_SESSION: If the session was revoked
   """
   refresh_session: Boolean!
 
   """
   If the email exist, send a reset code.
-  The code is only valid for a short configurable period
+  The code is only valid for 24h
 
   Returns: true
+  Throws:
+    - SPAM: If the user request too fast another code
   """
   create_pwd_reset_code(mail: String!): Boolean!
 
@@ -69,27 +82,30 @@ type Mutation {
 
   Returns: true
   Throws:
-    - USER_NOT_FOUND: If the user is not logged
+    - USER_NOT_FOUND: If the user is not found
+    - SPAM: If the user request too fast another code
   """
   create_account_comfirm_code: Boolean!
 
   """
-  Update an user's password with a reset code
+  Update an user's password
+  If a reset code is not provided then the user must be logged
 
   Returns: true
   Throws:
     - PASSWORD_INVALID: If the pwd doesn't respect the policy
-    - USER_NOT_FOUND: If the mail doesn't exist
-    - INVALID_CODE: If the reset code is invalid
+    - USER_NOT_FOUND: If the user is not found
+    - INVALID_CODE: If the reset code is invalid or expired
   """
-  update_pwd(code: String!, mail: String! pwd: String!): Boolean!
+  update_pwd(code: String, mail: String pwd: String!): Boolean!
 
   """
   Confirm the user account
 
   Returns: true
   Throws:
-    - USER_NOT_FOUND: If the user is not logged
+    - USER_NOT_FOUND: If the user is not found
+    - INVALID_CODE: If the verification code is invalid or expired
   """
   confirm_account(code: String!): Boolean!
 
@@ -110,7 +126,7 @@ type Mutation {
 
   Returns: true
   Throws:
-    - USER_NOT_FOUND: If the user is not logged
+    - USER_NOT_FOUND: If the user is not found
     - UNAUTHORIZED: If the user is not an admin
   """
   admin_delete_users(ids: [ID!]!): Boolean!
@@ -120,7 +136,7 @@ type Mutation {
 
   Returns: true
   Throws:
-    - USER_NOT_FOUND: If the user is not logged
+    - USER_NOT_FOUND: If the user is not found
     - UNAUTHORIZED: If the user is not an admin
   """
   admin_update_pwd(id: ID!, pwd: String!): Boolean!
@@ -128,8 +144,8 @@ type Mutation {
 
 type Session {
   uuid: ID!
-  hash: String!
-  ip: String!
+  hash: String! @TAG
+  ip: String
   browserName: String
   osName: String
   deviceModel: String

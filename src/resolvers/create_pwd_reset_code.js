@@ -23,7 +23,6 @@ export default async ({ mail }, { Disk, sanitize }) => {
     await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code])
     await Disk.SET.User({
       keys    : [user.uuid],
-      search  : '*',
       limit   : 1,
       document: {
         reset_code,

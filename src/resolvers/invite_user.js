@@ -14,12 +14,12 @@ export default async ({ mail, payload }, { koa_context, Disk, sanitize }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [user_id] = await Disk.KEYS.User({
+  const [invited_id] = await Disk.KEYS.User({
     search: `@mail:{${ sanitize(mail) }}`,
     limit : 1,
   })
 
-  if (user_id) throw new GraphQLError(ERRORS.MAIL_USED)
+  if (invited_id) throw new GraphQLError(ERRORS.MAIL_USED)
 
   const uuid = await Disk.CREATE.User({
     document: {
