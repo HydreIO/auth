@@ -15,8 +15,8 @@ const {
   MAX_SESSION_PER_USER = '10',
   SERVER_HOST = 'localhost',
   GRAPHQL_PATH = '/',
-  RESET_PASS_DELAY = '5s',
-  CONFIRM_ACCOUNT_DELAY = '5s',
+  RESET_PASS_DELAY = '5000',
+  CONFIRM_ACCOUNT_DELAY = '5000',
   ALLOW_REGISTRATION = 'true',
   SOCKET_NOTIFIER_ADDRESS = 'tcp://0.0.0.0:3001',
   REDIS_URL = 'redis://localhost:6379',
@@ -25,27 +25,29 @@ const computed_cookie_secure = () => {
   const value = COOKIE_SECURE?.toLowerCase()
 
   if (value === undefined) return undefined
+  /* c8 ignore next 2 */
+  // can't be tested
   return value === 'true'
 }
 
 export const ENVIRONMENT = {
-  PORT                : +PORT,
+  PORT                 : +PORT,
   ORIGINS,
   PUBLIC_KEY,
   PRIVATE_KEY,
   ACCESS_TOKEN_EXPIRATION,
   ACCESS_TOKEN_COOKIE_NAME,
-  COOKIE_SECURE       : computed_cookie_secure(),
+  COOKIE_SECURE        : computed_cookie_secure(),
   COOKIE_SAMESITE,
   COOKIE_PATH,
-  MAIL_REGEX          : new RegExp(MAIL_REGEX),
-  PWD_REGEX           : new RegExp(PWD_REGEX),
-  MAX_SESSION_PER_USER: +MAX_SESSION_PER_USER,
+  MAIL_REGEX           : new RegExp(MAIL_REGEX),
+  PWD_REGEX            : new RegExp(PWD_REGEX),
+  MAX_SESSION_PER_USER : +MAX_SESSION_PER_USER,
   SERVER_HOST,
   GRAPHQL_PATH,
-  ALLOW_REGISTRATION  : `${ ALLOW_REGISTRATION }`.toLowerCase() === 'true',
-  RESET_PASS_DELAY,
-  CONFIRM_ACCOUNT_DELAY,
+  ALLOW_REGISTRATION   : `${ ALLOW_REGISTRATION }`.toLowerCase() === 'true',
+  RESET_PASS_DELAY     : +RESET_PASS_DELAY,
+  CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY,
   SOCKET_NOTIFIER_ADDRESS,
   REDIS_URL,
 }

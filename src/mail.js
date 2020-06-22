@@ -8,6 +8,8 @@ const send = async payload => {
   try {
     await sock.send(payload)
   } catch (error) {
+    /* c8 ignore next 3 */
+    // this is not relevant as it depends of unknown third party
     console.error(('[socket]', error))
     throw new GraphQLError(ERRORS.MAIL_SERVICE_OFFLINE)
   }
