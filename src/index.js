@@ -24,10 +24,11 @@ const {
   GRAPHQL_PATH,
   SERVER_HOST,
   ORIGINS,
-  REDIS_READ_HOST,
-  REDIS_READ_PORT,
-  REDIS_WRITE_HOST,
-  REDIS_WRITE_PORT,
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_SENTINEL_HOST,
+  REDIS_SENTINEL_PORT,
+  REDIS_MASTER_NAME,
 } = ENVIRONMENT
 const retryStrategy = label => attempt => {
   /* c8 ignore next 6 */
@@ -37,18 +38,24 @@ const retryStrategy = label => attempt => {
     return new Error(`Can't connect to redis after ${ attempt } tries..`)
   return 250 * 2 ** attempt
 }
-const master_client = new Redis({
-  host         : REDIS_WRITE_HOST,
-  port         : REDIS_WRITE_PORT,
-  retryStrategy: retryStrategy('master'),
-})
 const slave_client = new Redis({
-  host         : REDIS_READ_HOST,
-  port         : REDIS_READ_PORT,
+  host         : REDIS_HOST,
+  port         : REDIS_PORT,
   retryStrategy: retryStrategy('slave'),
 })
+/* c8 ignore next 8 */
+// not testing sentinels
+const master_client = REDIS_SENTINEL_HOST ? new Redis({
+  sentinels: [{
+    host: REDIS_SENTINEL_HOST,
+    port: REDIS_SENTINEL_PORT,
+  }],
+  name: REDIS_MASTER_NAME,
+}) : slave_client
 
-await events.once(master_client, 'ready')
+/* c8 ignore next 2 */
+// not testing sentinels
+if (REDIS_SENTINEL_HOST) await events.once(master_client, 'ready')
 await events.once(slave_client, 'ready')
 await sync(master_client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
 
@@ -153,7 +160,9 @@ const http_server = new Koa()
     )
 
 http_server.on('close', () => {
-  master_client.quit()
+  /* c8 ignore next 2 */
+  // not testing sentinel
+  if (REDIS_SENTINEL_HOST) master_client.quit()
   slave_client.quit()
 })
 
