@@ -12,36 +12,45 @@ import Mount from '@hydre/disk'
 import sync from '@hydre/disk/src/synchronize.js'
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
-import redis from 'redis'
+import Redis from 'ioredis'
 import rootValue from './root.js'
 import Token from './token.js'
+import events from 'events'
 
 import { ENVIRONMENT } from './constant.js'
 
-redis.addCommand('FT.CREATE')
-redis.addCommand('FT.INFO')
-redis.addCommand('FT.ADD')
-redis.addCommand('FT.ADDHASH')
-redis.addCommand('FT.SEARCH')
-redis.addCommand('FT.DEL')
-
-const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS, REDIS_URL } = ENVIRONMENT
-const client = redis.createClient({
-  url           : REDIS_URL,
-  retry_strategy: ({ attempt }) => {
-    /* c8 ignore next 6 */
-    // no testing of redis reconnection
-    console.warn(`Unable to reach redis instance, retrying.. [${ attempt }]`)
-    if (attempt > 10)
-      return new Error(`Can't connect to redis after ${ attempt } tries..`)
-    return 250 * 2 ** attempt
-  },
+const {
+  PORT,
+  GRAPHQL_PATH,
+  SERVER_HOST,
+  ORIGINS,
+  REDIS_READ_HOST,
+  REDIS_READ_PORT,
+  REDIS_WRITE_HOST,
+  REDIS_WRITE_PORT,
+} = ENVIRONMENT
+const retryStrategy = label => attempt => {
+  /* c8 ignore next 6 */
+  // no testing of redis reconnection
+  console.warn(`[${ label }] Unable to reach redis, retrying.. [${ attempt }]`)
+  if (attempt > 10)
+    return new Error(`Can't connect to redis after ${ attempt } tries..`)
+  return 250 * 2 ** attempt
+}
+const master_client = new Redis({
+  host         : REDIS_WRITE_HOST,
+  port         : REDIS_WRITE_PORT,
+  retryStrategy: retryStrategy('master'),
+})
+const slave_client = new Redis({
+  host         : REDIS_READ_HOST,
+  port         : REDIS_READ_PORT,
+  retryStrategy: retryStrategy('slave'),
 })
 
-await new Promise(resolve => {
-  client.on('ready', resolve)
-})
-await sync(client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
+await events.once(master_client, 'ready')
+await events.once(slave_client, 'ready')
+await sync(master_client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
 
 const directory = dirname(fileURLToPath(import.meta.url))
 const schema = readFileSync(`${ directory }/schema.gql`, 'utf8')
@@ -93,7 +102,8 @@ const router = new Router()
                 }
               },
               Disk: Mount({
-                client,
+                master_client,
+                slave_client,
                 events_enabled: true,
                 events_name   : '__disk__',
               }),
@@ -143,7 +153,8 @@ const http_server = new Koa()
     )
 
 http_server.on('close', () => {
-  client.quit()
+  master_client.quit()
+  slave_client.quit()
 })
 
 export default http_server

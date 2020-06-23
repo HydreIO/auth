@@ -4,7 +4,7 @@ import reporter from 'tap-spec-emoji'
 import { pipeline, PassThrough } from 'stream'
 import { readFileSync } from 'fs'
 import GR from 'graphql-request'
-import redis from 'redis'
+import Redis from 'ioredis'
 import util from 'util'
 import sync from '@hydre/disk/src/synchronize.js'
 import compose from 'docker-compose'
@@ -28,13 +28,6 @@ const mail_socket = new zmq.Pull()
 mail_socket.connect('tcp://0.0.0.0:3001')
 
 pipeline(through, reporter(), process.stdout, () => {})
-
-redis.addCommand('FT.CREATE')
-redis.addCommand('FT.INFO')
-redis.addCommand('FT.ADD')
-redis.addCommand('FT.ADDHASH')
-redis.addCommand('FT.SEARCH')
-redis.addCommand('FT.DEL')
 
 const doubt = Doubt({
   stdout: through,
@@ -89,7 +82,7 @@ try {
     commandOptions: ['--build'],
   })
 
-  const client = redis.createClient()
+  const client = new Redis()
   const send = util.promisify(client.send_command.bind(client))
 
   // await redis

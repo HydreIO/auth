@@ -19,7 +19,10 @@ const {
   CONFIRM_ACCOUNT_DELAY = '5000',
   ALLOW_REGISTRATION = 'true',
   SOCKET_NOTIFIER_ADDRESS = 'tcp://0.0.0.0:3001',
-  REDIS_URL = 'redis://localhost:6379',
+  REDIS_READ_HOST = 'localhost',
+  REDIS_READ_PORT = 6379,
+  REDIS_WRITE_HOST = 'localhost',
+  REDIS_WRITE_PORT = 6379,
 } = process.env
 const computed_cookie_secure = () => {
   const value = COOKIE_SECURE?.toLowerCase()
@@ -49,7 +52,10 @@ export const ENVIRONMENT = {
   RESET_PASS_DELAY     : +RESET_PASS_DELAY,
   CONFIRM_ACCOUNT_DELAY: +CONFIRM_ACCOUNT_DELAY,
   SOCKET_NOTIFIER_ADDRESS,
-  REDIS_URL,
+  REDIS_READ_HOST,
+  REDIS_READ_PORT      : +REDIS_READ_PORT,
+  REDIS_WRITE_HOST,
+  REDIS_WRITE_PORT     : +REDIS_WRITE_PORT,
 }
 
 export const ERRORS = {
