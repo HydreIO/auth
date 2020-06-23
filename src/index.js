@@ -56,9 +56,10 @@ const master_client = REDIS_SENTINEL_HOST
     sentinelRetryStrategy: retryStrategy('sentinel'),
   })
   : slave_client
-const once_ready = client => new Promise(resolve => {
-  client.on('ready', resolve)
-})
+const once_ready = client =>
+  new Promise(resolve => {
+    client.on('ready', resolve)
+  })
 
 /* c8 ignore next 2 */
 // not testing sentinels
