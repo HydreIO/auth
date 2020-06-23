@@ -43,7 +43,7 @@ const slave_client = new Redis({
   port         : REDIS_PORT,
   retryStrategy: retryStrategy('slave'),
 })
-/* c8 ignore next 8 */
+/* c8 ignore next 12 */
 // not testing sentinels
 const master_client = REDIS_SENTINEL_HOST
   ? new Redis({
