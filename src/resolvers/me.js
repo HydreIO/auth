@@ -25,7 +25,7 @@ export default async (_, { koa_context, Disk, force_logout }, me_infos) => {
     ...user,
     sessions: async (__, ___, s_infos) =>
       Disk.GET.Session({
-        keys  : JSON.parse(user.sessions) ?? [],
+        keys  : JSON.parse(user.sessions) || [],
         fields: extract_fields(s_infos),
       }),
   }

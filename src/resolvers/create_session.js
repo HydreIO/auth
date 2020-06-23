@@ -72,6 +72,8 @@ export default async (
   })
 
   if (deprecated_sessions.length) {
+    /* c8 ignore next 5 */
+    // need creating many user agent
     await Disk.DELETE.Session({
       keys: deprecated_sessions,
     })
