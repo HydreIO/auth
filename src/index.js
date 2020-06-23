@@ -45,13 +45,17 @@ const slave_client = new Redis({
 })
 /* c8 ignore next 8 */
 // not testing sentinels
-const master_client = REDIS_SENTINEL_HOST ? new Redis({
-  sentinels: [{
-    host: REDIS_SENTINEL_HOST,
-    port: REDIS_SENTINEL_PORT,
-  }],
-  name: REDIS_MASTER_NAME,
-}) : slave_client
+const master_client = REDIS_SENTINEL_HOST
+  ? new Redis({
+    sentinels: [
+      {
+        host: REDIS_SENTINEL_HOST,
+        port: REDIS_SENTINEL_PORT,
+      },
+    ],
+    name: REDIS_MASTER_NAME,
+  })
+  : slave_client
 
 /* c8 ignore next 2 */
 // not testing sentinels
