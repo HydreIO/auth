@@ -15,6 +15,7 @@ import crypto from 'crypto'
 import Redis from 'ioredis'
 import rootValue from './root.js'
 import Token from './token.js'
+import events from 'events'
 
 import { ENVIRONMENT } from './constant.js'
 
@@ -56,15 +57,12 @@ const master_client = REDIS_SENTINEL_HOST
     sentinelRetryStrategy: retryStrategy('sentinel'),
   })
   : slave_client
-const once_ready = client =>
-  new Promise(resolve => {
-    client.on('ready', resolve)
-  })
+const readyness = [events.once(slave_client, 'ready')]
 
 /* c8 ignore next 2 */
 // not testing sentinels
-if (REDIS_SENTINEL_HOST) await once_ready(master_client)
-await once_ready(slave_client)
+if (REDIS_SENTINEL_HOST) readyness.push(events.once(slave_client, 'ready'))
+await Promise.all(readyness)
 await sync(master_client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
 
 const directory = dirname(fileURLToPath(import.meta.url))
