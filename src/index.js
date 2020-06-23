@@ -57,11 +57,36 @@ const master_client = REDIS_SENTINEL_HOST
     sentinelRetryStrategy: retryStrategy('sentinel'),
   })
   : slave_client
+const log_all = (client, label) => {
+  client.on('connect', () => {
+    console.log(label, 'connect')
+  })
+  client.on('ready', () => {
+    console.log(label, 'ready')
+  })
+  client.on('error', () => {
+    console.log(label, 'error')
+  })
+  client.on('close', () => {
+    console.log(label, 'close')
+  })
+  client.on('reconnecting', () => {
+    console.log(label, 'reconnecting')
+  })
+  client.on('end', () => {
+    console.log(label, 'end')
+  })
+}
 
+log_all(master_client, 'master')
+log_all(slave_client, 'slave')
+
+console.log('await ready')
 /* c8 ignore next 2 */
 // not testing sentinels
 if (REDIS_SENTINEL_HOST) await events.once(master_client, 'ready')
 await events.once(slave_client, 'ready')
+console.log('=============== all ready')
 await sync(master_client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
 
 const directory = dirname(fileURLToPath(import.meta.url))
