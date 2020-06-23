@@ -1,48 +1,56 @@
 name: CI
+
 on:
   push:
     branches:
       - edge
     tags:
       - v*
-jobs:
-  edge:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/edge'
-    strategy:
-      matrix:
-        image: [mongo, neo4j, dgraph]
-      fail-fast: true
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and publish
-        uses: elgohr/Publish-Docker-Github-Action@2.14
-        with:
-          name: hydre/auth
-          tags: edge-${{ matrix.image }}
-          username: sceat
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-          buildargs: NAME=${{ matrix.image }}
-          cache: true
 
-  stable:
+jobs:
+  test:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    strategy:
-      matrix:
-        image: [mongo, neo4j, dgraph]
-      fail-fast: true
     steps:
       - uses: actions/checkout@v2
-      - name: Get release version
-        id: get_version
-        run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:11})
-      - name: Build and publish
-        uses: elgohr/Publish-Docker-Github-Action@2.14
+      - uses: actions/setup-node@v1
         with:
-          name: hydre/auth
-          tags: ${{ env.RELEASE_VERSION }}-${{ matrix.image }}
-          username: sceat
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
-          buildargs: NAME=${{ matrix.image }}
-          cache: true
+          node-version: 14.4
+      - run: npm i
+      - run: npm run lint
+      - run: npm test
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.4
+      - run: npm i
+      - run: npm run coverage
+      - uses: codecov/codecov-action@v1
+
+  publish:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/')
+    needs:
+      - coverage
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.4
+      - name: export release name
+        run: |
+          if ${{ startsWith(github.ref, 'refs/tags/') }};
+          then RELEASE=stable;
+          else RELEASE=edge;
+          fi;
+          echo ::set-env name=RELEASE::$RELEASE
+      - uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+          repository: ${{ github.repository }}
+          tag_with_ref: true
