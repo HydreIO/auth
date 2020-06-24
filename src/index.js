@@ -98,7 +98,7 @@ const router = new Router()
                 } = parser.getDevice()
                 const { name: osName } = parser.getOS()
                 const sessionFields = {
-                  ip,
+                  ip: ip?.split(',')?.[0],
                   browserName,
                   deviceModel,
                   deviceType,
