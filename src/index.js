@@ -9,62 +9,15 @@ import cors from '@koa/cors'
 import { buildSchema, GraphQLError } from 'graphql/index.mjs'
 import graphql_http from '@hydre/graphql-http/koa'
 import Mount from '@hydre/disk'
-import sync from '@hydre/disk/src/synchronize.js'
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
-import Redis from 'ioredis'
 import rootValue from './root.js'
 import Token from './token.js'
-import events from 'events'
 
 import { ENVIRONMENT } from './constant.js'
+import { master_client, slave_client } from './sentinel.js'
 
-const {
-  PORT,
-  GRAPHQL_PATH,
-  SERVER_HOST,
-  ORIGINS,
-  REDIS_HOST,
-  REDIS_PORT,
-  REDIS_SENTINEL_HOST,
-  REDIS_SENTINEL_PORT,
-  REDIS_MASTER_NAME,
-} = ENVIRONMENT
-const retryStrategy = label => attempt => {
-  /* c8 ignore next 6 */
-  // no testing of redis reconnection
-  console.warn(`[${ label }] Unable to reach redis, retrying.. [${ attempt }]`)
-  if (attempt > 10)
-    return new Error(`Can't connect to redis after ${ attempt } tries..`)
-  return 250 * 2 ** attempt
-}
-const slave_client = new Redis({
-  host         : REDIS_HOST,
-  port         : REDIS_PORT,
-  retryStrategy: retryStrategy('slave'),
-})
-/* c8 ignore next 13 */
-// not testing sentinels
-const master_client = REDIS_SENTINEL_HOST
-  ? new Redis({
-    sentinels: [
-      {
-        host: REDIS_SENTINEL_HOST,
-        port: REDIS_SENTINEL_PORT,
-      },
-    ],
-    name                 : REDIS_MASTER_NAME,
-    sentinelRetryStrategy: retryStrategy('sentinel'),
-  })
-  : slave_client
-const readyness = [events.once(slave_client, 'ready')]
-
-/* c8 ignore next 2 */
-// not testing sentinels
-if (REDIS_SENTINEL_HOST) readyness.push(events.once(slave_client, 'ready'))
-await Promise.all(readyness)
-await sync(master_client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
-
+const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS } = ENVIRONMENT
 const directory = dirname(fileURLToPath(import.meta.url))
 const schema = readFileSync(`${ directory }/schema.gql`, 'utf8')
 const router = new Router()
@@ -166,9 +119,7 @@ const http_server = new Koa()
     )
 
 http_server.on('close', () => {
-  /* c8 ignore next 2 */
-  // not testing sentinel
-  if (REDIS_SENTINEL_HOST) master_client.quit()
+  master_client.quit()
   slave_client.quit()
 })
 
