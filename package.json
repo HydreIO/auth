@@ -1,6 +1,6 @@
 {
   "name": "@hydre/auth",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "A light graphql authentication server built on Redis",
   "type": "module",
   "scripts": {
