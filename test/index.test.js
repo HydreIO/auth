@@ -90,7 +90,11 @@ try {
     client.once('ready', resolve)
   })
 
-  await sync(client, readFileSync('./src/schema.gql', 'utf-8'), 10, true)
+  await sync({
+    client,
+    schema   : readFileSync('./src/schema.gql', 'utf-8'),
+    overwrite: true,
+  })
 
   const { default: auth_server } = await import('../src/index.js')
 
