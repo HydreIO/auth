@@ -1,5 +1,5 @@
-directive @MAXTEXTFIELDS on OBJECT
 directive @NOFREQS on OBJECT
+directive @NOHL on OBJECT
 directive @TAG on FIELD_DEFINITION
 
 type Query {
@@ -142,7 +142,7 @@ type Mutation {
   admin_update_pwd(id: ID!, pwd: String!): Boolean!
 }
 
-type Session {
+type Session @NOFREQS @NOHL {
   uuid: ID!
   hash: String! @TAG
   ip: String
@@ -153,7 +153,7 @@ type Session {
   deviceVendor: String
 }
 
-type User @NOFREQS {
+type User @NOFREQS @NOHL {
   uuid: ID!
   mail: String! @TAG
   sessions: [Session!]!
