@@ -29,7 +29,8 @@ export default koa_context => ({
   },
   set: bearer => {
     const cookie_options = {
-      httpOnly: true,
+      httpOnly : true,
+      overwrite: true,
       ...bearer.remember && { maxAge: 60000 * 60 * 24 * 365 },
       ...COOKIE_PATH && { path: COOKIE_PATH },
       ...COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE },

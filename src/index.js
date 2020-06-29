@@ -109,7 +109,7 @@ const http_server = new Koa()
           host: SERVER_HOST,
         },
         () => {
-          const base = `https://${ SERVER_HOST }:${ PORT }`
+          const base = `http://${ SERVER_HOST }:${ PORT }`
 
           console.log(`
     :: Authentication online 🔒 ${ base }${ GRAPHQL_PATH }

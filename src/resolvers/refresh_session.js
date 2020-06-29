@@ -31,8 +31,10 @@ export default async (_, { koa_context, Disk, force_logout }) => {
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
   }
 
-  // getting rid of the old expiration limit
-  delete bearer.exp
-  token.set(bearer)
+  token.set({
+    uuid    : bearer.uuid,
+    session : bearer.session,
+    remember: bearer.remember,
+  })
   return true
 }
