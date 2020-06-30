@@ -2,11 +2,9 @@
 <p align=center>
   <img src="https://img.shields.io/github/license/HydreIO/auth.svg?style=for-the-badge" />
   <a href="https://hub.docker.com/r/hydre/auth">
-    <img src="https://img.shields.io/docker/cloud/build/hydre/auth?label=build&logo=docker&style=for-the-badge" />
+    <img src="https://img.shields.io/docker/pulls/hydre/auth?label=pulls&logo=docker&style=for-the-badge" />
   </a>
-  <a>
-    <img src="https://img.shields.io/docker/pulls/hydre/auth?label=pulls&logo=docker&style=for-the-badge">
-  </a>
+  <img src="https://img.shields.io/github/workflow/status/hydreio/auth/CI/edge?style=for-the-badge" />
   <a href="https://discord.gg/bRSpRpD">
     <img src="https://img.shields.io/discord/398114799776694272.svg?logo=discord&style=for-the-badge" />
   </a>
