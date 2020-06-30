@@ -49,6 +49,22 @@ export default koa_context => ({
     )
   },
   rm: () => {
-    koa_context.cookies.set(ACCESS_TOKEN_COOKIE_NAME)
+    /* c8 ignore next 16 */
+    // covered but c8 doesn't like this destruct
+    const cookie_options = {
+      httpOnly : true,
+      overwrite: true,
+      expires  : new Date(0),
+      ...COOKIE_PATH && { path: COOKIE_PATH },
+      ...COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE },
+      ...COOKIE_SECURE && { secure: COOKIE_SECURE },
+      ...COOKIE_DOMAIN && { domain: COOKIE_DOMAIN },
+    }
+
+    koa_context.cookies.set(
+        ACCESS_TOKEN_COOKIE_NAME,
+        'buy bitcoin :)',
+        cookie_options,
+    )
   },
 })
