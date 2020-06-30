@@ -6,6 +6,14 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
   const token = Token(koa_context)
   const bearer = token.get()
 
+  console.dir(
+      { bearer },
+      {
+        depth : Infinity,
+        colors: true,
+      },
+  )
+
   if (!bearer.uuid) {
     force_logout()
     return true
@@ -16,6 +24,14 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
     limit : 1,
     fields: ['sessions'],
   })
+
+  console.dir(
+      { user },
+      {
+        depth : Infinity,
+        colors: true,
+      },
+  )
 
   // particular case where an user would have been deleted
   // while still being logged
@@ -31,6 +47,17 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
 
   const sessions = new Set(JSON.parse(user.sessions))
   const ended_session_id = id ?? bearer.session
+
+  console.dir(
+      {
+        sessions,
+        ended_session_id,
+      },
+      {
+        depth : Infinity,
+        colors: true,
+      },
+  )
 
   if (!sessions.has(ended_session_id))
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
