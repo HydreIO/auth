@@ -6,11 +6,6 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
   const token = Token(koa_context)
   const bearer = token.get()
 
-  console.dir(bearer, {
-    depth : Infinity,
-    colors: true,
-  })
-
   if (!bearer.uuid) {
     force_logout()
     return true
