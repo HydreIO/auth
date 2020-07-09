@@ -74,7 +74,7 @@ const router = new Router()
                 events_name   : '__disk__',
               }),
               sanitize: input =>
-                input.replaceAll(/[!"#$%&'()*+,.:;\-<=>?@[\\\]^{|}~]/g, '\\$&'),
+                input.replaceAll(/[!"#$%&'()*+,.:;<=>?@[\\\]^{|}~\-]/g, '\\$&'),
               koa_context : context,
               force_logout: () => {
                 Token(context).rm()
