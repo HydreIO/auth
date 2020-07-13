@@ -17,10 +17,12 @@ export default async (
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const { user } = await Graph.run`
+  const { user, existing_sessions = [] } = await Graph.run`
     MATCH (user:User)
     WHERE user.mail = ${ mail }
-    RETURN user`
+    WITH user
+    OPTIONAL MATCH (user)-->(s:Session)
+    RETURN user, collect(s) AS existing_sessions`
 
   // this check is ahead of the USER_NOT_FOUND
   // because an invited/created user need to know if he already has a pwd or not
@@ -43,10 +45,6 @@ export default async (
   if (!built_session.browserName && !built_session.deviceVendor)
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
 
-  const { existing_sessions = [] } = await Graph.run`
-  MATCH (u:User)-->(s:Session)
-  WHERE u.uuid = ${ user.uuid }
-  RETURN collect(s) AS existing_sessions`
   const matching_session = existing_sessions.find(s => {
     return s.hash === built_session.hash
   })

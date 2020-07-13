@@ -8,15 +8,13 @@ export default async (_, { koa_context, Graph, force_logout }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const { user } = await Graph.run`
+  const { user, session } = await Graph.run`
   MATCH (user:User)
   WHERE user.uuid = ${ bearer.uuid }
-  RETURN user
-  `
-  const { session } = await Graph.run`
-  MATCH (u:User)-->(s:Session)
-  WHERE u.uuid = ${ bearer.uuid } AND s.uuid = ${ bearer.session }
-  RETURN s as session
+  WITH user
+  OPTIONAL MATCH (user)-->(s:Session)
+  WHERE s.uuid = ${ bearer.session }
+  RETURN user, s as session
   `
 
   /* c8 ignore next 5 */

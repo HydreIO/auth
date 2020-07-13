@@ -81,7 +81,7 @@ try {
   })
 
   const client = new Redis()
-  const { run } = Rgraph(client)('auth')
+  const { run } = Rgraph(client)('default')
 
   // await redis
   await new Promise(resolve => {
