@@ -7,7 +7,6 @@ import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { v4 as uuid4 } from 'uuid'
 
-
 export default async (
   { mail, pwd, remember },
   { build_session, koa_context, Graph, force_logout },
@@ -48,8 +47,9 @@ export default async (
   MATCH (u:User)-->(s:Session)
   WHERE u.uuid = ${ user.uuid }
   RETURN collect(s) AS existing_sessions`
-  const matching_session = existing_sessions
-      .find(s => s.hash === built_session.hash)
+  const matching_session = existing_sessions.find(s => {
+    return s.hash === built_session.hash
+  })
   // this is a session created in case there is not matching_session
   const session = {
     ...built_session,
@@ -86,7 +86,6 @@ export default async (
 
   while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER)
     deprecated_sessions.push(existing_sessions.shift().uuid)
-
 
   /* c8 ignore next 9 */
   // lazy to test many UA, it works when locally testing and it's pretty dumb

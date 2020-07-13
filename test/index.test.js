@@ -451,7 +451,10 @@ try {
   await run`
   MATCH (u:User {uuid:${ my_uid }}) SET u.last_reset_code_sent = 0`
   await request(/* GraphQL */ `
-  mutation{ create_pwd_reset_code(mail: "foo@bar.com") }`)
+    mutation {
+      create_pwd_reset_code(mail: "foo@bar.com")
+    }
+  `)
   await logout()
 
   const { reset_code } = await run`
