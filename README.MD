@@ -10,6 +10,6 @@
   </a>
 </p>
 
-<h3 align=center>A light graphql authentication server built on Redis</h3>
+<h3 align=center>A light graphql authentication server built on RedisGraph</h3>
 
 - WIP
