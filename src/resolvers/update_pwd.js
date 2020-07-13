@@ -7,7 +7,7 @@ const DAY = 86400000
 
 export default async (
   { code, mail, pwd },
-  { Disk, sanitize, force_logout, koa_context },
+  { Graph, force_logout, koa_context },
 ) => {
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
@@ -19,11 +19,8 @@ export default async (
 
     if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-    const [user] = await Disk.GET.User({
-      keys  : [bearer.uuid],
-      fields: [],
-      limit : 1,
-    })
+    const { user } = await Graph.run`
+    MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
     /* c8 ignore next 5 */
     // redundant testing as the same code is already tested elsewhere
@@ -32,19 +29,17 @@ export default async (
       throw new GraphQLError(ERRORS.USER_NOT_FOUND)
     }
 
-    await Disk.SET.User({
-      keys    : [user.uuid],
-      limit   : 1,
-      document: { hash: await bcrypt.hash(pwd, 10) },
-    })
+    await Graph.run`
+    MATCH (user:User { uuid: ${ bearer.uuid }})
+    SET user.hash = ${ await bcrypt.hash(pwd, 10) }
+    `
     return true
   }
 
-  const [user] = await Disk.GET.User({
-    search: `@mail:{${ sanitize(mail) }}`,
-    limit : 1,
-    fields: ['reset_code', 'last_reset_code_sent'],
-  })
+  const { user } = await Graph.run`
+  MATCH (user:User)
+  WHERE user.mail = ${ mail }
+  RETURN DISTINCT user`
 
   if (!user) {
     force_logout()
@@ -55,14 +50,10 @@ export default async (
   if (user.reset_code !== code || user.last_reset_code_sent + DAY < Date.now())
     throw new GraphQLError(ERRORS.INVALID_CODE)
 
-  await Disk.SET.User({
-    keys    : [user.uuid],
-    limit   : 1,
-    document: {
-      reset_code: undefined,
-      hash      : await bcrypt.hash(pwd, 10),
-    },
-  })
-
+  await Graph.run`
+  MATCH (u:User)
+  WHERE u.uuid = ${ user.uuid }
+  SET u.reset_code = ${ undefined }, u.hash = ${ await bcrypt.hash(pwd, 10) }
+  `
   return true
 }

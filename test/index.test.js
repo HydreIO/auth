@@ -2,17 +2,15 @@
 import Doubt from '@hydre/doubt'
 import reporter from 'tap-spec-emoji'
 import { pipeline, PassThrough } from 'stream'
-import { readFileSync } from 'fs'
 import GR from 'graphql-request'
 import Redis from 'ioredis'
-import util from 'util'
-import sync from '@hydre/disk/src/synchronize.js'
 import compose from 'docker-compose'
 import zmq from 'zeromq'
 import fetch from 'node-fetch'
 import fetch_cookie from 'fetch-cookie/node-fetch.js'
 import tough from 'tough-cookie'
 import { ENVIRONMENT } from '../src/constant.js'
+import Rgraph from '@hydre/rgraph'
 
 globalThis.fetch = fetch_cookie(
     fetch,
@@ -32,7 +30,7 @@ pipeline(through, reporter(), process.stdout, () => {})
 const doubt = Doubt({
   stdout: through,
   title : 'Authentication',
-  calls : 47,
+  calls : 46,
 })
 const host = 'http://localhost:3000'
 const gql = new GR.GraphQLClient(host, {
@@ -83,17 +81,11 @@ try {
   })
 
   const client = new Redis()
-  const send = util.promisify(client.send_command.bind(client))
+  const { run } = Rgraph(client)('auth')
 
   // await redis
   await new Promise(resolve => {
     client.once('ready', resolve)
-  })
-
-  await sync({
-    client,
-    schema   : readFileSync('./src/schema.gql', 'utf-8'),
-    overwrite: true,
   })
 
   const { default: auth_server } = await import('../src/index.js')
@@ -394,7 +386,8 @@ try {
     is     : { errors: ['SPAM'] },
   })
 
-  await send('HSET', [my_uid, 'last_verification_code_sent', '0'])
+  await run`
+  MATCH (u:User {uuid:${ my_uid }}) SET u.last_verification_code_sent = 0`
 
   const verification_code = await request(/* GraphQL */ `
     mutation {
@@ -455,9 +448,14 @@ try {
     is     : { errors: ['PASSWORD_INVALID'] },
   })
 
+  await run`
+  MATCH (u:User {uuid:${ my_uid }}) SET u.last_reset_code_sent = 0`
+  await request(/* GraphQL */ `
+  mutation{ create_pwd_reset_code(mail: "foo@bar.com") }`)
   await logout()
 
-  const reset_code = await send('HGET', [my_uid, 'reset_code'])
+  const { reset_code } = await run`
+  MATCH (u:User {uuid: ${ my_uid } }) RETURN u.reset_code as reset_code`
   const update_pwd_code = await request(/* GraphQL */ `
   mutation{
     update_pwd(mail: "foo@bar.com",code: "${ reset_code }",pwd: "foobar1")
@@ -491,7 +489,9 @@ try {
     is     : { errors: ['INVALID_CODE'] },
   })
 
-  const verif_code = await send('HGET', [my_uid, 'verification_code'])
+  const { verif_code } = await run`
+  MATCH (u:User {uuid:${ my_uid }})
+  RETURN u.verification_code AS verif_code`
   const confirm_account = await request(/* GraphQL */ `
   mutation{confirm_account(code: "${ verif_code }")}`)
 
@@ -586,19 +586,7 @@ try {
   })
 
   await login()
-
-  const delete_session_invalid = await request(/* GraphQL */ `
-    mutation {
-      delete_session(id: "dwd")
-    }
-  `)
-
-  doubt['(delete session) ILLEGAL_SESSION']({
-    because: delete_session_invalid,
-    is     : { errors: ['ILLEGAL_SESSION'] },
-  })
-
-  await send('HSET', [my_uid, 'superadmin', true])
+  await run`MATCH (u:User {uuid:${ my_uid }}) SET u.superadmin = true`
 
   const admin_delete = await request(
       /* GraphQL */ `
@@ -606,7 +594,10 @@ try {
         admin_delete_users(ids: $ids)
       }
     `,
-      { ids: await send('KEYS', ['User:*']) },
+      {
+        ids: await run`
+        MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids }) => ids),
+      },
   )
 
   doubt['A superadmin can delete users']({
@@ -615,8 +606,9 @@ try {
   })
 
   doubt['After which the db should be empty of users']({
-    because: await send('KEYS', ['User:*']),
-    is     : [],
+    because: await run`
+    MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids = [] }) => ids),
+    is: [],
   })
 
   await request(/* GraphQL */ `
@@ -649,7 +641,8 @@ try {
     is     : { errors: ['UNAUTHORIZED'] },
   })
 
-  const [self_uid] = await send('KEYS', ['User:*'])
+  const [self_uid] = await run`
+  MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids }) => ids)
   const admin_update_pwd_unauthorized = await request(/* GraphQL */ `
   mutation{admin_update_pwd(id: "${ self_uid }", pwd: "foobar2")}`)
 
@@ -658,7 +651,8 @@ try {
     is     : { errors: ['UNAUTHORIZED'] },
   })
 
-  await send('HSET', [self_uid, 'superadmin', true])
+  await run`
+  MATCH (u:User {uuid:${ self_uid }}) SET u.superadmin = true`
 
   const admin_update_pwd = await request(/* GraphQL */ `
   mutation{admin_update_pwd(id: "${ self_uid }", pwd: "foobar1")}`)
@@ -679,7 +673,7 @@ try {
   })
 
   await login()
-  await send('DEL', [self_uid])
+  await run`MATCH (u:User {uuid:${ self_uid }}) DELETE u`
 
   const admin_update_pwd_not_found_2 = await request(/* GraphQL */ `
   mutation{admin_update_pwd(id: "${ self_uid }", pwd: "foobar2")}`)

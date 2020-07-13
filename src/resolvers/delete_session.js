@@ -1,8 +1,6 @@
-import { ERRORS } from '../constant.js'
-import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 
-export default async ({ id }, { koa_context, Disk, force_logout }) => {
+export default async ({ id }, { koa_context, Graph, force_logout }) => {
   const token = Token(koa_context)
   const bearer = token.get()
 
@@ -11,11 +9,8 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
     return true
   }
 
-  const [user] = await Disk.GET.User({
-    keys  : [bearer.uuid],
-    limit : 1,
-    fields: ['sessions'],
-  })
+  const { user } = await Graph.run`
+  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
   // particular case where an user would have been deleted
   // while still being logged
@@ -29,22 +24,11 @@ export default async ({ id }, { koa_context, Disk, force_logout }) => {
   // logout if the id is not provied
   if (!id) force_logout()
 
-  const sessions = new Set(JSON.parse(user.sessions))
-  const ended_session_id = id ?? bearer.session
+  await Graph.run`
+  MATCH (u:User)-[:HAS_SESSION]->(s:Session)
+  WHERE u.uuid = ${ bearer.uuid } AND s.uuid = ${ id ?? bearer.session }
+  DELETE s
+  `
 
-  if (!sessions.has(ended_session_id))
-    throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
-
-  sessions.delete(ended_session_id)
-
-  await Disk.SET.User({
-    keys    : [bearer.uuid],
-    limit   : 1,
-    document: { sessions: JSON.stringify([...sessions.values()]) },
-  })
-
-  await Disk.DELETE.Session({
-    keys: [ended_session_id],
-  })
   return true
 }

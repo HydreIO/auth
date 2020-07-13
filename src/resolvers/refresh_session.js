@@ -2,17 +2,22 @@ import { ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 
-export default async (_, { koa_context, Disk, force_logout }) => {
+export default async (_, { koa_context, Graph, force_logout }) => {
   const token = Token(koa_context)
   const bearer = token.get(true)
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [user] = await Disk.GET.User({
-    keys  : [bearer.uuid],
-    fields: ['sessions'],
-    limit : 1,
-  })
+  const { user } = await Graph.run`
+  MATCH (user:User)
+  WHERE user.uuid = ${ bearer.uuid }
+  RETURN user
+  `
+  const { session } = await Graph.run`
+  MATCH (u:User)-->(s:Session)
+  WHERE u.uuid = ${ bearer.uuid } AND s.uuid = ${ bearer.session }
+  RETURN s as session
+  `
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -26,7 +31,7 @@ export default async (_, { koa_context, Disk, force_logout }) => {
   // the point in having an access token is to avoid checking this
   // on every request, that mean until expiration the token
   // is always valid
-  if (!new Set(JSON.parse(user.sessions) ?? []).has(bearer.session)) {
+  if (!session) {
     force_logout()
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
   }

@@ -8,7 +8,7 @@ import Router from 'koa-router'
 import cors from '@koa/cors'
 import { buildSchema, GraphQLError } from 'graphql/index.mjs'
 import graphql_http from '@hydre/graphql-http/koa'
-import Mount from '@hydre/disk'
+import Rgraph from '@hydre/rgraph'
 import Parser from 'ua-parser-js'
 import crypto from 'crypto'
 import rootValue from './root.js'
@@ -17,7 +17,7 @@ import Token from './token.js'
 import { ENVIRONMENT } from './constant.js'
 import { master_client, slave_client } from './sentinel.js'
 
-const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS } = ENVIRONMENT
+const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS, GRAPH_NAME } = ENVIRONMENT
 const directory = dirname(fileURLToPath(import.meta.url))
 const schema = readFileSync(`${ directory }/schema.gql`, 'utf8')
 const router = new Router()
@@ -38,6 +38,8 @@ const router = new Router()
             return new GraphQLError('Internal server error.. :(')
           },
           buildContext: async context => {
+            const Graph = Rgraph(master_client)(GRAPH_NAME)
+
             return {
               build_session: () => {
                 const { headers } = context.req
@@ -67,14 +69,7 @@ const router = new Router()
                       .digest('hex'),
                 }
               },
-              Disk: Mount({
-                master_client,
-                slave_client,
-                events_enabled: true,
-                events_name   : '__disk__',
-              }),
-              sanitize: input =>
-                input.replaceAll(/[!"#$%&'()*+,.:;<=>?@[\\\]^{|}~\-]/g, '\\$&'),
+              Graph,
               koa_context : context,
               force_logout: () => {
                 Token(context).rm()

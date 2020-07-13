@@ -1,10 +1,9 @@
 version: "3.7"
 services:
-  redis:
-    image: redislabs/redisearch:latest
-    container_name: redisearch
+  redis-graph:
+    image: redislabs/redisgraph:edge
     ports:
-      - 6379:6379
+      - 6379
     network_mode: host
   redis-sentinel:
     image: bitnami/redis-sentinel:latest

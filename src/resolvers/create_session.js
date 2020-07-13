@@ -5,10 +5,12 @@ import { ERRORS, ENVIRONMENT } from '../constant.js'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
+import { v4 as uuid4 } from 'uuid'
+
 
 export default async (
   { mail, pwd, remember },
-  { build_session, koa_context, Disk, sanitize, force_logout },
+  { build_session, koa_context, Graph, force_logout },
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
     throw new GraphQLError(ERRORS.MAIL_INVALID)
@@ -16,11 +18,10 @@ export default async (
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const [user] = await Disk.GET.User({
-    search: `@mail:{${ sanitize(mail) }}`,
-    limit : 1,
-    fields: ['hash', 'sessions'],
-  })
+  const { user } = await Graph.run`
+    MATCH (user:User)
+    WHERE user.mail = ${ mail }
+    RETURN user`
 
   // this check is ahead of the USER_NOT_FOUND
   // because an invited/created user need to know if he already has a pwd or not
@@ -38,46 +39,65 @@ export default async (
     throw new GraphQLError(ERRORS.USER_NOT_FOUND)
   }
 
-  const session = build_session()
+  const built_session = build_session()
 
-  if (!session.browserName && !session.deviceVendor)
+  if (!built_session.browserName && !built_session.deviceVendor)
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
 
-  const sessions = JSON.parse(user.sessions)
-  const [session_exist] = await Disk.KEYS.Session({
-    keys  : sessions,
-    search: `@hash:{${ session.hash }}`,
-    limit : 1,
-  })
-  const deprecated_sessions = []
-  const session_uuid
-    = session_exist ?? await Disk.CREATE.Session({ document: session })
+  const { existing_sessions = [] } = await Graph.run`
+  MATCH (u:User)-->(s:Session)
+  WHERE u.uuid = ${ user.uuid }
+  RETURN collect(s) AS existing_sessions`
+  const matching_session = existing_sessions
+      .find(s => s.hash === built_session.hash)
+  // this is a session created in case there is not matching_session
+  const session = {
+    ...built_session,
+    uuid     : `Session:${ uuid4() }`,
+    last_used: Date.now(),
+  }
+
+  if (matching_session) {
+    // session was found so we update last usage
+    await Graph.run`
+        MATCH (u:User)-->(s:Session)
+        WHERE u.uuid = ${ user.uuid } AND s.uuid = ${ matching_session.uuid }
+        SET s.last_used = ${ Date.now() }
+    `
+  } else {
+    // session was not found so we create a new one
+    await Graph.run`
+        MATCH (u:User)
+        WHERE u.uuid = ${ user.uuid }
+        WITH DISTINCT u
+        MERGE (u)-[:HAS_SESSION]->(s:Session ${ session })
+    `
+  }
 
   Token(koa_context).set({
     uuid   : user.uuid,
-    session: session_uuid,
+    session: matching_session?.uuid || session.uuid,
     remember,
   })
 
-  if (!session_exist) {
-    sessions.push(session_uuid)
-    while (sessions.length > ENVIRONMENT.MAX_SESSION_PER_USER)
-      deprecated_sessions.push(sessions.shift())
-  }
+  const deprecated_sessions = []
 
-  await Disk.SET.User({
-    keys    : [user.uuid],
-    limit   : 1,
-    document: { sessions: JSON.stringify(sessions) },
-  })
+  existing_sessions.sort((s1, s2) => s1.last_used - s2.last_used)
 
+  while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER)
+    deprecated_sessions.push(existing_sessions.shift().uuid)
+
+
+  /* c8 ignore next 9 */
+  // lazy to test many UA, it works when locally testing and it's pretty dumb
   if (deprecated_sessions.length) {
-    /* c8 ignore next 5 */
-    // need creating many user agent
-    await Disk.DELETE.Session({
-      keys: deprecated_sessions,
-    })
+    // too many session, we delete the oldest ones
+    await Graph.run`
+      MATCH (u:User)-->(s:Session)
+      WHERE u.uuid = ${ user.uuid } AND s.uuid IN ${ deprecated_sessions }
+      DELETE s
+    `
   }
 
-  return !session_exist
+  return !matching_session
 }

@@ -1,18 +1,14 @@
 import { ERRORS } from '../constant.js'
-import { extract_fields } from 'graphql-extract'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 
-export default async (_, { koa_context, Disk, force_logout }, me_infos) => {
+export default async (_, { koa_context, Graph, force_logout }) => {
   const bearer = Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [user] = await Disk.GET.User({
-    keys  : [bearer.uuid],
-    fields: extract_fields(me_infos),
-    limit : 1,
-  })
+  const { user } = await Graph.run`
+  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -23,10 +19,14 @@ export default async (_, { koa_context, Disk, force_logout }, me_infos) => {
 
   return {
     ...user,
-    sessions: async (__, ___, s_infos) =>
-      Disk.GET.Session({
-        keys  : JSON.parse(user.sessions) || [],
-        fields: extract_fields(s_infos),
-      }),
+    sessions: async () => {
+      const { sessions = [] } = await Graph.run`
+      MATCH (u:User)-[:HAS_SESSION]-(s:Session)
+      WHERE u.uuid = ${ user.uuid }
+      RETURN collect(s) as sessions
+    `
+
+      return sessions
+    },
   }
 }

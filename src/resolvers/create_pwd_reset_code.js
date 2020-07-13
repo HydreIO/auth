@@ -2,12 +2,11 @@ import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 
-export default async ({ mail }, { Disk, sanitize }) => {
-  const [user] = await Disk.GET.User({
-    search: `@mail:{${ sanitize(mail) }}`,
-    fields: ['last_reset_code_sent', 'uuid'],
-    limit : 1,
-  })
+export default async ({ mail }, { Graph }) => {
+  const { user } = await Graph.run`
+  MATCH (user:User)
+  WHERE user.mail = ${ mail }
+  RETURN DISTINCT user`
 
   if (user) {
     const { last_reset_code_sent } = user
@@ -21,14 +20,11 @@ export default async ({ mail }, { Disk, sanitize }) => {
         .join('')
 
     await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code])
-    await Disk.SET.User({
-      keys    : [user.uuid],
-      limit   : 1,
-      document: {
-        reset_code,
-        last_reset_code_sent: Date.now(),
-      },
-    })
+    await Graph.run`
+    MATCH (u:User)
+    WHERE u.uuid = ${ user.uuid }
+    SET u.reset_code = ${ reset_code }, u.last_reset_code_sent = ${ Date.now() }
+    `
   }
 
   return true

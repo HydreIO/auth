@@ -24,6 +24,7 @@ const {
   REDIS_PORT = 6379,
   REDIS_SENTINEL_PORT = 26379,
   REDIS_MASTER_NAME = 'mymaster',
+  GRAPH_NAME = 'auth',
 } = process.env
 const computed_cookie_secure = () => {
   const value = COOKIE_SECURE?.toLowerCase()
@@ -58,6 +59,7 @@ export const ENVIRONMENT = {
   REDIS_PORT           : +REDIS_PORT,
   REDIS_SENTINEL_PORT  : +REDIS_SENTINEL_PORT,
   REDIS_MASTER_NAME,
+  GRAPH_NAME,
 }
 
 export const ERRORS = {
