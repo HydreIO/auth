@@ -457,7 +457,7 @@ try {
   `)
   await logout()
 
-  const { reset_code } = await run`
+  const [{ reset_code } = {}] = await run`
   MATCH (u:User {uuid: ${ my_uid } }) RETURN u.reset_code as reset_code`
   const update_pwd_code = await request(/* GraphQL */ `
   mutation{
@@ -492,7 +492,7 @@ try {
     is     : { errors: ['INVALID_CODE'] },
   })
 
-  const { verif_code } = await run`
+  const [{ verif_code } = {}] = await run`
   MATCH (u:User {uuid:${ my_uid }})
   RETURN u.verification_code AS verif_code`
   const confirm_account = await request(/* GraphQL */ `
@@ -599,7 +599,7 @@ try {
     `,
       {
         ids: await run`
-        MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids }) => ids),
+        MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(([{ ids } = {}]) => ids),
       },
   )
 
@@ -610,7 +610,7 @@ try {
 
   doubt['After which the db should be empty of users']({
     because: await run`
-    MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids = [] }) => ids),
+    MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(([{ ids = [] } = {}]) => ids),
     is: [],
   })
 
@@ -645,7 +645,7 @@ try {
   })
 
   const [self_uid] = await run`
-  MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(({ ids }) => ids)
+  MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(([{ ids }]) => ids)
   const admin_update_pwd_unauthorized = await request(/* GraphQL */ `
   mutation{admin_update_pwd(id: "${ self_uid }", pwd: "foobar2")}`)
 

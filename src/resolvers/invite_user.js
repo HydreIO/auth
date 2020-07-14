@@ -15,7 +15,7 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const { invited_id } = await Graph.run`
+  const [{ invited_id } = {}] = await Graph.run`
     MATCH (user:User)
     WHERE user.mail = ${ mail }
     RETURN DISTINCT user.uuid AS invited_id

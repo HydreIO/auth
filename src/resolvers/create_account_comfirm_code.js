@@ -9,7 +9,7 @@ export default async (_, { Graph, koa_context, force_logout }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const { user } = await Graph.run`
+  const [{ user } = {}] = await Graph.run`
   MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
   /* c8 ignore next 5 */

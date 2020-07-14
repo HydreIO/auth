@@ -19,7 +19,7 @@ export default async (
 
     if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-    const { user } = await Graph.run`
+    const [{ user } = {}] = await Graph.run`
     MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
     /* c8 ignore next 5 */
@@ -36,7 +36,7 @@ export default async (
     return true
   }
 
-  const { user } = await Graph.run`
+  const [{ user } = {}] = await Graph.run`
   MATCH (user:User)
   WHERE user.mail = ${ mail }
   RETURN DISTINCT user`

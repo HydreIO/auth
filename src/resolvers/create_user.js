@@ -14,7 +14,7 @@ export default async ({ mail, pwd }, { Graph }) => {
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const { user_id } = await Graph.run`
+  const [{ user_id } = {}] = await Graph.run`
     MATCH (user:User)
     WHERE user.mail = ${ mail }
     RETURN DISTINCT user.uuid as user_id

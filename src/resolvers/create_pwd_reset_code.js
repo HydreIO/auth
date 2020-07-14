@@ -3,7 +3,7 @@ import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 
 export default async ({ mail }, { Graph }) => {
-  const { user } = await Graph.run`
+  const [{ user } = {}] = await Graph.run`
   MATCH (user:User)
   WHERE user.mail = ${ mail }
   RETURN DISTINCT user`

@@ -9,7 +9,7 @@ export default async ({ id }, { koa_context, Graph, force_logout }) => {
     return true
   }
 
-  const { user } = await Graph.run`
+  const [{ user } = {}] = await Graph.run`
   MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
   // particular case where an user would have been deleted
