@@ -599,7 +599,8 @@ try {
     `,
       {
         ids: await run`
-        MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(([{ ids } = {}]) => ids),
+        MATCH (u:User) RETURN collect(u.uuid) AS ids
+        `.then(([{ ids } = {}]) => ids),
       },
   )
 
@@ -610,7 +611,8 @@ try {
 
   doubt['After which the db should be empty of users']({
     because: await run`
-    MATCH (u:User) RETURN collect(u.uuid) AS ids`.then(([{ ids = [] } = {}]) => ids),
+    MATCH (u:User) RETURN collect(u.uuid) AS ids
+    `.then(([{ ids = [] } = {}]) => ids),
     is: [],
   })
 
