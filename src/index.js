@@ -27,16 +27,9 @@ const router = new Router()
     .all(
         GRAPHQL_PATH,
         graphql_http({
-          schema     : buildSchema(schema),
+          schema      : buildSchema(schema),
           rootValue,
-          formatError: error => {
-            if (error?.originalError?.name === 'GraphQLError')
-              return new GraphQLError(error.message)
-            /* c8 ignore next 3 */
-            // no testing of internal errors, they should not happen
-            console.error(`Found error ${ error?.originalError?.name }`)
-            return new GraphQLError('Internal server error.. :(')
-          },
+          formatError : error => new GraphQLError(error.message),
           buildContext: async context => {
             const Graph = Rgraph(master_client)(GRAPH_NAME)
 
