@@ -34,7 +34,7 @@ const router = new Router()
               return new GraphQLError(error.message)
             /* c8 ignore next 3 */
             // no testing of internal errors, they should not happen
-            console.error(error)
+            console.error(`Found error ${ error?.originalError?.name }`)
             return new GraphQLError('Internal server error.. :(')
           },
           buildContext: async context => {
