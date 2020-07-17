@@ -144,6 +144,7 @@ type Mutation {
 
 type Session {
   uuid: ID!
+  last_used: String
   hash: String!
   ip: String
   browserName: String
