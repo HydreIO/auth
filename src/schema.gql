@@ -88,8 +88,7 @@ type Mutation {
   create_account_comfirm_code: Boolean!
 
   """
-  Update an user's password
-  If a reset code is not provided then the user must be logged
+  Update an user's password with a reset code sent by mail
 
   Returns: true
   Throws:
@@ -97,8 +96,16 @@ type Mutation {
     - USER_NOT_FOUND: If the user is not found
     - INVALID_CODE: If the reset code is invalid or expired
   """
-  update_pwd(code: String, mail: String pwd: String!): Boolean!
+  update_pwd(code: String! mail: String! pwd: String!): Boolean!
+  """
+  Update an user's password while being logged
 
+  Returns: true
+  Throws:
+    - PASSWORD_INVALID: If the pwd doesn't respect the policy
+    - USER_NOT_FOUND: If the user is not found or if the current pass is invalid
+  """
+  update_pwd_logged(current_pwd: String! new_pwd: String!): Boolean!
   """
   Confirm the user account
 

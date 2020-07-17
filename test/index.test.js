@@ -30,7 +30,7 @@ pipeline(through, reporter(), process.stdout, () => {})
 const doubt = Doubt({
   stdout: through,
   title : 'Authentication',
-  calls : 46,
+  calls : 49,
 })
 const host = 'http://localhost:3000'
 const gql = new GR.GraphQLClient(host, {
@@ -426,20 +426,31 @@ try {
     is     : { errors: ['SPAM'] },
   })
 
-  const update_pwd = await request(/* GraphQL */ `
+  const update_pwd_logged = await request(/* GraphQL */ `
     mutation {
-      update_pwd(pwd: "admin1")
+      update_pwd_logged(current_pwd: "foobar1", new_pwd: "admin1")
     }
   `)
 
-  doubt['(update pwd) Updating the password while logged']({
-    because: update_pwd,
-    is     : { data: { update_pwd: true } },
+  doubt['(update pwd logged) Updating the password while logged']({
+    because: update_pwd_logged,
+    is     : { data: { update_pwd_logged: true } },
+  })
+
+  const update_pwd__logged_invalid = await request(/* GraphQL */ `
+    mutation {
+      update_pwd_logged(new_pwd: "ain1", current_pwd: "admin1")
+    }
+  `)
+
+  doubt['(update pwd logged) PASSWORD_INVALID']({
+    because: update_pwd__logged_invalid,
+    is     : { errors: ['PASSWORD_INVALID'] },
   })
 
   const update_pwd_invalid = await request(/* GraphQL */ `
     mutation {
-      update_pwd(pwd: "ain1")
+      update_pwd(pwd: "ain1", code: "", mail: "")
     }
   `)
 
@@ -469,6 +480,17 @@ try {
     is     : { data: { update_pwd: true } },
   })
 
+  const update_pwd_logged_not_found = await request(/* GraphQL */ `
+    mutation {
+      update_pwd_logged(current_pwd: "dwdwdwd8", new_pwd: "admin1")
+    }
+  `)
+
+  doubt['(update pwd logged) USER_NOT_FOUND']({
+    because: update_pwd_logged_not_found,
+    is     : { errors: ['USER_NOT_FOUND'] },
+  })
+
   const update_pwd_not_found = await request(/* GraphQL */ `
   mutation{
     update_pwd(mail: "foow@bar.com",code: "${ reset_code }",pwd: "admin1")
@@ -481,6 +503,17 @@ try {
 
   await login()
 
+  const update_pwd_logged_2_not_found = await request(/* GraphQL */ `
+    mutation {
+      update_pwd_logged(current_pwd: "dwdwdwd8", new_pwd: "admin1")
+    }
+  `)
+
+  doubt['(update pwd logged) USER_NOT_FOUND']({
+    because: update_pwd_logged_2_not_found,
+    is     : { errors: ['USER_NOT_FOUND'] },
+  })
+
   const update_pwd_invalid_code = await request(/* GraphQL */ `
     mutation {
       update_pwd(mail: "foo@bar.com", code: "dwdw", pwd: "admin1")
@@ -491,6 +524,8 @@ try {
     because: update_pwd_invalid_code,
     is     : { errors: ['INVALID_CODE'] },
   })
+
+  await login()
 
   const [{ verif_code } = {}] = await run`
   MATCH (u:User {uuid:${ my_uid }})

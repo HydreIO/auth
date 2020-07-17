@@ -7,6 +7,7 @@ import create_pwd_reset_code from './resolvers/create_pwd_reset_code.js'
 // eslint-disable-next-line max-len
 import create_account_comfirm_code from './resolvers/create_account_comfirm_code.js'
 import update_pwd from './resolvers/update_pwd.js'
+import update_pwd_logged from './resolvers/update_pwd_logged.js'
 import confirm_account from './resolvers/confirm_account.js'
 import delete_session from './resolvers/delete_session.js'
 import admin_delete_users from './resolvers/admin_delete_users.js'
@@ -28,4 +29,5 @@ export default {
   delete_session,
   admin_delete_users,
   admin_update_pwd,
+  update_pwd_logged,
 }
