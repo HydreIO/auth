@@ -30,6 +30,7 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
     verified                   : true,
     last_reset_code_sent       : 0,
     last_verification_code_sent: 0,
+    member_since               : Date.now(),
   }
 
   await Graph.run`CREATE (u:User ${ user })`

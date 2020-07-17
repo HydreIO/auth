@@ -142,9 +142,9 @@ type Mutation {
   admin_update_pwd(id: ID!, pwd: String!): Boolean!
 }
 
-type Session @NOFREQS @NOHL {
+type Session {
   uuid: ID!
-  hash: String! @TAG
+  hash: String!
   ip: String
   browserName: String
   osName: String
@@ -153,9 +153,10 @@ type Session @NOFREQS @NOHL {
   deviceVendor: String
 }
 
-type User @NOFREQS @NOHL {
+type User {
   uuid: ID!
-  mail: String! @TAG
+  mail: String!
   sessions: [Session!]!
   verified: Boolean!
+  member_since: String!
 }

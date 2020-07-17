@@ -33,6 +33,7 @@ export default async ({ mail, pwd }, { Graph }) => {
     verified                   : false,
     last_reset_code_sent       : 0,
     last_verification_code_sent: Date.now(),
+    member_since               : Date.now(),
   }
 
   await Graph.run`CREATE (u:User ${ user })`
