@@ -33,14 +33,14 @@ type Mutation {
   Create an user account for another person
   and send an ACCOUNT_INVITE socket message
 
-  Returns: true
+  Returns: Id of the invited user
   Throws:
     - REGISTRATION_DISABLED: If the registration is disabled
     - MAIL_INVALID: If the mail doesn't respect the policy
     - USER_NOT_FOUND: If the user is not found
     - MAIL_USED: If the mail is already used
   """
-  invite_user(mail: String!, payload: String): Boolean!
+  invite_user(mail: String!, payload: String): ID!
 
   """
   Creating a session means authenticating an user

@@ -232,8 +232,8 @@ try {
   `)
 
   doubt['(invite user) OK']({
-    because: invite_user,
-    is     : { data: { invite_user: true } },
+    because: typeof invite_user.data.invite_user,
+    is     : 'string',
   })
 
   const session_no_pwd = await request(/* GraphQL */ `

@@ -35,5 +35,5 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
 
   await Graph.run`CREATE (u:User ${ user })`
   await MAIL.send([MAIL.ACCOUNT_INVITE, bearer.uuid, user.uuid, payload, mail])
-  return true
+  return user.uuid
 }
