@@ -55,6 +55,13 @@ export default async (
     last_used: Date.now(),
   }
 
+  if (!user.logged_once) {
+    await Graph.run`
+  MATCH (u:User) WHERE u.uuid = ${ user.uuid }
+  SET u.logged_once = ${ true }
+  `
+  }
+
   if (matching_session) {
     // session was found so we update last usage
     await Graph.run`
