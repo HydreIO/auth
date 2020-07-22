@@ -23,10 +23,14 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
 
   if (invited_id) throw new GraphQLError(ERRORS.MAIL_USED)
 
+  const reset_code = [...new Array(64)]
+      .map(() => (~~(Math.random() * 36)).toString(36))
+      .join('')
   const user = {
     uuid                       : `User:${ uuid4() }`,
     mail,
     // verified because the invitation already prove the mail identity
+    reset_code,
     verified                   : true,
     last_reset_code_sent       : 0,
     last_verification_code_sent: 0,
@@ -34,6 +38,13 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
   }
 
   await Graph.run`CREATE (u:User ${ user })`
-  await MAIL.send([MAIL.ACCOUNT_INVITE, bearer.uuid, user.uuid, payload, mail])
+  await MAIL.send([
+    MAIL.ACCOUNT_INVITE,
+    bearer.uuid,
+    user.uuid,
+    payload,
+    mail,
+    reset_code,
+  ])
   return user.uuid
 }
