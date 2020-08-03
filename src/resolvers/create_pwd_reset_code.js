@@ -2,7 +2,7 @@ import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 
-export default async ({ mail }, { Graph }) => {
+export default async ({ mail, payload }, { Graph }) => {
   const [{ user } = {}] = await Graph.run`
   MATCH (user:User)
   WHERE user.mail = ${ mail }
@@ -19,7 +19,7 @@ export default async ({ mail }, { Graph }) => {
         .map(() => (~~(Math.random() * 36)).toString(36))
         .join('')
 
-    await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code])
+    await MAIL.send([MAIL.PASSWORD_RESET, user.uuid, mail, reset_code, payload])
     await Graph.run`
     MATCH (u:User)
     WHERE u.uuid = ${ user.uuid }

@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql/index.mjs'
 import MAIL from '../mail.js'
 import { v4 as uuid4 } from 'uuid'
 
-export default async ({ mail, pwd }, { Graph }) => {
+export default async ({ mail, pwd, payload }, { Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -37,6 +37,12 @@ export default async ({ mail, pwd }, { Graph }) => {
   }
 
   await Graph.run`CREATE (u:User ${ user })`
-  await MAIL.send([MAIL.ACCOUNT_CREATE, user.uuid, mail, verification_code])
+  await MAIL.send([
+    MAIL.ACCOUNT_CREATE,
+    user.uuid,
+    mail,
+    verification_code,
+    payload,
+  ])
   return true
 }
