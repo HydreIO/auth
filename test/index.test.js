@@ -93,11 +93,14 @@ try {
   // await auth
   await reach_auth()
 
-  const create_account = await request(/* GraphQL */ `
-    mutation {
-      create_user(mail: "foo@bar.com", pwd: "foobar1")
-    }
-  `)
+  const create_account = await request(
+      /* GraphQL */ `
+      mutation($sp: String) {
+        create_user(mail: "foo@bar.com", pwd: "foobar1", payload: $sp)
+      }
+    `,
+      { sp: JSON.stringify({ lang: 'fr' }) },
+  )
 
   doubt['(create user) OK']({
     because: create_account,
