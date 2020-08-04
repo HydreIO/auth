@@ -6,9 +6,10 @@ import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { v4 as uuid4 } from 'uuid'
+import MAIL from '../mail.js'
 
 export default async (
-  { mail, pwd, remember },
+  { mail, pwd, remember, payload },
   { build_session, koa_context, Graph, force_logout },
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
@@ -71,12 +72,33 @@ export default async (
     `
   } else {
     // session was not found so we create a new one
+
+    const parsed_payload = () => {
+      try {
+        return JSON.parse(payload)
+      } catch {
+        return {}
+      }
+    }
+
+    MAIL.send([
+      MAIL.NEW_SESSION,
+      user.uuid,
+      mail,
+      JSON.stringify({
+        ...parsed_payload(),
+        browser: session.browserName,
+        os_name: session.osName,
+        device : session.deviceModel,
+      }),
+    ])
+
     await Graph.run`
-        MATCH (u:User)
-        WHERE u.uuid = ${ user.uuid }
-        WITH DISTINCT u
-        MERGE (u)-[:HAS_SESSION]->(s:Session ${ session })
-    `
+          MATCH (u:User)
+          WHERE u.uuid = ${ user.uuid }
+          WITH DISTINCT u
+          MERGE (u)-[:HAS_SESSION]->(s:Session ${ session })
+      `
   }
 
   Token(koa_context).set({

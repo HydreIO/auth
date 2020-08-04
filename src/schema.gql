@@ -55,7 +55,7 @@ type Mutation {
       request a reset code to reset his password
     - ILLEGAL_SESSION: If the user agent is invalid
   """
-  create_session(mail: String!, pwd: String!, remember: Boolean = false): Boolean!
+  create_session(mail: String!, pwd: String!, remember: Boolean = false, payload: String): Boolean!
 
   """
   Create and fix a fresh access token

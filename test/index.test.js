@@ -30,7 +30,7 @@ pipeline(through, reporter(), process.stdout, () => {})
 const doubt = Doubt({
   stdout: through,
   title : 'Authentication',
-  calls : 49,
+  calls : 50,
 })
 const host = 'http://localhost:3000'
 const gql = new GR.GraphQLClient(host, {
@@ -93,14 +93,11 @@ try {
   // await auth
   await reach_auth()
 
-  const create_account = await request(
-      /* GraphQL */ `
-      mutation($sp: String) {
-        create_user(mail: "foo@bar.com", pwd: "foobar1", payload: $sp)
-      }
-    `,
-      { sp: JSON.stringify({ lang: 'fr' }) },
-  )
+  const create_account = await request(/* GraphQL */ `
+    mutation {
+      create_user(mail: "foo@bar.com", pwd: "foobar1")
+    }
+  `)
 
   doubt['(create user) OK']({
     because: create_account,
@@ -724,6 +721,20 @@ try {
   doubt['(admin update pwd) USER_NOT_FOUND']({
     because: admin_update_pwd_not_found_2,
     is     : { errors: ['USER_NOT_FOUND'] },
+  })
+
+  const create_account_fr = await request(
+      /* GraphQL */ `
+      mutation($sp: String) {
+        create_user(mail: "foo@frostiiz.com", pwd: "foobar1", payload: $sp)
+      }
+    `,
+      { sp: JSON.stringify({ lang: 'fr' }) },
+  )
+
+  doubt['(create user) OK']({
+    because: create_account_fr,
+    is     : { data: { create_user: true } },
   })
 
   auth_server.close()
