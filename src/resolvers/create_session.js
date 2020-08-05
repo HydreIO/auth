@@ -72,25 +72,12 @@ export default async (
     `
   } else {
     // session was not found so we create a new one
-
-    const parsed_payload = () => {
-      try {
-        return JSON.parse(payload)
-      } catch {
-        return {}
-      }
-    }
-
     MAIL.send([
       MAIL.NEW_SESSION,
       user.uuid,
       mail,
-      JSON.stringify({
-        ...parsed_payload(),
-        browser: session.browserName,
-        os_name: session.osName,
-        device : session.deviceModel,
-      }),
+      payload,
+      JSON.stringify(session),
     ])
 
     await Graph.run`
