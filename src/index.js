@@ -63,6 +63,7 @@ const router = new Router()
                 }
               },
               Graph,
+              publish     : id => master_client.publish('__auth__', id),
               koa_context : context,
               force_logout: () => {
                 Token(context).rm()

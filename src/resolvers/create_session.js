@@ -10,7 +10,7 @@ import MAIL from '../mail.js'
 
 export default async (
   { mail, pwd, remember, payload },
-  { build_session, koa_context, Graph, force_logout },
+  { build_session, koa_context, Graph, force_logout, publish },
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
     throw new GraphQLError(ERRORS.MAIL_INVALID)
@@ -61,6 +61,7 @@ export default async (
   MATCH (u:User) WHERE u.uuid = ${ user.uuid }
   SET u.logged_once = ${ true }
   `
+    await publish(user.uuid)
   }
 
   if (matching_session) {
