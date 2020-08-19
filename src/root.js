@@ -5,7 +5,7 @@ import invite_user from './resolvers/invite_user.js'
 import refresh_session from './resolvers/refresh_session.js'
 import create_pwd_reset_code from './resolvers/create_pwd_reset_code.js'
 // eslint-disable-next-line max-len
-import create_account_comfirm_code from './resolvers/create_account_comfirm_code.js'
+import create_account_comfirm_code from './resolvers/create_account_confirm_code.js'
 import update_pwd from './resolvers/update_pwd.js'
 import update_pwd_logged from './resolvers/update_pwd_logged.js'
 import confirm_account from './resolvers/confirm_account.js'
