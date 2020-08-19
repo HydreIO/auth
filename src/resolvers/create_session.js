@@ -9,8 +9,8 @@ import { v4 as uuid4 } from 'uuid'
 import MAIL from '../mail.js'
 
 export default async (
-  { mail, pwd, remember, payload },
-  { build_session, koa_context, Graph, force_logout, publish },
+    { mail, pwd, remember, payload },
+    { build_session, koa_context, Graph, force_logout, publish },
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
     throw new GraphQLError(ERRORS.MAIL_INVALID)

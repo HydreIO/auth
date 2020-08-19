@@ -53,7 +53,7 @@
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
-    "koa-router": "^9.1.0",
+    "koa-router": "^9.4.0",
     "ua-parser-js": "^0.7.21",
     "uuid": "^8.3.0",
     "zeromq": "^6.0.0-beta.6"
@@ -68,7 +68,7 @@
     "babel-eslint": "^11.0.0-beta.2",
     "c8": "^7.3.0",
     "docker-compose": "^0.23.5",
-    "eslint": "^7.6.0",
+    "eslint": "^7.7.0",
     "eslint-plugin-unicorn": "^21.0.0",
     "fetch-cookie": "^0.10.1",
     "node-fetch": "^2.6.0",
