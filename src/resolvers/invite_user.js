@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { v4 as uuid4 } from 'uuid'
 
-export default async ({ mail, payload }, { koa_context, Graph }) => {
+export default async ({ mail, lang }, { koa_context, Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -42,7 +42,7 @@ export default async ({ mail, payload }, { koa_context, Graph }) => {
     MAIL.ACCOUNT_INVITE,
     bearer.uuid,
     user.uuid,
-    payload,
+    lang,
     mail,
     reset_code,
   ])

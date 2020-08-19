@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { plus_equals } from '@hydre/rgraph/operators'
 
-export default async ({ payload }, { Graph, koa_context, force_logout }) => {
+export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   const bearer = Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
@@ -34,7 +34,7 @@ export default async ({ payload }, { Graph, koa_context, force_logout }) => {
     uuid,
     mail,
     verification_code,
-    payload,
+    lang,
   ])
   await Graph.run`
   MATCH (u:User)

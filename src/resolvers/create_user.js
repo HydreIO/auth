@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql/index.mjs'
 import MAIL from '../mail.js'
 import { v4 as uuid4 } from 'uuid'
 
-export default async ({ mail, pwd, payload }, { Graph }) => {
+export default async ({ mail, pwd, lang }, { Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -42,7 +42,7 @@ export default async ({ mail, pwd, payload }, { Graph }) => {
     user.uuid,
     mail,
     verification_code,
-    payload,
+    lang,
   ])
   return true
 }
