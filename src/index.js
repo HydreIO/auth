@@ -15,14 +15,17 @@ import rootValue from './root.js'
 import Token from './token.js'
 
 import { ENVIRONMENT } from './constant.js'
-import { master_client, slave_client } from './sentinel.js'
+import { master_client, slave_client, connection_state } from './sentinel.js'
 
 const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS, GRAPH_NAME } = ENVIRONMENT
 const directory = dirname(fileURLToPath(import.meta.url))
 const schema = readFileSync(`${ directory }/schema.gql`, 'utf8')
 const router = new Router()
+/* c8 ignore next 5 */
+// not covering kubernetes stuff
     .get('/healthz', context => {
-      context.body = 'ok'
+      if (connection_state.online) context.body = 'ok'
+      else context.throw('hello darkness', 418)
     })
     .all(
         GRAPHQL_PATH,
@@ -63,6 +66,7 @@ const router = new Router()
                 }
               },
               Graph,
+              publish     : id => master_client.publish('__auth__', id),
               koa_context : context,
               force_logout: () => {
                 Token(context).rm()

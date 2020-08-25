@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs'
 import Token from '../token.js'
 
 export default async (
-  { current_pwd, new_pwd },
-  { Graph, force_logout, koa_context },
+    { current_pwd, new_pwd },
+    { Graph, force_logout, koa_context },
 ) => {
   if (!new_pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)

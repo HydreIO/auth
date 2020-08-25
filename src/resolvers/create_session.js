@@ -61,6 +61,7 @@ export default async (
   MATCH (u:User) WHERE u.uuid = ${ user.uuid }
   SET u.logged_once = ${ true }
   `
+    await publish(user.uuid)
   }
 
   if (matching_session) {
