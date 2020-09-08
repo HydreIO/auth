@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import MAIL from '../mail.js'
 import { v4 as uuid4 } from 'uuid'
+import jwt from 'jsonwebtoken'
 
 export default async ({ mail, pwd, lang }, { Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
@@ -37,11 +38,26 @@ export default async ({ mail, pwd, lang }, { Graph }) => {
   }
 
   await Graph.run`CREATE (u:User ${ user })`
+
+  const mail_action_object = {
+    'action': MAIL.ACCOUNT_CREATE,
+    'code'  : verification_code,
+    mail,
+  }
+  const jwt_mail_action = jwt.sign(
+      mail_action_object,
+      ENVIRONMENT.MAIL_PRIVATE_KEY,
+      {
+        algorithm: 'ES256',
+        expiresIn: '1d',
+      },
+  )
+
   await MAIL.send([
     MAIL.ACCOUNT_CREATE,
     user.uuid,
     mail,
-    verification_code,
+    jwt_mail_action,
     lang,
   ])
   return true
