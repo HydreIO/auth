@@ -3,6 +3,7 @@ import MAIL from '../mail.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { v4 as uuid4 } from 'uuid'
+import jwt from 'jsonwebtoken'
 
 export default async ({ mail, lang }, { koa_context, Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
@@ -32,10 +33,23 @@ export default async ({ mail, lang }, { koa_context, Graph }) => {
     // verified because the invitation already prove the mail identity
     reset_code,
     verified                   : true,
-    last_reset_code_sent       : 0,
+    last_reset_code_sent       : Date.now(),
     last_verification_code_sent: 0,
     member_since               : Date.now(),
   }
+  const mail_action_object = {
+    'action': MAIL.ACCOUNT_INVITE,
+    'code'  : reset_code,
+    mail,
+  }
+  const jwt_mail_action = jwt.sign(
+      mail_action_object,
+      ENVIRONMENT.MAIL_PRIVATE_KEY,
+      {
+        algorithm: 'ES256',
+        expiresIn: '1d',
+      },
+  )
 
   await Graph.run`CREATE (u:User ${ user })`
   await MAIL.send([
@@ -44,7 +58,7 @@ export default async ({ mail, lang }, { koa_context, Graph }) => {
     user.uuid,
     lang,
     mail,
-    reset_code,
+    jwt_mail_action,
   ])
   return user.uuid
 }
