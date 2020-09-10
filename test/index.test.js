@@ -391,20 +391,20 @@ try {
 
   const verification_code = await request(/* GraphQL */ `
     mutation {
-      create_account_comfirm_code
+      create_account_confirm_code
     }
   `)
 
   doubt['(verification code) OK']({
     because: verification_code,
-    is     : { data: { create_account_comfirm_code: true } },
+    is     : { data: { create_account_confirm_code: true } },
   })
 
   await logout()
 
   const verification_code_not_found = await request(/* GraphQL */ `
     mutation {
-      create_account_comfirm_code
+      create_account_confirm_code
     }
   `)
 
@@ -417,7 +417,7 @@ try {
 
   const verification_code_spam = await request(/* GraphQL */ `
     mutation {
-      create_account_comfirm_code
+      create_account_confirm_code
     }
   `)
 
@@ -725,11 +725,11 @@ try {
 
   const create_account_fr = await request(
       /* GraphQL */ `
-      mutation($sp: String) {
-        create_user(mail: "foo@frostiiz.com", pwd: "foobar1", payload: $sp)
+      mutation($lang: Lang!) {
+        create_user(mail: "foo@frostiiz.com", pwd: "foobar1", lang: $lang)
       }
     `,
-      { sp: JSON.stringify({ lang: 'fr' }) },
+      { lang: 'FR' },
   )
 
   doubt['(create user) OK']({
