@@ -40,8 +40,8 @@ export default async ({ mail, pwd, lang }, { Graph }) => {
   await Graph.run`CREATE (u:User ${ user })`
 
   const mail_action_object = {
-    'action': MAIL.ACCOUNT_CREATE,
-    'code'  : verification_code,
+    action: MAIL.ACCOUNT_CREATE,
+    code  : verification_code,
     mail,
   }
   const jwt_mail_action = jwt.sign(
