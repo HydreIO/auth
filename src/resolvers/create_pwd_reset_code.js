@@ -20,8 +20,8 @@ export default async ({ mail, lang }, { Graph }) => {
         .map(() => (~~(Math.random() * 36)).toString(36))
         .join('')
     const mail_action_object = {
-      'action': MAIL.PASSWORD_RESET,
-      'code'  : reset_code,
+      action: MAIL.PASSWORD_RESET,
+      code  : reset_code,
       mail,
     }
     const jwt_mail_action = jwt.sign(
