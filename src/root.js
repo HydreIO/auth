@@ -23,7 +23,7 @@ export default {
   invite_user,
   refresh_session,
   create_pwd_reset_code,
-  create_account_comfirm_code,
+  create_account_confirm_code,
   update_pwd,
   confirm_account,
   delete_session,

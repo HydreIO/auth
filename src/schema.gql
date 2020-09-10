@@ -90,7 +90,7 @@ type Mutation {
     - USER_NOT_FOUND: If the user is not found
     - SPAM: If the user request too fast another code
   """
-  create_account_comfirm_code(lang: Lang): Boolean!
+  create_account_confirm_code(lang: Lang): Boolean!
 
   """
   Update an user's password with a reset code sent by mail
