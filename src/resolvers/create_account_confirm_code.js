@@ -43,13 +43,7 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
       },
   )
 
-  await MAIL.send([
-    MAIL.ACCOUNT_CONFIRM,
-    uuid,
-    mail,
-    jwt_mail_action,
-    lang,
-  ])
+  await MAIL.send([MAIL.ACCOUNT_CONFIRM, uuid, mail, jwt_mail_action, lang])
   await Graph.run`
   MATCH (u:User)
   WHERE u.uuid = ${ user.uuid }

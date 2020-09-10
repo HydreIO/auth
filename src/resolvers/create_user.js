@@ -53,12 +53,6 @@ export default async ({ mail, pwd, lang }, { Graph }) => {
       },
   )
 
-  await MAIL.send([
-    MAIL.ACCOUNT_CREATE,
-    user.uuid,
-    mail,
-    jwt_mail_action,
-    lang,
-  ])
+  await MAIL.send([MAIL.ACCOUNT_CREATE, user.uuid, mail, jwt_mail_action, lang])
   return true
 }

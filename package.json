@@ -59,7 +59,7 @@
     "zeromq": "^6.0.0-beta.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.5",
+    "@babel/core": "^7.11.6",
     "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/plugin-proposal-numeric-separator": "^7.10.4",
     "@babel/plugin-proposal-private-methods": "^7.10.4",
@@ -71,7 +71,7 @@
     "eslint": "^7.8.1",
     "eslint-plugin-unicorn": "^21.0.0",
     "fetch-cookie": "^0.10.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "prettier-eslint-cli": "^5.0.0",
     "tap-spec-emoji": "^6.1.2",
     "tough-cookie": "^4.0.0"
