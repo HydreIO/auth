@@ -38,8 +38,8 @@ export default async ({ mail, lang }, { koa_context, Graph }) => {
     member_since               : Date.now(),
   }
   const mail_action_object = {
-    'action': MAIL.ACCOUNT_INVITE,
-    'code'  : reset_code,
+    action: MAIL.ACCOUNT_INVITE,
+    code  : reset_code,
     mail,
   }
   const jwt_mail_action = jwt.sign(
