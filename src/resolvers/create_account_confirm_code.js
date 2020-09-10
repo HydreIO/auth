@@ -30,8 +30,8 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
       .map(() => (~~(Math.random() * 36)).toString(36))
       .join('')
   const mail_action_object = {
-    'action': MAIL.ACCOUNT_CONFIRM,
-    'code'  : verification_code,
+    action: MAIL.ACCOUNT_CONFIRM,
+    code  : verification_code,
     mail,
   }
   const jwt_mail_action = jwt.sign(
