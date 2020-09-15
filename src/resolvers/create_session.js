@@ -18,7 +18,7 @@ export default async (
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const [{ user, existing_sessions = [] } = {}] = await Graph.run`
+  const [{ user, existing_sessions = [] } = {}] = await Graph.run/* cypher */`
     MATCH (user:User)
     WHERE user.mail = ${ mail }
     WITH user

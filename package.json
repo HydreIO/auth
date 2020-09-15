@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/hydreio/auth#readme",
   "dependencies": {
-    "@hydre/graphql-http": "^1.4.3",
+    "@hydre/graphql-http": "^1.5.0",
     "@hydre/rgraph": "^4.3.5",
     "@koa/cors": "^3.1.0",
     "bcryptjs": "^2.4.3",
@@ -54,7 +54,7 @@
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^9.4.0",
-    "ua-parser-js": "^0.7.21",
+    "ua-parser-js": "^0.7.22",
     "uuid": "^8.3.0",
     "zeromq": "^6.0.0-beta.6"
   },
@@ -68,7 +68,7 @@
     "babel-eslint": "^11.0.0-beta.2",
     "c8": "^7.3.0",
     "docker-compose": "^0.23.5",
-    "eslint": "^7.8.1",
+    "eslint": "^7.9.0",
     "eslint-plugin-unicorn": "^21.0.0",
     "fetch-cookie": "^0.10.1",
     "node-fetch": "^2.6.1",
