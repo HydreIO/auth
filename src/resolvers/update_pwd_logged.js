@@ -31,7 +31,7 @@ export default async (
     throw new GraphQLError(ERRORS.USER_NOT_FOUND)
   }
 
-  await Graph.run`
+  await Graph.run/* cypher */`
     MATCH (user:User { uuid: ${ bearer.uuid }})
     SET user.hash = ${ await bcrypt.hash(new_pwd, 10) }
     `

@@ -3,7 +3,6 @@ import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { plus_equals } from '@hydre/rgraph/operators'
-import jwt from 'jsonwebtoken'
 
 export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   const bearer = Token(koa_context).get()
@@ -29,21 +28,16 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   const verification_code = [...new Array(64)]
       .map(() => (~~(Math.random() * 36)).toString(36))
       .join('')
-  const mail_action_object = {
-    action: MAIL.ACCOUNT_CONFIRM,
-    code  : verification_code,
-    mail,
-  }
-  const jwt_mail_action = jwt.sign(
-      mail_action_object,
-      ENVIRONMENT.MAIL_PRIVATE_KEY,
-      {
-        algorithm: 'ES256',
-        expiresIn: '1d',
-      },
-  )
 
-  await MAIL.send([MAIL.ACCOUNT_CONFIRM, uuid, mail, jwt_mail_action, lang])
+  await MAIL.send([
+    MAIL.ACCOUNT_CONFIRM,
+    mail,
+    lang,
+    JSON.stringify({
+      code: verification_code,
+      mail,
+    }),
+  ])
   await Graph.run`
   MATCH (u:User)
   WHERE u.uuid = ${ user.uuid }

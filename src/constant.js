@@ -25,8 +25,6 @@ const {
   REDIS_SENTINEL_PORT = 26379,
   REDIS_MASTER_NAME = 'mymaster',
   GRAPH_NAME = 'default',
-  MAIL_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEXqhP5kDFUBDRyVJXR1w0nYXPY9Z1\nizKycbJpkPou82cjacgodTpsDOR33JQa9pY20EpCz373uaLxsMVkWRUWPw==\n-----END PUBLIC KEY-----', // ES 256
-  MAIL_PRIVATE_KEY = '-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIFOgjm1xhauQjh299B/+G8y5/lxg+NWfe9xjN9rmo78KoAoGCCqGSM49\nAwEHoUQDQgAEXqhP5kDFUBDRyVJXR1w0nYXPY9Z1izKycbJpkPou82cjacgodTps\nDOR33JQa9pY20EpCz373uaLxsMVkWRUWPw==\n-----END EC PRIVATE KEY-----', // ES 256
 } = process.env
 const computed_cookie_secure = () => {
   const value = COOKIE_SECURE?.toLowerCase()
@@ -62,8 +60,6 @@ export const ENVIRONMENT = {
   REDIS_SENTINEL_PORT  : +REDIS_SENTINEL_PORT,
   REDIS_MASTER_NAME,
   GRAPH_NAME,
-  MAIL_PUBLIC_KEY,
-  MAIL_PRIVATE_KEY,
 }
 
 export const ERRORS = {

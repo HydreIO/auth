@@ -22,7 +22,7 @@ export default async ({ code, mail, pwd }, { Graph, force_logout }) => {
   if (user.reset_code !== code || user.last_reset_code_sent + DAY < Date.now())
     throw new GraphQLError(ERRORS.INVALID_CODE)
 
-  await Graph.run`
+  await Graph.run/* cypher */`
   MATCH (u:User)
   WHERE u.uuid = ${ user.uuid }
   SET u.reset_code = ${ undefined }, u.hash = ${ await bcrypt.hash(pwd, 10) }

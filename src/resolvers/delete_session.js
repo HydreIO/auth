@@ -24,7 +24,7 @@ export default async ({ id }, { koa_context, Graph, force_logout }) => {
   // logout if the id is not provied
   if (!id) force_logout()
 
-  await Graph.run`
+  await Graph.run/* cypher */`
   MATCH (u:User)-[:HAS_SESSION]->(s:Session)
   WHERE u.uuid = ${ bearer.uuid } AND s.uuid = ${ id ?? bearer.session }
   DELETE s
