@@ -68,7 +68,7 @@
     "c8": "^7.3.0",
     "docker-compose": "^0.23.5",
     "eslint": "^7.9.0",
-    "eslint-plugin-unicorn": "^21.0.0",
+    "eslint-plugin-unicorn": "^22.0.0",
     "fetch-cookie": "^0.10.1",
     "node-fetch": "^2.6.1",
     "prettier-eslint-cli": "^5.0.0",
