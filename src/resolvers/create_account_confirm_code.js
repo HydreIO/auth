@@ -9,7 +9,7 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user } = {}] = await Graph.run`
+  const [{ user } = {}] = await Graph.run/* cypher */`
   MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
 
   /* c8 ignore next 5 */
@@ -19,7 +19,7 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
     throw new GraphQLError(ERRORS.USER_NOT_FOUND)
   }
 
-  const { last_verification_code_sent, mail, uuid } = user
+  const { last_verification_code_sent, mail } = user
   const { CONFIRM_ACCOUNT_DELAY } = ENVIRONMENT
 
   if (last_verification_code_sent + CONFIRM_ACCOUNT_DELAY > Date.now())
