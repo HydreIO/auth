@@ -82,7 +82,7 @@ export default async (
       }),
     ])
 
-    await Graph.run`
+    await Graph.run/* cypher */`
           MATCH (u:User)
           WHERE u.uuid = ${ user.uuid }
           WITH DISTINCT u
