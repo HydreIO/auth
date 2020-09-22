@@ -73,14 +73,7 @@ export default async (
     `
   } else {
     // session was not found so we create a new one
-    MAIL.send([
-      MAIL.NEW_SESSION,
-      mail,
-      lang,
-      JSON.stringify({
-        session,
-      }),
-    ])
+    MAIL.send([MAIL.NEW_SESSION, mail, lang, JSON.stringify(session)])
 
     await Graph.run/* cypher */`
           MATCH (u:User)
