@@ -38,7 +38,7 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
       mail,
     }),
   ])
-  await Graph.run`
+  await Graph.run/* cypher */`
   MATCH (u:User)
   WHERE u.uuid = ${ user.uuid }
   SET ${ plus_equals('u', {

@@ -8,7 +8,7 @@ export default async ({ code, mail, pwd }, { Graph, force_logout }) => {
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const [{ user } = {}] = await Graph.run`
+  const [{ user } = {}] = await Graph.run/* cypher */`
   MATCH (user:User)
   WHERE user.mail = ${ mail }
   RETURN DISTINCT user`

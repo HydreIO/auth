@@ -75,10 +75,11 @@ export default async (
     // session was not found so we create a new one
     MAIL.send([
       MAIL.NEW_SESSION,
-      user.uuid,
       mail,
       lang,
-      JSON.stringify(session),
+      JSON.stringify({
+        session,
+      }),
     ])
 
     await Graph.run`
@@ -106,7 +107,7 @@ export default async (
   // lazy to test many UA, it works when locally testing and it's pretty dumb
   if (deprecated_sessions.length) {
     // too many session, we delete the oldest ones
-    await Graph.run`
+    await Graph.run/* cypher */`
       MATCH (u:User)-->(s:Session)
       WHERE u.uuid = ${ user.uuid } AND s.uuid IN ${ deprecated_sessions }
       DELETE s
