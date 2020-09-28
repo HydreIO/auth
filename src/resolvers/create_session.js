@@ -73,12 +73,28 @@ export default async (
     `
   } else {
     // session was not found so we create a new one
-    MAIL.send([
+    const {
+      ip,
+      browserName,
+      osName,
+      deviceModel,
+      deviceType,
+      deviceVendor,
+    } = session
+
+    await MAIL.send([
       MAIL.NEW_SESSION,
       mail,
       lang,
       undefined,
-      JSON.stringify(session),
+      JSON.stringify({
+        ip,
+        browserName,
+        osName,
+        deviceModel,
+        deviceType,
+        deviceVendor,
+      }),
     ])
 
     await Graph.run/* cypher */`
