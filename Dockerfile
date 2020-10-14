@@ -1,5 +1,5 @@
 # ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
-FROM node:14.4-alpine as build
+FROM node:14.13-alpine as build
 
 RUN apk add git
 
@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --prod
 
 # ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
-FROM node:14.4-alpine as production
+FROM node:14.13-alpine as production
 
 WORKDIR /app
 
