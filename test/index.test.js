@@ -80,13 +80,14 @@ try {
     commandOptions: ['--build'],
   })
 
-  const client = new Redis()
+  const client = new Redis({
+    host: '0.0.0.0',
+    port: 6379,
+  })
   const { run } = Rgraph(client)('default')
 
   // await redis
-  await new Promise(resolve => {
-    client.once('ready', resolve)
-  })
+  await new Promise(resolve => client.once('ready', resolve))
 
   const { default: auth_server } = await import('../src/index.js')
 
