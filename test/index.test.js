@@ -11,6 +11,7 @@ import fetch_cookie from 'fetch-cookie/node-fetch.js'
 import tough from 'tough-cookie'
 import { ENVIRONMENT } from '../src/constant.js'
 import Rgraph from '@hydre/rgraph'
+import jwt from 'jsonwebtoken'
 
 globalThis.fetch = fetch_cookie(
     fetch,
@@ -528,9 +529,9 @@ try {
 
   await login()
 
-  const [{ verif_code } = {}] = await run`
-  MATCH (u:User {uuid:${ my_uid }})
-  RETURN u.verification_code AS verif_code`
+  const verif_code = jwt.sign({ uuid: my_uid }, ENVIRONMENT.PRIVATE_KEY, {
+    algorithm: 'ES512',
+  })
   const confirm_account = await request(/* GraphQL */ `
   mutation{confirm_account(code: "${ verif_code }")}`)
 

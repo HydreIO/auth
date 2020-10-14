@@ -2,7 +2,7 @@ import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
-import { plus_equals } from '@hydre/rgraph/operators'
+import jwt from 'jsonwebtoken'
 
 export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   const bearer = Token(koa_context).get()
@@ -25,9 +25,14 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   if (last_verification_code_sent + CONFIRM_ACCOUNT_DELAY > Date.now())
     throw new GraphQLError(ERRORS.SPAM)
 
-  const verification_code = [...new Array(64)]
-      .map(() => (~~(Math.random() * 36)).toString(36))
-      .join('')
+  const verification_code = jwt.sign(
+      { uuid: user.uuid },
+      ENVIRONMENT.PRIVATE_KEY,
+      {
+        algorithm: 'ES512',
+        expiresIn: ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION,
+      },
+  )
 
   await MAIL.send([
     MAIL.ACCOUNT_CONFIRM,
@@ -41,10 +46,7 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   await Graph.run/* cypher */`
   MATCH (u:User)
   WHERE u.uuid = ${ user.uuid }
-  SET ${ plus_equals('u', {
-    verification_code,
-    last_verification_code_sent: Date.now(),
-  }) }
+  SET u.last_verification_code_sent = ${ Date.now() }
   `
 
   return true
