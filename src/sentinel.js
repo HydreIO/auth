@@ -2,12 +2,7 @@ import Redis from 'ioredis'
 import events from 'events'
 import { ENVIRONMENT } from './constant.js'
 
-const {
-  REDIS_HOST,
-  REDIS_PORT,
-  REDIS_SENTINEL_PORT,
-  REDIS_MASTER_NAME,
-} = ENVIRONMENT
+const { REDIS_HOST, REDIS_SENTINEL_PORT, REDIS_MASTER_NAME } = ENVIRONMENT
 const connection_state = {
   online: false,
 }
@@ -22,12 +17,7 @@ const retryStrategy = label => attempt => {
 
   return 250 * 2 ** attempt
 }
-const slave_client = new Redis({
-  host         : REDIS_HOST,
-  port         : REDIS_PORT,
-  retryStrategy: retryStrategy('slave'),
-})
-const master_client = new Redis({
+const sentinel_options = role => ({
   sentinels: [
     {
       host: REDIS_HOST,
@@ -35,17 +25,20 @@ const master_client = new Redis({
     },
   ],
   name                 : REDIS_MASTER_NAME,
-  sentinelRetryStrategy: retryStrategy('sentinel'),
+  role,
+  sentinelRetryStrategy: retryStrategy(role),
 })
+const master_client = new Redis(sentinel_options('master'))
+const slave_client = new Redis(sentinel_options('slave'))
 
 await Promise.all([
   events.once(slave_client, 'ready'),
   events.once(master_client, 'ready'),
 ])
-connection_state.online = true
 
 new Set([master_client, slave_client]).forEach(client => {
   client.on('error', () => {})
 })
+connection_state.online = true
 
 export { master_client, slave_client, connection_state }
