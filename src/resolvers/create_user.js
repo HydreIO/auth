@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import MAIL from '../mail.js'
 import { v4 as uuid4 } from 'uuid'
+import jwt from 'jsonwebtoken'
 
 export default async ({ mail, pwd, lang }, { Graph }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
@@ -22,9 +23,14 @@ export default async ({ mail, pwd, lang }, { Graph }) => {
 
   if (user_id) throw new GraphQLError(ERRORS.MAIL_USED)
 
-  const verification_code = [...new Array(64)]
-      .map(() => (~~(Math.random() * 36)).toString(36))
-      .join('')
+  const verification_code = jwt.sign(
+      { uuid: user_id },
+      ENVIRONMENT.PRIVATE_KEY,
+      {
+        algorithm: 'ES512',
+        expiresIn: ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION,
+      },
+  )
   const user = {
     uuid                       : `User:${ uuid4() }`,
     mail,
