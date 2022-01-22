@@ -71,7 +71,7 @@
     "eslint": "^7.12.1",
     "eslint-plugin-unicorn": "^23.0.0",
     "fetch-cookie": "^0.10.1",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "prettier-eslint-cli": "^5.0.0",
     "tap-spec-emoji": "^6.1.2",
     "tough-cookie": "^4.0.0"
