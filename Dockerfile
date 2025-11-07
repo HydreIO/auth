@@ -1,5 +1,5 @@
 # ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
-FROM node:14.13-alpine as build
+FROM node:25-alpine as build
 
 RUN apk add git
 
@@ -7,10 +7,11 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm install --production
+# Disable lifecycle scripts (prepare) that try to run husky in production
+RUN npm install --production --ignore-scripts
 
-# ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
-FROM node:14.13-alpine as production
+# ╔════════════════ [ Production stage ] ═══════════════════════════════════════ ]
+FROM node:25-alpine as production
 
 WORKDIR /app
 
