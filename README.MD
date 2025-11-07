@@ -29,7 +29,7 @@ Modern, lightweight authentication microservice with JWT tokens, session managem
 
 **Tech Stack:**
 - [Koa](https://koajs.com/) - Web framework
-- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) - GraphQL server
+- [@hydre/graphql-http](https://github.com/HydreIO/graphql-http) - GraphQL server
 - [Redis JSON](https://redis.io/docs/stack/json/) - Data storage
 - [jose](https://github.com/panva/jose) - JWT signing and verification
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - Password hashing
@@ -225,40 +225,6 @@ npm run test:coverage
 - ✅ 79.05% Branches
 - ✅ 76.19% Functions
 - ✅ 87.63% Lines
-
-## 🔄 Migration Guide
-
-### From RedisGraph (v3.x) to Redis JSON (v4.x)
-
-**What Changed:**
-- Storage backend migrated from RedisGraph (EOL Feb 1, 2025) to Redis JSON
-- JWT library changed from `jsonwebtoken` to `jose` (Node v25 compatibility)
-- Key format changed from SEC1 to PKCS#8 (required by jose)
-- All Cypher queries replaced with Redis JSON operations
-
-**Migration Steps:**
-
-1. **Regenerate keys in PKCS#8 format:**
-   ```bash
-   openssl ecparam -genkey -name secp521r1 -noout | openssl pkcs8 -topk8 -nocrypt > private.pem
-   openssl ec -in private.pem -pubout > public.pem
-   ```
-
-2. **Update environment variables:**
-   - `PUBLIC_KEY` - Use new PKCS#8 public key
-   - `PRIVATE_KEY` - Use new PKCS#8 private key
-   - Remove `REDISGRAPH_*` variables (no longer needed)
-
-3. **Data migration:**
-   - Users and sessions must be recreated (data model changed)
-   - RedisGraph nodes/edges → Redis JSON documents
-   - Email index: `FT.CREATE idx:users ON JSON PREFIX 1 User: SCHEMA $.mail AS mail TAG`
-
-4. **Update Docker:**
-   ```bash
-   # Use redis-stack instead of redisgraph
-   docker pull redis/redis-stack:latest
-   ```
 
 ## 📚 Schema
 
