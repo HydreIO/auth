@@ -1,12 +1,10 @@
 import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
+import { user_db } from '../database.js'
 
-export default async ({ mail, lang }, { Graph }) => {
-  const [{ user } = {}] = await Graph.run`
-  MATCH (user:User)
-  WHERE user.mail = ${ mail }
-  RETURN DISTINCT user`
+export default async ({ mail, lang }, { redis }) => {
+  const user = await user_db.find_by_email(redis, mail)
 
   if (user) {
     const { last_reset_code_sent } = user
@@ -16,14 +14,13 @@ export default async ({ mail, lang }, { Graph }) => {
       throw new GraphQLError(ERRORS.SPAM)
 
     const reset_code = [...new Array(64)]
-        .map(() => (~~(Math.random() * 36)).toString(36))
-        .join('')
+      .map(() => (~~(Math.random() * 36)).toString(36))
+      .join('')
 
-    await Graph.run`
-    MATCH (u:User)
-    WHERE u.uuid = ${ user.uuid }
-    SET u.reset_code = ${ reset_code }, u.last_reset_code_sent = ${ Date.now() }
-    `
+    await user_db.update(redis, user.uuid, {
+      reset_code,
+      last_reset_code_sent: Date.now(),
+    })
 
     await MAIL.send([
       MAIL.PASSWORD_RESET,

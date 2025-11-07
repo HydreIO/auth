@@ -1,27 +1,31 @@
 import { ERRORS, ENVIRONMENT } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
-import jwt from 'jsonwebtoken'
+import { jwtVerify, importSPKI } from 'jose'
+import { user_db } from '../database.js'
 
-const is_token_valid = (token, valid_uuid) => {
+// Import public key using jose
+const public_key = await importSPKI(ENVIRONMENT.PUBLIC_KEY, 'ES512')
+
+const is_token_valid = async (token, valid_uuid) => {
   try {
-    const { uuid } = jwt.verify(token, ENVIRONMENT.PUBLIC_KEY, {
-      algorithms: 'ES512',
+    const { payload } = await jwtVerify(token, public_key, {
+      issuer: ENVIRONMENT.JWT_ISSUER,
+      audience: ENVIRONMENT.JWT_AUDIENCE,
     })
 
-    return uuid === valid_uuid
+    return payload.uuid === valid_uuid
   } catch {
     return false
   }
 }
 
-export default async ({ code }, { koa_context, Graph, force_logout }) => {
-  const bearer = Token(koa_context).get()
+export default async ({ code }, { koa_context, redis, force_logout }) => {
+  const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user } = {}] = await Graph.run/* cypher */`
-  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -31,13 +35,9 @@ export default async ({ code }, { koa_context, Graph, force_logout }) => {
   }
 
   // codes expire after a day
-  if (!is_token_valid(code, bearer.uuid))
+  if (!(await is_token_valid(code, bearer.uuid)))
     throw new GraphQLError(ERRORS.INVALID_CODE)
 
-  await Graph.run/* cypher */`
-    MATCH (u:User)
-    WHERE u.uuid = ${ bearer.uuid }
-    SET u.verified = true
-    `
+  await user_db.update(redis, bearer.uuid, { verified: true })
   return true
 }

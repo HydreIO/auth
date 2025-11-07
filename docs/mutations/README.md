@@ -1,27 +1,33 @@
 # Mutations
+
 You have two types of mutations in the authentication api
 
 ## me
+
 this mutation give access to every user related operations like reseting the password
+
 ```graphql
 type Mutation {
-	# me as a human machine
-	me: UserOps!
+  # me as a human machine
+  me: UserOps!
 }
 ```
 
 ## authenticate
+
 this one allow to register and login
 
 ```graphql
 type Mutation {
-	# gimme tokens
-	authenticate: AuthOps!
+  # gimme tokens
+  authenticate: AuthOps!
 }
 ```
+
 ---
 
 # signup
+
 Register an user
 
 - create a session
@@ -61,23 +67,27 @@ mutation ($creds: Creds!) {
 	}
 }
 ```
+
 ## @args
 
 ```graphql
 input Creds {
-	mail: String! # The user mail
-	pwd: String! # The user password
-	rememberMe: Boolean # when false the session will expire at the of the navigation
+  mail: String! # The user mail
+  pwd: String! # The user password
+  rememberMe: Boolean # when false the session will expire at the of the navigation
 }
 ```
+
 ## @returns
+
 ```graphql
 type AuthResponse {
-	user: User! # the signed user
-	newAccount: Boolean! # was it a registration ?
-	newSession: Boolean! # was it a non existing session ? usefull to implement security later
+  user: User! # the signed user
+  newAccount: Boolean! # was it a registration ?
+  newSession: Boolean! # was it a non existing session ? usefull to implement security later
 }
 ```
+
 ## @throws
 
 | Error                   | Error string                                  | Why                                                  |
@@ -91,6 +101,7 @@ type AuthResponse {
 ---
 
 # signin
+
 Check the user credentials and log the user in
 
 - create and fix a new access token
@@ -120,6 +131,7 @@ mutation ($creds: Creds!) {
   }
 }
 ```
+
 ```
 {
 	"creds": {
@@ -129,22 +141,27 @@ mutation ($creds: Creds!) {
 	}
 }
 ```
+
 ## @args
+
 ```graphql
 input Creds {
-	mail: String!
-	pwd: String!
-	rememberMe: Boolean
+  mail: String!
+  pwd: String!
+  rememberMe: Boolean
 }
 ```
+
 ## @returns
+
 ```graphql
 type AuthResponse {
-	user: User! # the signed user
-	newAccount: Boolean! # was it a registration ?
-	newSession: Boolean! # was it a non existing session ? usefull to implement security later
+  user: User! # the signed user
+  newAccount: Boolean! # was it a registration ?
+  newSession: Boolean! # was it a non existing session ? usefull to implement security later
 }
 ```
+
 ## @throws
 
 | Error            | Error string                | Why                                                  |
@@ -157,6 +174,7 @@ type AuthResponse {
 ---
 
 # sign
+
 Register or log the user against his Oauth provider
 
 - create and fix a new access token
@@ -186,30 +204,38 @@ mutation ($provider: Provider!, $idToken: String!) {
   }
 }
 ```
+
 ```
 {
 	"provider": "GOOGLE",
 	"idToken": ""
 }
 ```
+
 ## @args
 
 An enum, [GOOGLE | ...] (only google is supported at the time of writing)
+
 ```
 provider: Provider!
 ```
+
 The token you get from the provider auth screen (link ?)
+
 ```
 idToken: String!
 ```
+
 ## @returns
+
 ```graphql
 type AuthResponse {
-	user: User! # the signed user
-	newAccount: Boolean! # was it a registration ?
-	newSession: Boolean! # was it a non existing session ? usefull to implement security later
+  user: User! # the signed user
+  newAccount: Boolean! # was it a registration ?
+  newSession: Boolean! # was it a non existing session ? usefull to implement security later
 }
 ```
+
 ## @throws
 
 | Error                      | Error string                                                      | Why                                                    |
@@ -224,7 +250,9 @@ type AuthResponse {
 ---
 
 # signout
+
 Sign out the user by removing all cookies
+
 > also remove the session if the user is logged
 
 ```graphql
@@ -234,13 +262,17 @@ mutation {
   }
 }
 ```
+
 ## @return
+
 a string: `Bye.`
 
 ---
 
 # refresh
+
 generate a new accessToken and store it in a cookie
+
 ```graphql
 mutation {
   me {
@@ -248,7 +280,9 @@ mutation {
   }
 }
 ```
+
 ## @return
+
 a string: `And you're full of gas!`
 
 ## @throws
@@ -264,6 +298,7 @@ a string: `And you're full of gas!`
 ---
 
 # sendCode
+
 Ask a code to perform different actions and then send a zmq socket message
 
 - **CONFIRM_EMAIL**: `['CONFIRM_EMAIL', 'TO', 'CODE']` will be notified
@@ -279,21 +314,29 @@ mutation ($mail: String!) {
   }
 }
 ```
+
 ```
 {
 	"mail": "admin@admin.com"
 }
 ```
+
 ## @args
+
 The code enum type `['CONFIRM_EMAIL', 'RESET_PWD']`
+
 ```
 code: Code!
 ```
+
 The user mail
+
 ```
 mail: String!
 ```
+
 ## @return
+
 `Bip bop! code sent (or not)`
 
 ## @throws
@@ -308,6 +351,7 @@ mail: String!
 ---
 
 # inviteUser
+
 Create an account for someone and then send a zmq socket message
 
 - **CONFIRM_EMAIL**: `['INVITE_USER', 'TO', 'CODE']` will be notified
@@ -319,12 +363,15 @@ mutation {
   }
 }
 ```
+
 ## @args
+
 ```
 mail: String!
 ```
 
 ## @return
+
 The JWT `{ invitedId, mail }` of the invited user, or `null` if already exist
 
 ## @throws
@@ -341,7 +388,9 @@ The JWT `{ invitedId, mail }` of the invited user, or `null` if already exist
 ---
 
 # confirmMail
+
 confirm the user account
+
 > The auth doesn't say anything in case the mail doesn't correspond to any account
 
 ```graphql
@@ -351,18 +400,23 @@ mutation {
   }
 }
 ```
+
 ## @args
+
 The user mail
+
 ```
 mail: String!
 ```
 
 The code was sent by mail by the `sendCode` query
+
 ```
 code: String!
 ```
 
 ## @return
+
 a string: `You're one with the force`
 
 ## @throws
@@ -375,7 +429,9 @@ a string: `You're one with the force`
 ---
 
 # resetPassword
+
 Reset the user password
+
 > The auth doesn't say anything in case the mail doesn't correspond to any account
 
 ```graphql
@@ -385,20 +441,29 @@ mutation {
   }
 }
 ```
+
 ## @args
+
 The user mail
+
 ```
 mail: String!
 ```
+
 The user new password
+
 ```
 newPwd: String!
 ```
+
 The mailed reset code
+
 ```
 resetCode: String!
 ```
+
 ## @return
+
 `A fresh new start!`
 
 ## @throws

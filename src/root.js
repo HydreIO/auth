@@ -4,7 +4,7 @@ import create_session from './resolvers/create_session.js'
 import invite_user from './resolvers/invite_user.js'
 import refresh_session from './resolvers/refresh_session.js'
 import create_pwd_reset_code from './resolvers/create_pwd_reset_code.js'
-// eslint-disable-next-line max-len
+
 import create_account_confirm_code from './resolvers/create_account_confirm_code.js'
 import update_pwd from './resolvers/update_pwd.js'
 import update_pwd_logged from './resolvers/update_pwd_logged.js'
@@ -15,7 +15,7 @@ import admin_update_pwd from './resolvers/admin_update_pwd.js'
 import { ENVIRONMENT } from './constant.js'
 
 export default {
-  ping      : () => 'pong',
+  ping: () => 'pong',
   public_key: () => ENVIRONMENT.PUBLIC_KEY,
   me,
   create_user,

@@ -1,16 +1,16 @@
 import Token from '../token.js'
+import { user_db, session_db } from '../database.js'
 
-export default async ({ id }, { koa_context, Graph, force_logout }) => {
+export default async ({ id }, { koa_context, redis, force_logout }) => {
   const token = Token(koa_context)
-  const bearer = token.get()
+  const bearer = await token.get()
 
   if (!bearer.uuid) {
     force_logout()
     return true
   }
 
-  const [{ user } = {}] = await Graph.run`
-  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   // particular case where an user would have been deleted
   // while still being logged
@@ -24,11 +24,8 @@ export default async ({ id }, { koa_context, Graph, force_logout }) => {
   // logout if the id is not provied
   if (!id) force_logout()
 
-  await Graph.run/* cypher */`
-  MATCH (u:User)-[:HAS_SESSION]->(s:Session)
-  WHERE u.uuid = ${ bearer.uuid } AND s.uuid = ${ id ?? bearer.session }
-  DELETE s
-  `
+  // Delete the session
+  await session_db.delete(redis, bearer.uuid, id ?? bearer.session)
 
   return true
 }

@@ -1,16 +1,14 @@
-/* eslint-disable complexity */
-// this resolver would be more complex if
-// we extract the code to validate this rule
 import { ERRORS, ENVIRONMENT } from '../constant.js'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
 import { v4 as uuid4 } from 'uuid'
 import MAIL from '../mail.js'
+import { user_db, session_db } from '../database.js'
 
 export default async (
-    { mail, pwd, remember, lang },
-    { build_session, publish, koa_context, Graph, force_logout },
+  { mail, pwd, remember, lang },
+  { build_session, publish, koa_context, redis, force_logout }
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
     throw new GraphQLError(ERRORS.MAIL_INVALID)
@@ -18,15 +16,10 @@ export default async (
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
 
-  const [{ user, existing_sessions = [] } = {}] = await Graph.run/* cypher */`
-    MATCH (user:User)
-    WHERE user.mail = ${ mail }
-    WITH user
-    OPTIONAL MATCH (user)-->(s:Session)
-    RETURN user, collect(s) AS existing_sessions`
+  // Find user and get existing sessions
+  const user = await user_db.find_by_email(redis, mail)
 
-  // this check is ahead of the USER_NOT_FOUND
-  // because an invited/created user need to know if he already has a pwd or not
+  // Check if user has password (for invited users)
   if (user && !user.hash) throw new GraphQLError(ERRORS.NO_PASSWORD)
 
   if (!user) {
@@ -46,41 +39,35 @@ export default async (
   if (!built_session.browserName && !built_session.deviceVendor)
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
 
-  const matching_session = existing_sessions.find(s => {
-    return s.hash === built_session.hash
-  })
-  // this is a session created in case there is not matching_session
+  // Get existing sessions
+  const existing_sessions = await user_db.get_sessions(redis, user.uuid)
+
+  // Check if session already exists
+  const matching_session = existing_sessions.find(
+    (s) => s.hash === built_session.hash
+  )
+
   const session = {
     ...built_session,
-    uuid     : `Session:${ uuid4() }`,
+    uuid: `Session:${uuid4()}`,
     last_used: Date.now(),
   }
 
+  // Mark user as logged in once
   if (!user.logged_once) {
-    await Graph.run`
-  MATCH (u:User) WHERE u.uuid = ${ user.uuid }
-  SET u.logged_once = ${ true }
-  `
+    await user_db.update(redis, user.uuid, { logged_once: true })
     await publish(user.uuid)
   }
 
   if (matching_session) {
-    // session was found so we update last usage
-    await Graph.run`
-        MATCH (u:User)-->(s:Session)
-        WHERE u.uuid = ${ user.uuid } AND s.uuid = ${ matching_session.uuid }
-        SET s.last_used = ${ Date.now() }
-    `
+    // Session exists, update last usage
+    await session_db.update(redis, matching_session.uuid, {
+      last_used: Date.now(),
+    })
   } else {
-    // session was not found so we create a new one
-    const {
-      ip,
-      browserName,
-      osName,
-      deviceModel,
-      deviceType,
-      deviceVendor,
-    } = session
+    // Create new session
+    const { ip, browserName, osName, deviceModel, deviceType, deviceVendor } =
+      session
 
     await MAIL.send([
       MAIL.NEW_SESSION,
@@ -97,36 +84,22 @@ export default async (
       }),
     ])
 
-    await Graph.run/* cypher */`
-          MATCH (u:User)
-          WHERE u.uuid = ${ user.uuid }
-          WITH DISTINCT u
-          MERGE (u)-[:HAS_SESSION]->(s:Session ${ session })
-      `
+    await session_db.create(redis, user.uuid, session)
   }
 
-  Token(koa_context).set({
-    uuid   : user.uuid,
+  // Set JWT token
+  await Token(koa_context).set({
+    uuid: user.uuid,
     session: matching_session?.uuid || session.uuid,
     remember,
   })
 
-  const deprecated_sessions = []
-
+  // Handle max sessions per user
   existing_sessions.sort((s1, s2) => s1.last_used - s2.last_used)
 
-  while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER)
-    deprecated_sessions.push(existing_sessions.shift().uuid)
-
-  /* c8 ignore next 9 */
-  // lazy to test many UA, it works when locally testing and it's pretty dumb
-  if (deprecated_sessions.length) {
-    // too many session, we delete the oldest ones
-    await Graph.run/* cypher */`
-      MATCH (u:User)-->(s:Session)
-      WHERE u.uuid = ${ user.uuid } AND s.uuid IN ${ deprecated_sessions }
-      DELETE s
-    `
+  while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER) {
+    const deprecated_session = existing_sessions.shift()
+    await session_db.delete(redis, user.uuid, deprecated_session.uuid)
   }
 
   return !matching_session

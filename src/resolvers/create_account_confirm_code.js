@@ -2,15 +2,18 @@ import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
-import jwt from 'jsonwebtoken'
+import { SignJWT, importPKCS8 } from 'jose'
+import { user_db } from '../database.js'
 
-export default async ({ lang }, { Graph, koa_context, force_logout }) => {
-  const bearer = Token(koa_context).get()
+// Import private key using jose
+const private_key = await importPKCS8(ENVIRONMENT.PRIVATE_KEY, 'ES512')
+
+export default async ({ lang }, { redis, koa_context, force_logout }) => {
+  const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user } = {}] = await Graph.run/* cypher */`
-  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -25,14 +28,13 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
   if (last_verification_code_sent + CONFIRM_ACCOUNT_DELAY > Date.now())
     throw new GraphQLError(ERRORS.SPAM)
 
-  const verification_code = jwt.sign(
-      { uuid: user.uuid },
-      ENVIRONMENT.PRIVATE_KEY,
-      {
-        algorithm: 'ES512',
-        expiresIn: ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION,
-      },
-  )
+  const verification_code = await new SignJWT({ uuid: user.uuid })
+    .setProtectedHeader({ alg: 'ES512' })
+    .setIssuedAt()
+    .setIssuer(ENVIRONMENT.JWT_ISSUER)
+    .setAudience(ENVIRONMENT.JWT_AUDIENCE)
+    .setExpirationTime(ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION)
+    .sign(private_key)
 
   await MAIL.send([
     MAIL.ACCOUNT_CONFIRM,
@@ -43,11 +45,10 @@ export default async ({ lang }, { Graph, koa_context, force_logout }) => {
       mail,
     }),
   ])
-  await Graph.run/* cypher */`
-  MATCH (u:User)
-  WHERE u.uuid = ${ user.uuid }
-  SET u.last_verification_code_sent = ${ Date.now() }
-  `
+
+  await user_db.update(redis, user.uuid, {
+    last_verification_code_sent: Date.now(),
+  })
 
   return true
 }

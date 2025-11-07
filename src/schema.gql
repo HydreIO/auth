@@ -8,9 +8,13 @@ enum Lang {
 }
 
 type Query {
-  """pong"""
+  """
+  pong
+  """
   ping: String!
-  """The public key"""
+  """
+  The public key
+  """
   public_key: String!
   """
   The logged user
@@ -60,7 +64,12 @@ type Mutation {
       request a reset code to reset his password
     - ILLEGAL_SESSION: If the user agent is invalid
   """
-  create_session(mail: String!, pwd: String!, remember: Boolean = false, lang: Lang): Boolean!
+  create_session(
+    mail: String!
+    pwd: String!
+    remember: Boolean = false
+    lang: Lang
+  ): Boolean!
 
   """
   Create and fix a fresh access token
@@ -101,7 +110,7 @@ type Mutation {
     - USER_NOT_FOUND: If the user is not found
     - INVALID_CODE: If the reset code is invalid or expired
   """
-  update_pwd(code: String! mail: String! pwd: String!): Boolean!
+  update_pwd(code: String!, mail: String!, pwd: String!): Boolean!
   """
   Update an user's password while being logged
 
@@ -110,7 +119,7 @@ type Mutation {
     - PASSWORD_INVALID: If the pwd doesn't respect the policy
     - USER_NOT_FOUND: If the user is not found or if the current pass is invalid
   """
-  update_pwd_logged(current_pwd: String! new_pwd: String!): Boolean!
+  update_pwd_logged(current_pwd: String!, new_pwd: String!): Boolean!
   """
   Confirm the user account
 

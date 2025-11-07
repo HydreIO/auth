@@ -1,4 +1,5 @@
 # ping
+
 ping the api
 
 ```graphql
@@ -6,25 +7,33 @@ ping the api
   ping
 }
 ```
+
 ## @return
+
 a string: `subscribe to pewdiepie`
 
 ---
 
 # cert
+
 ```graphql
 {
   cert
 }
 ```
+
 ## @return
+
 a string: The authentication public key
 
 ---
+
 # me
+
 !> require to be logged in
 
 who are you ?
+
 ```graphql
 {
   me {
@@ -42,7 +51,9 @@ who are you ?
   }
 }
 ```
+
 ## @return
+
 ```graphql
 type User {
   uuid: ID!
@@ -51,6 +62,7 @@ type User {
   verified: Boolean!
 }
 ```
+
 ```graphql
 type Session {
   ip: String!

@@ -14,7 +14,7 @@ const HOSTNAME_WHITELIST = new Set([
   'unpkg.com',
 ])
 // The Util Function to hack URLs of intercepted requests
-const getFixedUrl = request => {
+const getFixedUrl = (request) => {
   const now = Date.now()
   const url = new URL(request.url)
 
@@ -41,7 +41,7 @@ const getFixedUrl = request => {
  *
  *  waitUntil(): activating ====> activated
  */
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim())
 })
 
@@ -51,7 +51,7 @@ self.addEventListener('activate', event => {
  *
  *  void respondWith(Promise<Response> r)
  */
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', (event) => {
   // Skip some of cross-origin requests, like those for Google Analytics.
   if (HOSTNAME_WHITELIST.has(new URL(event.request.url).hostname)) {
     // Stale-while-revalidate
@@ -60,24 +60,30 @@ self.addEventListener('fetch', event => {
     const cached = caches.match(event.request)
     const fixedUrl = getFixedUrl(event.request)
     const fetched = fetch(fixedUrl, { cache: 'no-store' })
-    const fetchedCopy = fetched.then(resp => resp.clone())
+    const fetchedCopy = fetched.then((resp) => resp.clone())
 
     // Call respondWith() with whatever we get first.
     // If the fetch fails (e.g disconnected), wait for the cache.
     // If there’s nothing in cache, wait for the fetch.
     // If neither yields a response, return offline pages.
-    event.respondWith(Promise.race([fetched.catch(_ => cached), cached])
-        .then(resp => resp || fetched)
-        .catch(_ => {
+    event.respondWith(
+      Promise.race([fetched.catch((_) => cached), cached])
+        .then((resp) => resp || fetched)
+        .catch((_) => {
           /* eat any errors */
-        }))
+        })
+    )
 
     // Update the cache with the version we fetched (only for ok status)
-    event.waitUntil(Promise.all([fetchedCopy, caches.open(RUNTIME)])
-        .then(([response, cache]) =>
-          response.ok && cache.put(event.request, response))
-        .catch(_ => {
+    event.waitUntil(
+      Promise.all([fetchedCopy, caches.open(RUNTIME)])
+        .then(
+          ([response, cache]) =>
+            response.ok && cache.put(event.request, response)
+        )
+        .catch((_) => {
           /* eat any errors */
-        }))
+        })
+    )
   }
 })

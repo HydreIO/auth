@@ -1,5 +1,5 @@
 import { ENVIRONMENT } from './constant.js'
-import jwt from 'jsonwebtoken'
+import { SignJWT, jwtVerify, importPKCS8, importSPKI } from 'jose'
 
 const {
   ACCESS_TOKEN_COOKIE_NAME,
@@ -10,61 +10,72 @@ const {
   COOKIE_PATH,
   COOKIE_SECURE,
   COOKIE_DOMAIN,
+  JWT_ISSUER,
+  JWT_AUDIENCE,
 } = ENVIRONMENT
 
-export default koa_context => ({
-  get: ignoreExpiration => {
+// Import PEM keys using jose's built-in functions
+const private_key = await importPKCS8(PRIVATE_KEY, 'ES512')
+const public_key = await importSPKI(PUBLIC_KEY, 'ES512')
+
+export default (koa_context) => ({
+  get: async (ignoreExpiration) => {
     try {
-      return jwt.verify(
-          koa_context.cookies.get(ACCESS_TOKEN_COOKIE_NAME),
-          PUBLIC_KEY,
-          {
-            algorithms: 'ES512',
-            ignoreExpiration,
-          },
-      )
+      const token = koa_context.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
+      if (!token) return {}
+
+      const { payload } = await jwtVerify(token, public_key, {
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE,
+        ...(ignoreExpiration && { clockTolerance: Infinity }),
+      })
+      return payload
     } catch {
       return {}
     }
   },
-  set: bearer => {
+  set: async (bearer) => {
     const cookie_options = {
-      httpOnly : true,
+      httpOnly: true,
       overwrite: true,
-      ...bearer.remember && { maxAge: 60000 * 60 * 24 * 365 },
-      ...COOKIE_PATH && { path: COOKIE_PATH },
-      ...COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE },
-      ...COOKIE_SECURE && { secure: COOKIE_SECURE },
-      ...COOKIE_DOMAIN && { domain: COOKIE_DOMAIN },
+      ...(bearer.remember && { maxAge: 60000 * 60 * 24 * 365 }),
+      ...(COOKIE_PATH && { path: COOKIE_PATH }),
+      ...(COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE }),
+      ...(COOKIE_SECURE && { secure: COOKIE_SECURE }),
+      ...(COOKIE_DOMAIN && { domain: COOKIE_DOMAIN }),
     }
-    const access_token = jwt.sign(bearer, PRIVATE_KEY, {
-      algorithm: 'ES512',
-      expiresIn: ACCESS_TOKEN_EXPIRATION,
-    })
+
+    const access_token = await new SignJWT(bearer)
+      .setProtectedHeader({ alg: 'ES512' })
+      .setIssuedAt()
+      .setIssuer(JWT_ISSUER)
+      .setAudience(JWT_AUDIENCE)
+      .setExpirationTime(ACCESS_TOKEN_EXPIRATION)
+      .sign(private_key)
 
     koa_context.cookies.set(
-        ACCESS_TOKEN_COOKIE_NAME,
-        access_token,
-        cookie_options,
+      ACCESS_TOKEN_COOKIE_NAME,
+      access_token,
+      cookie_options
     )
   },
   rm: () => {
     /* c8 ignore next 16 */
     // covered but c8 doesn't like this destruct
     const cookie_options = {
-      httpOnly : true,
+      httpOnly: true,
       overwrite: true,
-      expires  : new Date(0),
-      ...COOKIE_PATH && { path: COOKIE_PATH },
-      ...COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE },
-      ...COOKIE_SECURE && { secure: COOKIE_SECURE },
-      ...COOKIE_DOMAIN && { domain: COOKIE_DOMAIN },
+      expires: new Date(0),
+      ...(COOKIE_PATH && { path: COOKIE_PATH }),
+      ...(COOKIE_SAMESITE && { sameSite: COOKIE_SAMESITE }),
+      ...(COOKIE_SECURE && { secure: COOKIE_SECURE }),
+      ...(COOKIE_DOMAIN && { domain: COOKIE_DOMAIN }),
     }
 
     koa_context.cookies.set(
-        ACCESS_TOKEN_COOKIE_NAME,
-        'buy bitcoin :)',
-        cookie_options,
+      ACCESS_TOKEN_COOKIE_NAME,
+      'buy bitcoin :)',
+      cookie_options
     )
   },
 })

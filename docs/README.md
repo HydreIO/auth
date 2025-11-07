@@ -38,9 +38,11 @@ Docker tags:
 > if you need any help feel free to join the discord above to get a fast reply!
 
 ---
+
 # Quickstart
 
 Assuming you run a mongodb instance to `localhost:27017` and you configured your host file to allow
+
 ```
 127.0.0.1 dev.local
 ```
@@ -78,6 +80,7 @@ you can now execute graphql queries against `http://dev.local:3000`
 > Don't use this in production as it's configured with default secrets
 
 ---
+
 # Configuration
 
 Here are all the main options you can (and should) pass to your env
@@ -97,7 +100,7 @@ Here are all the main options you can (and should) pass to your env
 | PRV_KEY                 | `-----BEGIN EC (check the code)`                    | ES512 private                                                                                                                                                 |
 | RESET_PASS_DELAY        | `5s`                                                | Delay between 2 reset password query (per user) @see https://github.com/zeit/ms                                                                               |
 | CONFIRM_ACCOUNT_DELAY   | `5s`                                                | Delay between 2 verification code query (per user) @see https://github.com/zeit/ms                                                                            |
-| INVITE_USER_DELAY       | `5s`                                                | Delay between 2 user invitation query (per user) @see https://github.com/zeit/ms                                                                            |
+| INVITE_USER_DELAY       | `5s`                                                | Delay between 2 user invitation query (per user) @see https://github.com/zeit/ms                                                                              |
 | PWD_REGEX               | `'^(?!.*[\s])(?=.*[a-zA-Z])(?=.*[0-9])(?=.{6,32})'` | Enforce password policy                                                                                                                                       |
 | EMAIL_REGEX             | Regex (way too long)                                | Enforce mail policy                                                                                                                                           |
 | ACCESS_TOKEN_EXPIRATION | `20m`                                               | Duration in milliseconds of an accessToken validity                                                                                                           |
@@ -181,6 +184,7 @@ refreshToken: string .
 | GRAPH_NAME | `auth`                   | Name of the graph which will be used by the auth |
 
 ---
+
 # How it works
 
 We're fat so we use cookies to send tokens!
@@ -200,14 +204,18 @@ Make sure you know how cookies work, the `domain` must be your services domain, 
 
 the `domain` field must be `.foo.com`, you cannot have different domains.<br>
 when running the auth in local you must add some kind of domain to your hosts file like
+
 ```
 127.0.0.1 local.host
 ```
+
 and specify `local.host` as the `domain`.<br>
 while you can wildcard the `ORIGINS`, we advise to set it according to your needs
+
 ```
 ORIGINS="http:\/\/local.host:.+"
 ```
+
 that way you can connect through any service running locally, like a vue App `http://local.host:8080`
 
 ---
@@ -215,27 +223,33 @@ that way you can connect through any service running locally, like a vue App `ht
 # Client Usage
 
 #### Start by registering an account
+
 ```graphql
 mutation ($creds: Creds!) {
   authenticate {
     signup(creds: $creds) {
-      user { id }
+      user {
+        id
+      }
     }
   }
 }
 ```
+
 Variables :
+
 ```json
 {
-	"creds": {
-		"mail": "admin@admin.com",
-		"pwd": "admin1",
-		"rememberMe": true
-	}
+  "creds": {
+    "mail": "admin@admin.com",
+    "pwd": "admin1",
+    "rememberMe": true
+  }
 }
 ```
 
 #### Try to refresh it
+
 ```graphql
 mutation {
   me {
@@ -245,6 +259,7 @@ mutation {
 ```
 
 #### Ask who you are
+
 ```graphql
 {
   me {
@@ -258,7 +273,9 @@ mutation {
 ```
 
 #### Then leave
+
 > Calling signout remove the cookies, it's mandatory
+
 ```graphql
 mutation {
   authenticate {
@@ -273,8 +290,14 @@ mutation {
 
 Working with graphql you'll get two type of errors, `graphQLErrors` and `networkErrors`.
 A graphql errors is returned as
+
 ```js
-[{"errors":[{"message":"User not found","type":"USER_INCORRECT"}],"data":null}]
+;[
+  {
+    errors: [{ message: 'User not found', type: 'USER_INCORRECT' }],
+    data: null,
+  },
+]
 ```
 
 I suggest using [apollo-link-error](https://www.npmjs.com/package/apollo-link-error) as so
@@ -283,51 +306,70 @@ I suggest using [apollo-link-error](https://www.npmjs.com/package/apollo-link-er
 import { Observable } from 'apollo-link'
 import { onError } from 'apollo-link-error'
 
-const onGraphqlError = async ({ graphQLErrors = [], observer, operation, forward }) => {
+const onGraphqlError = async ({
+  graphQLErrors = [],
+  observer,
+  operation,
+  forward,
+}) => {
   // here you could call the refresh query in case you receive an expired error
-  for (let error of graphQLErrors)
-    observer.next(forward(operation)) // this line would retry the operation
+  for (let error of graphQLErrors) observer.next(forward(operation)) // this line would retry the operation
 }
 
-const onNetworkError = async ({ observer, networkError, operation, forward }) => { }
+const onNetworkError = async ({
+  observer,
+  networkError,
+  operation,
+  forward,
+}) => {}
 
-export const errorHandler = opt => new Observable(async observer => {
-  try {
-    const payload = { ...opt, observer }
-    await Promise.all([onGraphqlError(payload), onNetworkError(payload)])
-    if (observer.closed) return
-    observer.complete()
-  } catch (error) {
-    observer.error(error)
-  }
-})
+export const errorHandler = (opt) =>
+  new Observable(async (observer) => {
+    try {
+      const payload = { ...opt, observer }
+      await Promise.all([onGraphqlError(payload), onNetworkError(payload)])
+      if (observer.closed) return
+      observer.complete()
+    } catch (error) {
+      observer.error(error)
+    }
+  })
 ```
 
 ---
 
 # Server Usage
+
 Dead simple exemple of an auth middleware with koaJs
+
 > See [here](https://github.com/HydreIO/auth/blob/master/packages/auth-server-core/src/graphql/errors.js) to create your own errors
+
 ```js
 import jwt from 'jsonwebtoken'
 
-const verifyAccessToken = publicKey => token => {
-	try {
-		return jwt.verify(token, publicKey, {
-			algorithms: 'ES512',
-			issuer: 'auth.service'
-		})
-	} catch (e) {
-		console.error(e)
-	}
+const verifyAccessToken = (publicKey) => (token) => {
+  try {
+    return jwt.verify(token, publicKey, {
+      algorithms: 'ES512',
+      issuer: 'auth.service',
+    })
+  } catch (e) {
+    console.error(e)
+  }
 }
 
-
 export const auth = async (ctx, next) => {
-	const accessToken = ctx.cookies.get(process.env.ACCESS_TOKEN_COOKIE_NAME) || throw new CookiesMissingError()
-	const { sub: userid, mail, verified } = verifyAccessToken(process.env.AUTH_PUBKEY)(accessToken) || throw new InvalidAccessTokenError()
-	Object.assign(ctx, { userid, mail, verified })
-	await next()
+  const accessToken =
+    ctx.cookies.get(process.env.ACCESS_TOKEN_COOKIE_NAME) ||
+    throw new CookiesMissingError()
+  const {
+    sub: userid,
+    mail,
+    verified,
+  } = verifyAccessToken(process.env.AUTH_PUBKEY)(accessToken) ||
+  throw new InvalidAccessTokenError()
+  Object.assign(ctx, { userid, mail, verified })
+  await next()
 }
 ```
 
@@ -346,7 +388,7 @@ const socketAddress = 'tcp://127.0.0.1:3001'
 
 class Worker {
   constructor(name) {
-    this.sock = new zmq.Pull
+    this.sock = new zmq.Pull()
     this.log = debug.extend(name)
   }
 
@@ -354,7 +396,7 @@ class Worker {
     this.sock.connect(socketAddress)
     this.log('is online!')
     for await (const [key, ...rest] of this.sock) {
-      const datas = rest.map(v => v.toString())
+      const datas = rest.map((v) => v.toString())
       switch (key.toString()) {
         case 'INVITE_USER':
           const [from, to, code] = datas
@@ -366,16 +408,15 @@ class Worker {
           const [to, code] = datas
           break
       }
-
     }
     this.log('is offline...')
   }
 }
 
-void async function() {
+void (async function () {
   const workers = [new Worker('A'), new Worker('B'), new Worker('C')]
-  await Promise.all(workers.map(w => w.listen()))
-}()
+  await Promise.all(workers.map((w) => w.listen()))
+})()
 ```
 
 They possible keys are :

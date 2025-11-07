@@ -1,14 +1,14 @@
 import { ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
+import { user_db } from '../database.js'
 
-export default async ({ ids }, { koa_context, Graph, force_logout }) => {
-  const bearer = Token(koa_context).get()
+export default async ({ ids }, { koa_context, redis, force_logout }) => {
+  const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user } = {}] = await Graph.run`
-  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   if (!user) {
     force_logout()
@@ -17,11 +17,10 @@ export default async ({ ids }, { koa_context, Graph, force_logout }) => {
 
   if (!user.superadmin) throw new GraphQLError(ERRORS.UNAUTHORIZED)
 
-  await Graph.run`
-  MATCH (u:User)
-  WHERE u.uuid IN ${ ids }
-  DELETE u
-  `
+  // Delete all users in the list
+  for (const id of ids) {
+    await user_db.delete(redis, id)
+  }
 
   return true
 }

@@ -1,21 +1,16 @@
 import { ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
+import { user_db, session_db } from '../database.js'
 
-export default async (_, { koa_context, Graph, force_logout }) => {
+export default async (_, { koa_context, redis, force_logout }) => {
   const token = Token(koa_context)
-  const bearer = token.get(true)
+  const bearer = await token.get(true)
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user, session } = {}] = await Graph.run`
-  MATCH (user:User)
-  WHERE user.uuid = ${ bearer.uuid }
-  WITH user
-  OPTIONAL MATCH (user)-->(s:Session)
-  WHERE s.uuid = ${ bearer.session }
-  RETURN user, s as session
-  `
+  // Find user and session
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -23,6 +18,9 @@ export default async (_, { koa_context, Graph, force_logout }) => {
     force_logout()
     throw new GraphQLError(ERRORS.USER_NOT_FOUND)
   }
+
+  // Check if session still exists
+  const session = await session_db.find_by_uuid(redis, bearer.session)
 
   // the session may have been revoked and in that case we forbid the refresh
   // this is the only place we check for session validation
@@ -34,9 +32,9 @@ export default async (_, { koa_context, Graph, force_logout }) => {
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
   }
 
-  token.set({
-    uuid    : bearer.uuid,
-    session : bearer.session,
+  await token.set({
+    uuid: bearer.uuid,
+    session: bearer.session,
     remember: bearer.remember,
   })
   return true

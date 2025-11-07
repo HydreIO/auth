@@ -1,15 +1,15 @@
-import { ERRORS } from '../constant.js'
+import { ERRORS, ENVIRONMENT } from '../constant.js'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql/index.mjs'
 import Token from '../token.js'
+import { user_db } from '../database.js'
 
-export default async ({ id, pwd }, { koa_context, Graph, force_logout }) => {
-  const bearer = Token(koa_context).get()
+export default async ({ id, pwd }, { koa_context, redis, force_logout }) => {
+  const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const [{ user } = {}] = await Graph.run`
-  MATCH (user:User { uuid: ${ bearer.uuid }}) RETURN DISTINCT user`
+  const user = await user_db.find_by_uuid(redis, bearer.uuid)
 
   if (!user) {
     force_logout()
@@ -18,10 +18,9 @@ export default async ({ id, pwd }, { koa_context, Graph, force_logout }) => {
 
   if (!user.superadmin) throw new GraphQLError(ERRORS.UNAUTHORIZED)
 
-  await Graph.run`
-  MATCH (u:User)
-  WHERE u.uuid = ${ id }
-  SET u.hash = ${ await bcrypt.hash(pwd, 10) }`
+  await user_db.update(redis, id, {
+    hash: await bcrypt.hash(pwd, ENVIRONMENT.BCRYPT_ROUNDS),
+  })
 
   return true
 }
