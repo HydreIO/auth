@@ -25,6 +25,11 @@ export default async ({ lang }, { redis, koa_context, force_logout }) => {
   const { last_verification_code_sent, mail } = user
   const { CONFIRM_ACCOUNT_DELAY } = ENVIRONMENT
 
+  // No-op if email is disabled (user is auto-verified)
+  if (!ENVIRONMENT.ENABLE_EMAIL) {
+    return true
+  }
+
   if (last_verification_code_sent + CONFIRM_ACCOUNT_DELAY > Date.now())
     throw new GraphQLError(ERRORS.SPAM)
 

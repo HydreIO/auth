@@ -7,6 +7,11 @@ export default async ({ mail, lang }, { redis }) => {
   const user = await user_db.find_by_email(redis, mail)
 
   if (user) {
+    // No-op if email is disabled (can't send reset code)
+    if (!ENVIRONMENT.ENABLE_EMAIL) {
+      return true
+    }
+
     const { last_reset_code_sent } = user
     const { RESET_PASS_DELAY } = ENVIRONMENT
 

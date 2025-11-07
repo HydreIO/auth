@@ -113,7 +113,7 @@ describe('Authentication Server', () => {
   after(async () => {
     // Cleanup
     if (auth_server) auth_server.close()
-    if (redis_client) redis_client.quit()
+    if (redis_client) await redis_client.quit()
     if (mail_socket) await mail_socket.close()
 
     // Tear down Docker Compose

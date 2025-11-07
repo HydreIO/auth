@@ -38,7 +38,7 @@ export default async ({ mail, pwd, lang }, { redis }) => {
     mail,
     verification_code,
     hash: pwd ? await bcrypt.hash(pwd, ENVIRONMENT.BCRYPT_ROUNDS) : undefined,
-    verified: false,
+    verified: !ENVIRONMENT.ENABLE_EMAIL, // Auto-verify when email is disabled
     last_reset_code_sent: 0,
     last_verification_code_sent: Date.now(),
     member_since: Date.now(),
@@ -46,15 +46,18 @@ export default async ({ mail, pwd, lang }, { redis }) => {
 
   await user_db.create(redis, user)
 
-  await MAIL.send([
-    MAIL.ACCOUNT_CREATE,
-    mail,
-    lang,
-    JSON.stringify({
-      code: verification_code,
+  // Only send verification email if email is enabled
+  if (ENVIRONMENT.ENABLE_EMAIL) {
+    await MAIL.send([
+      MAIL.ACCOUNT_CREATE,
       mail,
-    }),
-  ])
+      lang,
+      JSON.stringify({
+        code: verification_code,
+        mail,
+      }),
+    ])
+  }
 
   return true
 }
