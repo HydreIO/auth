@@ -1,6 +1,6 @@
 import zmq from 'zeromq'
 import { ENVIRONMENT, ERRORS } from './constant.js'
-import { GraphQLError } from 'graphql/index.mjs'
+import { GraphQLError } from 'graphql'
 
 const sock = new zmq.Push({ sendTimeout: 300 })
 const { SOCKET_NOTIFIER_ADDRESS } = ENVIRONMENT

@@ -1,6 +1,6 @@
 import { ERRORS, ENVIRONMENT } from '../constant.js'
 import bcrypt from 'bcryptjs'
-import { GraphQLError } from 'graphql/index.mjs'
+import { GraphQLError } from 'graphql'
 import MAIL from '../mail.js'
 import { v4 as uuid4 } from 'uuid'
 import { SignJWT, importPKCS8 } from 'jose'

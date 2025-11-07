@@ -1,5 +1,5 @@
 import { ERRORS } from '../constant.js'
-import { GraphQLError } from 'graphql/index.mjs'
+import { GraphQLError } from 'graphql'
 import Token from '../token.js'
 import { user_db } from '../database.js'
 

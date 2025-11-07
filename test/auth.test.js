@@ -22,8 +22,8 @@ const host = 'http://localhost:3000'
 const cwd = process.cwd()
 
 // Helper to create GraphQL client with custom headers
-const create_client = (headers = {}) =>
-  new GraphQLClient(host, {
+const create_client = (headers = {}, use_new_jar = false) => {
+  const client_options = {
     headers: {
       'user-agent':
         'Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)',
@@ -31,7 +31,22 @@ const create_client = (headers = {}) =>
     },
     credentials: 'include',
     mode: 'cors',
-  })
+  }
+
+  // Create client with isolated cookie jar if requested
+  if (use_new_jar) {
+    const isolated_fetch = fetch_cookie(
+      fetch,
+      new tough.CookieJar(new tough.MemoryCookieStore(), {
+        rejectPublicSuffixes: false,
+        allowSpecialUseDomain: true,
+      })
+    )
+    client_options.fetch = isolated_fetch
+  }
+
+  return new GraphQLClient(host, client_options)
+}
 
 // Helper to wait for auth server to be ready
 const wait_for_auth = async () => {
@@ -198,7 +213,7 @@ describe('Authentication Server', () => {
         gql,
         /* GraphQL */ `
           mutation {
-            create_session(mail: "foo@bar.com", pwd: "wrongpassword")
+            create_session(mail: "foo@bar.com", pwd: "wrongpass1")
           }
         `
       )
@@ -279,7 +294,7 @@ describe('Authentication Server', () => {
         gql,
         /* GraphQL */ `
           mutation {
-            create_session(mail: "invited@example.com", pwd: "somepassword")
+            create_session(mail: "invited@example.com", pwd: "somepass1")
           }
         `
       )
@@ -306,8 +321,8 @@ describe('Authentication Server', () => {
     })
 
     test('should require authentication', async () => {
-      // Create new client without session
-      const unauthenticated_client = create_client()
+      // Create new client without session (isolated cookie jar)
+      const unauthenticated_client = create_client({}, true)
 
       const result = await request(
         unauthenticated_client,
@@ -341,6 +356,144 @@ describe('Authentication Server', () => {
       )
 
       assert.deepEqual(result, { errors: ['ILLEGAL_SESSION'] })
+    })
+
+    test('should refresh session successfully', async () => {
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            refresh_session
+          }
+        `
+      )
+
+      assert.deepEqual(result, { data: { refresh_session: true } })
+    })
+
+    test('should delete session (logout) successfully', async () => {
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            delete_session
+          }
+        `
+      )
+
+      assert.deepEqual(result, { data: { delete_session: true } })
+    })
+  })
+
+  describe('Account Confirmation', () => {
+    test('should create account confirmation code after delay', async () => {
+      // Create a dedicated user for confirmation testing
+      await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            create_user(mail: "confirm@test.com", pwd: "confirm1", lang: EN)
+          }
+        `
+      )
+
+      // Wait 6 seconds to avoid SPAM rate limit (CONFIRM_ACCOUNT_DELAY = 5s)
+      await new Promise((resolve) => setTimeout(resolve, 6000))
+
+      // Login with the new user
+      await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            create_session(mail: "confirm@test.com", pwd: "confirm1", remember: true)
+          }
+        `
+      )
+
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            create_account_confirm_code(lang: EN)
+          }
+        `
+      )
+
+      assert.deepEqual(result, { data: { create_account_confirm_code: true } })
+    })
+
+    test('should reject confirmation with invalid code', async () => {
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            confirm_account(code: "invalid-code")
+          }
+        `
+      )
+
+      assert.deepEqual(result, { errors: ['INVALID_CODE'] })
+    })
+  })
+
+  describe('Password Management', () => {
+    test('should update password while logged in', async () => {
+      // Login first
+      await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            create_session(mail: "foo@bar.com", pwd: "foobar1", remember: true)
+          }
+        `
+      )
+
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            update_pwd_logged(current_pwd: "foobar1", new_pwd: "newpass1")
+          }
+        `
+      )
+
+      assert.deepEqual(result, { data: { update_pwd_logged: true } })
+    })
+
+    test('should reject password update with invalid new password', async () => {
+      // Login again with new password
+      await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            create_session(mail: "foo@bar.com", pwd: "newpass1", remember: true)
+          }
+        `
+      )
+
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            update_pwd_logged(current_pwd: "newpass1", new_pwd: "weak")
+          }
+        `
+      )
+
+      assert.deepEqual(result, { errors: ['PASSWORD_INVALID'] })
+    })
+
+    test('should reject password update with wrong current password', async () => {
+      const result = await request(
+        gql,
+        /* GraphQL */ `
+          mutation {
+            update_pwd_logged(current_pwd: "wrongpass1", new_pwd: "newpass2")
+          }
+        `
+      )
+
+      assert.deepEqual(result, { errors: ['USER_NOT_FOUND'] })
     })
   })
 })

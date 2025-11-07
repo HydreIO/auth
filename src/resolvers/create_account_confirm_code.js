@@ -1,6 +1,6 @@
 import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
-import { GraphQLError } from 'graphql/index.mjs'
+import { GraphQLError } from 'graphql'
 import Token from '../token.js'
 import { SignJWT, importPKCS8 } from 'jose'
 import { user_db } from '../database.js'
