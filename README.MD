@@ -40,10 +40,21 @@ Modern, lightweight authentication microservice with JWT tokens, session managem
 - **Sessions**: Device-specific sessions with refresh tokens, user agent tracking
 - **Tokens**: Short-lived JWTs (20min default) with refresh capability
 
-## 📦 Installation
+## 📦 Installation & Usage
+
+**@hydre/auth** is a standalone microservice - you run it as a separate server and make GraphQL API calls to it from your application. It is NOT a library you import into your code.
+
+### Quick Start (Docker)
 
 ```bash
-npm install @hydre/auth
+# Clone repository
+git clone https://github.com/HydreIO/auth.git
+cd auth
+
+# Start auth service + Redis
+docker compose up
+
+# Service available at http://localhost:3000
 ```
 
 ### Development Setup
