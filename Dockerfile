@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm ci --prod
+RUN npm install --production
 
 # ╔════════════════ [ Build stage ] ════════════════════════════════════════════ ]
 FROM node:14.13-alpine as production
