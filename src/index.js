@@ -13,6 +13,7 @@ import crypto from 'crypto'
 import rootValue from './root.js'
 import Token from './token.js'
 import logger from './logger.js'
+import { initiate_google_oauth, handle_google_callback } from './oauth.js'
 
 import { ENVIRONMENT } from './constant.js'
 import { master_client, slave_client, connection_state } from './sentinel.js'
@@ -27,6 +28,9 @@ const router = new Router()
     if (connection_state.online) context.body = 'ok'
     else context.throw('hello darkness', 418)
   })
+  // Google OAuth routes
+  .get('/oauth/google', initiate_google_oauth)
+  .get('/oauth/google/callback', handle_google_callback)
   .all(
     GRAPHQL_PATH,
     graphql_http({
