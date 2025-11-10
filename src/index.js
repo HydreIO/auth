@@ -78,6 +78,11 @@ const router = new Router()
     })
   )
 const http_server = new Koa()
+
+// Trust proxy headers from Caddy/ingress for secure cookies
+http_server.proxy = true
+
+http_server
   .use(
     cors({
       /* c8 ignore next 11 */
