@@ -27,7 +27,7 @@ export async function initiate_google_oauth(context) {
   const state = crypto.randomBytes(32).toString('hex')
 
   // Store state + redirect_uri in Redis (expires in 10 minutes)
-  await master_client.setEx(
+  await master_client.setex(
     `oauth_state:${state}`,
     600, // 10 minutes TTL
     redirect_uri
@@ -73,7 +73,7 @@ export async function handle_google_callback(context) {
   }
 
   // Verify state and get original redirect_uri
-  const redirect_uri = await master_client.getDel(`oauth_state:${state}`)
+  const redirect_uri = await master_client.getdel(`oauth_state:${state}`)
 
   if (!redirect_uri) {
     logger.warn({ msg: 'Invalid or expired OAuth state', state })
@@ -117,7 +117,8 @@ export async function handle_google_callback(context) {
 
     // Check if user exists
     const user_key = `user:${email}`
-    const existing_user = await master_client.json.get(user_key)
+    const existing_user_json = await master_client.get(user_key)
+    const existing_user = existing_user_json ? JSON.parse(existing_user_json) : null
 
     let user_id
 
@@ -135,17 +136,20 @@ export async function handle_google_callback(context) {
         auth_method: 'google',
       }
 
-      await master_client.json.set(user_key, '$', new_user)
-      await master_client.json.set(`user_by_id:${user_id}`, '$', new_user)
+      await master_client.set(user_key, JSON.stringify(new_user))
+      await master_client.set(`user_by_id:${user_id}`, JSON.stringify(new_user))
 
       logger.info({ msg: 'Created new Google OAuth user', user_id, email })
     } else {
       user_id = existing_user.user_id
 
       // Update user info from Google
-      await master_client.json.set(user_key, '$.name', name)
-      await master_client.json.set(user_key, '$.picture', picture)
-      await master_client.json.set(user_key, '$.google_id', google_id)
+      existing_user.name = name
+      existing_user.picture = picture
+      existing_user.google_id = google_id
+
+      await master_client.set(user_key, JSON.stringify(existing_user))
+      await master_client.set(`user_by_id:${user_id}`, JSON.stringify(existing_user))
 
       logger.info({ msg: 'Updated existing user from Google', user_id, email })
     }
@@ -163,7 +167,7 @@ export async function handle_google_callback(context) {
       ip: context.req.headers['x-forwarded-for']?.split(',')?.[0] || context.ip,
     }
 
-    await master_client.json.set(`session:${session_id}`, '$', session)
+    await master_client.set(`session:${session_id}`, JSON.stringify(session))
 
     // Set auth token cookie
     const token = Token(context)
