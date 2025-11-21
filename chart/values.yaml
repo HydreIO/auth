@@ -51,6 +51,15 @@ secrets:
   privateKeyKey: "private-key"  # Key name in secret for private key
   publicKeyKey: "public-key"  # Key name in secret for public key
 
+# Extra environment variables (for secrets, etc.)
+extraEnv: []
+# Example:
+# - name: GOOGLE_CLIENT_ID
+#   valueFrom:
+#     secretKeyRef:
+#       name: my-secret
+#       key: google-client-id
+
 healthCheck:
   liveness:
     path: /healthz
