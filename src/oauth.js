@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import Token from './token.js'
 import logger from './logger.js'
 import { master_client } from './sentinel.js'
+import { user_db, session_db } from './database.js'
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } =
   process.env
@@ -119,73 +120,61 @@ export async function handle_google_callback(context) {
       google_id,
     })
 
-    // Check if user exists
-    const user_key = `user:${email}`
-    const existing_user_json = await master_client.get(user_key)
-    const existing_user = existing_user_json
-      ? JSON.parse(existing_user_json)
-      : null
+    // Check if user exists using database layer
+    const existing_user = await user_db.find_by_email(master_client, email)
 
-    let user_id
+    let user_uuid
 
     if (!existing_user) {
-      // Create new user
-      user_id = crypto.randomUUID()
+      // Create new user using database layer
+      user_uuid = crypto.randomUUID()
       const new_user = {
-        user_id,
-        email,
+        uuid: user_uuid,
+        mail: email,
         google_id,
         name,
         picture,
         confirmed: true, // OAuth users are auto-confirmed
-        created_at: Date.now(),
+        member_since: Date.now(),
         auth_method: 'google',
       }
 
-      await master_client.set(user_key, JSON.stringify(new_user))
-      await master_client.set(`user_by_id:${user_id}`, JSON.stringify(new_user))
+      await user_db.create(master_client, new_user)
 
-      logger.info({ msg: 'Created new Google OAuth user', user_id, email })
+      logger.info({ msg: 'Created new Google OAuth user', user_uuid, email })
     } else {
-      ;({ user_id } = existing_user)
+      user_uuid = existing_user.uuid
 
       // Update user info from Google
-      existing_user.name = name
-      existing_user.picture = picture
-      existing_user.google_id = google_id
+      await user_db.update(master_client, user_uuid, {
+        name,
+        picture,
+        google_id,
+      })
 
-      await master_client.set(user_key, JSON.stringify(existing_user))
-      await master_client.set(
-        `user_by_id:${user_id}`,
-        JSON.stringify(existing_user)
-      )
-
-      logger.info({ msg: 'Updated existing user from Google', user_id, email })
+      logger.info({ msg: 'Updated existing user from Google', user_uuid, email })
     }
 
-    // Create session (reuse existing session creation logic)
-    const session_id = crypto.randomUUID()
+    // Create session using database layer
+    const session_uuid = crypto.randomUUID()
     const session_hash = crypto.randomBytes(16).toString('hex')
 
     const session = {
-      session_id,
-      user_id,
-      email,
+      uuid: session_uuid,
       hash: session_hash,
-      created_at: Date.now(),
       ip: context.req.headers['x-forwarded-for']?.split(',')?.[0] || context.ip,
     }
 
-    await master_client.set(`session:${session_id}`, JSON.stringify(session))
+    await session_db.create(master_client, user_uuid, session)
 
     // Set auth token cookie
     const token = Token(context)
-    await token.set({ uuid: user_id, session_id })
+    await token.set({ uuid: user_uuid, session_id: session_uuid })
 
     logger.info({
       msg: 'Created OAuth session',
-      user_id,
-      session_id,
+      user_uuid,
+      session_uuid,
     })
 
     // Redirect back to app
