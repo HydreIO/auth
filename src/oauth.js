@@ -180,7 +180,7 @@ export async function handle_google_callback(context) {
 
     // Set auth token cookie
     const token = Token(context)
-    await token.set({ user_id, session_id })
+    await token.set({ uuid: user_id, session_id })
 
     logger.info({
       msg: 'Created OAuth session',
