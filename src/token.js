@@ -53,11 +53,18 @@ export default (koa_context) => ({
       .setExpirationTime(ACCESS_TOKEN_EXPIRATION)
       .sign(private_key)
 
+    // Check if response already started before setting cookie
+    if (koa_context.res.headersSent) {
+      throw new Error('Cannot set cookie: headers already sent')
+    }
+
     koa_context.cookies.set(
       ACCESS_TOKEN_COOKIE_NAME,
       access_token,
       cookie_options
     )
+
+    return access_token
   },
   rm: () => {
     /* c8 ignore next 16 */

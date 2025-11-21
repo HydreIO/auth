@@ -167,9 +167,10 @@ export async function handle_google_callback(context) {
 
     await session_db.create(master_client, user_uuid, session)
 
-    // Set auth token cookie
+    // Set auth token cookie BEFORE redirect
+    // Note: Must set cookie before any response is sent
     const token = Token(context)
-    await token.set({ uuid: user_uuid, session_id: session_uuid })
+    const access_token = await token.set({ uuid: user_uuid, session_id: session_uuid })
 
     logger.info({
       msg: 'Created OAuth session',
@@ -177,8 +178,12 @@ export async function handle_google_callback(context) {
       session_uuid,
     })
 
-    // Redirect back to app
-    context.redirect(redirect_uri)
+    // Redirect back to app - headers must not be sent yet
+    if (!context.headerSent) {
+      context.redirect(redirect_uri)
+    } else {
+      logger.error({ msg: 'Headers already sent, cannot redirect', redirect_uri })
+    }
   } catch (error) {
     logger.error({ msg: 'Google OAuth callback error', error: error.message })
     context.status = 500
