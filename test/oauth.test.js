@@ -85,15 +85,20 @@ describe('OAuth Flow', () => {
       // Extract redirect location
       const location = response.headers.get('location')
       assert.ok(location)
-      assert.ok(location.startsWith('https://accounts.google.com/o/oauth2/v2/auth'))
+      assert.ok(
+        location.startsWith('https://accounts.google.com/o/oauth2/v2/auth')
+      )
 
       // Parse redirect URL
-      const redirect_url = new URL(location)
+      const redirect_url = new globalThis.URL(location)
       // Just verify the params exist (env vars may not be set in test)
       assert.ok(redirect_url.searchParams.get('client_id'))
       assert.ok(redirect_url.searchParams.get('redirect_uri'))
       assert.strictEqual(redirect_url.searchParams.get('response_type'), 'code')
-      assert.strictEqual(redirect_url.searchParams.get('scope'), 'openid email profile')
+      assert.strictEqual(
+        redirect_url.searchParams.get('scope'),
+        'openid email profile'
+      )
 
       // State token should be present
       const state = redirect_url.searchParams.get('state')
@@ -141,7 +146,9 @@ describe('OAuth Flow', () => {
         iat: Date.now(),
         exp: Date.now() + 3600,
       }
-      const payload_base64 = Buffer.from(JSON.stringify(id_token_payload)).toString('base64url')
+      const payload_base64 = Buffer.from(
+        JSON.stringify(id_token_payload)
+      ).toString('base64url')
       const mock_id_token = `header.${payload_base64}.signature`
 
       // Mock fetch for token exchange
@@ -183,7 +190,10 @@ describe('OAuth Flow', () => {
         const request_body = JSON.parse(fetch_options.body)
         assert.strictEqual(request_body.code, 'mock_auth_code')
         assert.strictEqual(request_body.client_id, process.env.GOOGLE_CLIENT_ID)
-        assert.strictEqual(request_body.client_secret, process.env.GOOGLE_CLIENT_SECRET)
+        assert.strictEqual(
+          request_body.client_secret,
+          process.env.GOOGLE_CLIENT_SECRET
+        )
         assert.strictEqual(request_body.grant_type, 'authorization_code')
 
         // Verify user was created in Redis
@@ -200,7 +210,9 @@ describe('OAuth Flow', () => {
         assert.ok(user.created_at)
 
         // Verify user_by_id index exists
-        const user_by_id_json = await redis_client.get(`user_by_id:${user.user_id}`)
+        const user_by_id_json = await redis_client.get(
+          `user_by_id:${user.user_id}`
+        )
         assert.ok(user_by_id_json)
         const user_by_id = JSON.parse(user_by_id_json)
         assert.deepStrictEqual(user_by_id, user)
@@ -232,8 +244,14 @@ describe('OAuth Flow', () => {
         created_at: Date.now() - 86400000, // 1 day ago
         auth_method: 'google',
       }
-      await redis_client.set(`user:${mock_email}`, JSON.stringify(existing_user))
-      await redis_client.set(`user_by_id:${existing_user_id}`, JSON.stringify(existing_user))
+      await redis_client.set(
+        `user:${mock_email}`,
+        JSON.stringify(existing_user)
+      )
+      await redis_client.set(
+        `user_by_id:${existing_user_id}`,
+        JSON.stringify(existing_user)
+      )
 
       // Setup: Create state token
       const state = 'test_state_update_' + Date.now()
@@ -251,7 +269,9 @@ describe('OAuth Flow', () => {
         name: new_name,
         picture: new_picture,
       }
-      const payload_base64 = Buffer.from(JSON.stringify(id_token_payload)).toString('base64url')
+      const payload_base64 = Buffer.from(
+        JSON.stringify(id_token_payload)
+      ).toString('base64url')
       const mock_id_token = `header.${payload_base64}.signature`
 
       const mocked_fetch = mock.fn(async (url) => {
@@ -290,7 +310,9 @@ describe('OAuth Flow', () => {
     })
 
     test('returns 400 if code is missing', async () => {
-      const response = await fetch(`${host}/oauth/google/callback?state=some_state`)
+      const response = await fetch(
+        `${host}/oauth/google/callback?state=some_state`
+      )
 
       assert.strictEqual(response.status, 400)
       const body = await response.json()
@@ -298,7 +320,9 @@ describe('OAuth Flow', () => {
     })
 
     test('returns 400 if state is missing', async () => {
-      const response = await fetch(`${host}/oauth/google/callback?code=some_code`)
+      const response = await fetch(
+        `${host}/oauth/google/callback?code=some_code`
+      )
 
       assert.strictEqual(response.status, 400)
       const body = await response.json()

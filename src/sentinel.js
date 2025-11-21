@@ -2,12 +2,7 @@ import Redis from 'ioredis'
 import events from 'events'
 import { ENVIRONMENT } from './constant.js'
 
-const {
-  REDIS_HOST,
-  REDIS_SENTINEL_PORT,
-  REDIS_MASTER_NAME,
-  NODE_ENV,
-} = ENVIRONMENT
+const { REDIS_HOST, REDIS_SENTINEL_PORT, REDIS_MASTER_NAME } = ENVIRONMENT
 const connection_state = {
   online: false,
 }

@@ -65,6 +65,14 @@ export default async (
       last_used: Date.now(),
     })
   } else {
+    // Clean up old sessions BEFORE creating new one to avoid spam emails
+    existing_sessions.sort((s1, s2) => s1.last_used - s2.last_used)
+
+    while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER) {
+      const deprecated_session = existing_sessions.shift()
+      await session_db.delete(redis, user.uuid, deprecated_session.uuid)
+    }
+
     // Create new session
     const { ip, browserName, osName, deviceModel, deviceType, deviceVendor } =
       session
@@ -93,14 +101,6 @@ export default async (
     session: matching_session?.uuid || session.uuid,
     remember,
   })
-
-  // Handle max sessions per user
-  existing_sessions.sort((s1, s2) => s1.last_used - s2.last_used)
-
-  while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER) {
-    const deprecated_session = existing_sessions.shift()
-    await session_db.delete(redis, user.uuid, deprecated_session.uuid)
-  }
 
   return !matching_session
 }

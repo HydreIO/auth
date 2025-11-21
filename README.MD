@@ -28,6 +28,7 @@ Modern, lightweight authentication microservice with JWT tokens, session managem
 ## 🏗️ Architecture
 
 **Tech Stack:**
+
 - [Koa](https://koajs.com/) - Web framework
 - [@hydre/graphql-http](https://github.com/HydreIO/graphql-http) - GraphQL server
 - [Redis JSON](https://redis.io/docs/stack/json/) - Data storage
@@ -36,6 +37,7 @@ Modern, lightweight authentication microservice with JWT tokens, session managem
 - [ZeroMQ](https://zeromq.org/) - Email notifications (optional)
 
 **Data Model:**
+
 - **Users**: Stored as JSON documents with email (indexed), password hash, verification status
 - **Sessions**: Device-specific sessions with refresh tokens, user agent tracking
 - **Tokens**: Short-lived JWTs (20min default) with refresh capability
@@ -87,6 +89,7 @@ PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 ```
 
 **Generate keys:**
+
 ```bash
 # ES512 (ECDSA P-521)
 openssl ecparam -genkey -name secp521r1 -noout | openssl pkcs8 -topk8 -nocrypt
@@ -140,28 +143,23 @@ ORIGINS=.*                        # Semicolon-separated regex patterns
 ### GraphQL API
 
 **Create User:**
+
 ```graphql
 mutation {
-  create_user(
-    mail: "user@example.com"
-    pwd: "secure123"
-    lang: EN
-  )
+  create_user(mail: "user@example.com", pwd: "secure123", lang: EN)
 }
 ```
 
 **Login:**
+
 ```graphql
 mutation {
-  create_session(
-    mail: "user@example.com"
-    pwd: "secure123"
-    remember: true
-  )
+  create_session(mail: "user@example.com", pwd: "secure123", remember: true)
 }
 ```
 
 **Get Current User:**
+
 ```graphql
 query {
   me {
@@ -173,6 +171,7 @@ query {
 ```
 
 **Refresh Token:**
+
 ```graphql
 mutation {
   refresh_session
@@ -180,6 +179,7 @@ mutation {
 ```
 
 **Logout:**
+
 ```graphql
 mutation {
   delete_session
@@ -187,6 +187,7 @@ mutation {
 ```
 
 **Confirm Account:**
+
 ```graphql
 mutation {
   confirm_account(code: "jwt-code-from-email")
@@ -194,6 +195,7 @@ mutation {
 ```
 
 **Password Reset:**
+
 ```graphql
 mutation {
   # Request reset code
@@ -205,6 +207,7 @@ mutation {
 ```
 
 **Invite User:**
+
 ```graphql
 mutation {
   invite_user(mail: "invited@example.com")
@@ -232,6 +235,7 @@ npm run test:coverage
 ```
 
 **Coverage Results:**
+
 - ✅ 87.63% Statements
 - ✅ 79.05% Branches
 - ✅ 76.19% Functions
@@ -283,6 +287,7 @@ type Mutation {
   admin_delete_users(mails: [String!]!): Boolean!
 }
 ```
+
 </details>
 
 ## 🔐 Security

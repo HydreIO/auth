@@ -1,9 +1,11 @@
+/* global URL */
 import crypto from 'crypto'
 import Token from './token.js'
 import logger from './logger.js'
 import { master_client } from './sentinel.js'
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env
+const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } =
+  process.env
 
 /**
  * Google OAuth 2.0 routes for hydre/auth
@@ -34,7 +36,9 @@ export async function initiate_google_oauth(context) {
   )
 
   // Build Google OAuth URL
-  const google_auth_url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+  const google_auth_url = new URL(
+    'https://accounts.google.com/o/oauth2/v2/auth'
+  )
   google_auth_url.searchParams.set('client_id', GOOGLE_CLIENT_ID)
   google_auth_url.searchParams.set('redirect_uri', GOOGLE_REDIRECT_URI)
   google_auth_url.searchParams.set('response_type', 'code')
@@ -118,7 +122,9 @@ export async function handle_google_callback(context) {
     // Check if user exists
     const user_key = `user:${email}`
     const existing_user_json = await master_client.get(user_key)
-    const existing_user = existing_user_json ? JSON.parse(existing_user_json) : null
+    const existing_user = existing_user_json
+      ? JSON.parse(existing_user_json)
+      : null
 
     let user_id
 
@@ -141,7 +147,7 @@ export async function handle_google_callback(context) {
 
       logger.info({ msg: 'Created new Google OAuth user', user_id, email })
     } else {
-      user_id = existing_user.user_id
+      ;({ user_id } = existing_user)
 
       // Update user info from Google
       existing_user.name = name
@@ -149,7 +155,10 @@ export async function handle_google_callback(context) {
       existing_user.google_id = google_id
 
       await master_client.set(user_key, JSON.stringify(existing_user))
-      await master_client.set(`user_by_id:${user_id}`, JSON.stringify(existing_user))
+      await master_client.set(
+        `user_by_id:${user_id}`,
+        JSON.stringify(existing_user)
+      )
 
       logger.info({ msg: 'Updated existing user from Google', user_id, email })
     }

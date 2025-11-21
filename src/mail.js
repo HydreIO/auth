@@ -13,7 +13,9 @@ const initialize = async () => {
   initialized = true
 
   if (!ENABLE_EMAIL) {
-    console.warn('⚠️  Email disabled (ENABLE_EMAIL=false). Mail notifications will not be sent.')
+    console.warn(
+      '⚠️  Email disabled (ENABLE_EMAIL=false). Mail notifications will not be sent.'
+    )
     return
   }
 

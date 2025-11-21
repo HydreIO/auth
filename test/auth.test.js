@@ -405,7 +405,11 @@ describe('Authentication Server', () => {
         gql,
         /* GraphQL */ `
           mutation {
-            create_session(mail: "confirm@test.com", pwd: "confirm1", remember: true)
+            create_session(
+              mail: "confirm@test.com"
+              pwd: "confirm1"
+              remember: true
+            )
           }
         `
       )
