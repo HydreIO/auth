@@ -14,7 +14,12 @@ export const user_db = {
    */
   create: async (client, user) => {
     // Store user object
-    await client.call('JSON.SET', `user:${user.uuid}`, '.', JSON.stringify(user))
+    await client.call(
+      'JSON.SET',
+      `user:${user.uuid}`,
+      '.',
+      JSON.stringify(user)
+    )
     // Create email → uuid index
     await client.set(`user:email:${user.mail}`, user.uuid)
   },

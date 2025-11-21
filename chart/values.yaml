@@ -1,0 +1,62 @@
+image:
+  repository: ghcr.io/hydreio/auth
+  tag: "latest"
+  pullPolicy: Always
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 4000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: auth.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+env:
+  NODE_ENV: production
+  PORT: "4000"
+  SERVER_HOST: "0.0.0.0"
+  REDIS_HOST: redis
+  REDIS_USE_SENTINEL: "false"
+  GRAPHQL_PATH: "/graphql"
+  ALLOW_REGISTRATION: "true"
+  ENABLE_EMAIL: "false"
+  ACCESS_TOKEN_COOKIE_NAME: "auth_token"
+  COOKIE_SECURE: "true"
+  COOKIE_SAMESITE: "lax"
+  # OAuth configuration (optional)
+  GOOGLE_CLIENT_ID: ""
+  GOOGLE_CLIENT_SECRET: ""
+  GOOGLE_REDIRECT_URI: ""
+
+# JWT keys - provide via existing secret
+secrets:
+  existingSecret: ""  # Name of existing secret containing JWT keys
+  privateKeyKey: "private-key"  # Key name in secret for private key
+  publicKeyKey: "public-key"  # Key name in secret for public key
+
+healthCheck:
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 30
+    periodSeconds: 30
+  readiness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 10

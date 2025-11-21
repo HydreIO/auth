@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hydre-auth.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "hydre-auth.labels" . | nindent 4 }}
+    app.kubernetes.io/component: auth
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "hydre-auth.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hydre-auth.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: auth
+    spec:
+      containers:
+        - name: hydre-auth
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.env.NODE_ENV | quote }}
+            - name: PORT
+              value: {{ .Values.env.PORT | quote }}
+            - name: SERVER_HOST
+              value: {{ .Values.env.SERVER_HOST | quote }}
+            - name: REDIS_HOST
+              value: {{ .Values.env.REDIS_HOST | quote }}
+            - name: REDIS_USE_SENTINEL
+              value: {{ .Values.env.REDIS_USE_SENTINEL | quote }}
+            {{- if .Values.env.REDIS_SENTINEL_PORT }}
+            - name: REDIS_SENTINEL_PORT
+              value: {{ .Values.env.REDIS_SENTINEL_PORT | quote }}
+            {{- end }}
+            {{- if .Values.env.REDIS_MASTER_NAME }}
+            - name: REDIS_MASTER_NAME
+              value: {{ .Values.env.REDIS_MASTER_NAME | quote }}
+            {{- end }}
+            {{- if .Values.env.GRAPHQL_PATH }}
+            - name: GRAPHQL_PATH
+              value: {{ .Values.env.GRAPHQL_PATH | quote }}
+            {{- end }}
+            {{- if .Values.env.ALLOW_REGISTRATION }}
+            - name: ALLOW_REGISTRATION
+              value: {{ .Values.env.ALLOW_REGISTRATION | quote }}
+            {{- end }}
+            {{- if .Values.env.ENABLE_EMAIL }}
+            - name: ENABLE_EMAIL
+              value: {{ .Values.env.ENABLE_EMAIL | quote }}
+            {{- end }}
+            {{- if .Values.env.ACCESS_TOKEN_COOKIE_NAME }}
+            - name: ACCESS_TOKEN_COOKIE_NAME
+              value: {{ .Values.env.ACCESS_TOKEN_COOKIE_NAME | quote }}
+            {{- end }}
+            {{- if .Values.env.COOKIE_SECURE }}
+            - name: COOKIE_SECURE
+              value: {{ .Values.env.COOKIE_SECURE | quote }}
+            {{- end }}
+            {{- if .Values.env.COOKIE_SAMESITE }}
+            - name: COOKIE_SAMESITE
+              value: {{ .Values.env.COOKIE_SAMESITE | quote }}
+            {{- end }}
+            {{- if .Values.env.COOKIE_DOMAIN }}
+            - name: COOKIE_DOMAIN
+              value: {{ .Values.env.COOKIE_DOMAIN | quote }}
+            {{- end }}
+            {{- if .Values.secrets.existingSecret }}
+            - name: PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.privateKeyKey | default "private-key" }}
+            - name: PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.existingSecret }}
+                  key: {{ .Values.secrets.publicKeyKey | default "public-key" }}
+            {{- end }}
+            {{- if .Values.env.GOOGLE_CLIENT_ID }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ .Values.env.GOOGLE_CLIENT_ID | quote }}
+            {{- end }}
+            {{- if .Values.env.GOOGLE_CLIENT_SECRET }}
+            - name: GOOGLE_CLIENT_SECRET
+              value: {{ .Values.env.GOOGLE_CLIENT_SECRET | quote }}
+            {{- end }}
+            {{- if .Values.env.GOOGLE_REDIRECT_URI }}
+            - name: GOOGLE_REDIRECT_URI
+              value: {{ .Values.env.GOOGLE_REDIRECT_URI | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthCheck.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthCheck.liveness.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthCheck.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthCheck.readiness.periodSeconds }}
