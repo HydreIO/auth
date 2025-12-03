@@ -146,17 +146,6 @@ const create_client = () => ({
     return value ?? null
   },
 
-  sadd: async (key, ...members) => {
-    return await create_client().call('SADD', key, ...members)
-  },
-
-  srem: async (key, ...members) => {
-    return await create_client().call('SREM', key, ...members)
-  },
-
-  smembers: async (key) => {
-    return await create_client().call('SMEMBERS', key)
-  },
 
   publish: async () => {
     // No-op for local mode (no pub/sub needed in tests)
@@ -177,7 +166,8 @@ const create_client = () => ({
   },
 })
 
-const master_client = create_client()
-const slave_client = master_client // Same instance in local mode
+const shared_client = create_client()
 
-export { master_client, slave_client, connection_state }
+export const master_client = shared_client
+export const slave_client = shared_client // Same instance in local mode
+export { connection_state }

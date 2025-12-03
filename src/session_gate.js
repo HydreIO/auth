@@ -68,35 +68,42 @@ export async function create_or_update_session({
 
   while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER) {
     const deprecated_session = existing_sessions.shift()
-    await session_db.delete(redis, user_uuid, deprecated_session.uuid)
+    if (deprecated_session) {
+      await session_db.delete(redis, user_uuid, deprecated_session.uuid)
+    }
   }
 
   // Send email notification for new session (sanitize user-agent parsed fields)
-  const { ip, browserName, osName, deviceModel, deviceType, deviceVendor } =
-    session
+  try {
+    const { ip, browserName, osName, deviceModel, deviceType, deviceVendor } =
+      session
 
-  // Sanitize fields to prevent email injection
-  const sanitize = (str) =>
-    str
-      ? String(str)
-          .replace(/[<>\n\r]/g, '')
-          .slice(0, 100)
-      : 'Unknown'
+    // Sanitize fields to prevent email injection
+    const sanitize = (str) =>
+      str
+        ? String(str)
+            .replace(/[<>\n\r]/g, '')
+            .slice(0, 100)
+        : 'Unknown'
 
-  await MAIL.send([
-    MAIL.NEW_SESSION,
-    user_email,
-    lang,
-    undefined,
-    JSON.stringify({
-      ip: sanitize(ip),
-      browserName: sanitize(browserName),
-      osName: sanitize(osName),
-      deviceModel: sanitize(deviceModel),
-      deviceType: sanitize(deviceType),
-      deviceVendor: sanitize(deviceVendor),
-    }),
-  ])
+    await MAIL.send([
+      MAIL.NEW_SESSION,
+      user_email,
+      lang,
+      undefined,
+      JSON.stringify({
+        ip: sanitize(ip),
+        browserName: sanitize(browserName),
+        osName: sanitize(osName),
+        deviceModel: sanitize(deviceModel),
+        deviceType: sanitize(deviceType),
+        deviceVendor: sanitize(deviceVendor),
+      }),
+    ])
+  } catch (email_error) {
+    // Non-blocking: Log error but don't fail session creation
+    console.error('Failed to send session notification email:', email_error)
+  }
 
   // Create new session
   await session_db.create(redis, user_uuid, session)

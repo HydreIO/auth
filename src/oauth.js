@@ -6,6 +6,7 @@ import logger from './logger.js'
 import { master_client } from './io/index.js'
 import { user_db } from './database.js'
 import { ENVIRONMENT, ERRORS, validate_email_whitelist } from './constant.js'
+import MAIL from './mail.js'
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } =
   process.env
@@ -200,7 +201,6 @@ export async function handle_google_callback(context) {
 
       // Send notification if profile changed
       if (changes.length > 0 && ENVIRONMENT.ENABLE_EMAIL) {
-        const { MAIL } = await import('./mail.js')
         await MAIL.send([
           MAIL.PROFILE_UPDATED,
           email,
@@ -277,7 +277,8 @@ export async function handle_google_callback(context) {
     })
 
     // Validate redirect_uri against ORIGINS whitelist to prevent open redirect (SECURITY FIX)
-    const origins_regex = new RegExp(ENVIRONMENT.ORIGINS)
+    const escaped_origins = ENVIRONMENT.ORIGINS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const origins_regex = new RegExp(escaped_origins)
     if (!origins_regex.test(redirect_uri)) {
       logger.error({
         msg: 'Redirect URI not in allowed ORIGINS',
