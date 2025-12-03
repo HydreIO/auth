@@ -1,4 +1,4 @@
-import { describe, test, before } from 'node:test'
+import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 
 // Force local I/O for this test
@@ -101,14 +101,6 @@ describe('Local I/O Adapter', () => {
   })
 
   describe('Database Layer', () => {
-    before(async () => {
-      // Clear any existing test data
-      await master_client.quit()
-      // Re-import to get fresh instance
-      const module = await import('../src/io/local.js')
-      Object.assign(master_client, module.master_client)
-    })
-
     test('user_db.create and find_by_email', async () => {
       const user = {
         uuid: 'user-1',

@@ -103,6 +103,29 @@ const create_client = () => ({
   /**
    * Direct method calls (ioredis also supports these)
    */
+  sadd: async (key, ...members) => {
+    const current_set = set_store.get(key) || new Set()
+    const before_size = current_set.size
+    members.forEach((m) => current_set.add(m))
+    set_store.set(key, current_set)
+    return current_set.size - before_size
+  },
+
+  srem: async (key, ...members) => {
+    const current_set = set_store.get(key)
+    if (!current_set) return 0
+    let removed = 0
+    members.forEach((m) => {
+      if (current_set.delete(m)) removed++
+    })
+    return removed
+  },
+
+  smembers: async (key) => {
+    const current_set = set_store.get(key)
+    return current_set ? Array.from(current_set) : []
+  },
+
   set: async (key, value) => {
     string_store.set(key, value)
     return 'OK'
