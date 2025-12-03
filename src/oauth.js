@@ -277,7 +277,10 @@ export async function handle_google_callback(context) {
     })
 
     // Validate redirect_uri against ORIGINS whitelist to prevent open redirect (SECURITY FIX)
-    const escaped_origins = ENVIRONMENT.ORIGINS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const escaped_origins = ENVIRONMENT.ORIGINS.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    )
     const origins_regex = new RegExp(escaped_origins)
     if (!origins_regex.test(redirect_uri)) {
       logger.error({

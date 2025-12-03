@@ -146,7 +146,6 @@ const create_client = () => ({
     return value ?? null
   },
 
-
   publish: async () => {
     // No-op for local mode (no pub/sub needed in tests)
     return 1

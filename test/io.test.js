@@ -117,7 +117,10 @@ describe('Local I/O Adapter', () => {
         created_at: Date.now(),
       }
       await user_db.create(master_client, user)
-      const found = await user_db.find_by_email(master_client, 'test@example.com')
+      const found = await user_db.find_by_email(
+        master_client,
+        'test@example.com'
+      )
       assert.deepStrictEqual(found, user)
     })
 
