@@ -13,10 +13,6 @@ type Query {
   """
   ping: String!
   """
-  The public key
-  """
-  public_key: String!
-  """
   The logged user
 
   Throws:
@@ -157,6 +153,7 @@ type Mutation {
 
   Returns: true
   Throws:
+    - PASSWORD_INVALID: If the pwd doesn't respect the policy
     - USER_NOT_FOUND: If the user is not found
     - UNAUTHORIZED: If the user is not an admin
   """

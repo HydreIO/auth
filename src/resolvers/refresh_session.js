@@ -1,4 +1,4 @@
-import { ERRORS } from '../constant.js'
+import { ERRORS, validate_email_whitelist } from '../constant.js'
 import { GraphQLError } from 'graphql'
 import Token from '../token.js'
 import { user_db, session_db } from '../database.js'
@@ -17,6 +17,14 @@ export default async (_, { koa_context, redis, force_logout }) => {
   if (!user) {
     force_logout()
     throw new GraphQLError(ERRORS.USER_NOT_FOUND)
+  }
+
+  // Validate email against whitelist
+  try {
+    validate_email_whitelist(user.mail)
+  } catch (error) {
+    force_logout()
+    throw new GraphQLError(error.message)
   }
 
   // Check if session still exists

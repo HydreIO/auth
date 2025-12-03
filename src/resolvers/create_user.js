@@ -1,4 +1,4 @@
-import { ERRORS, ENVIRONMENT } from '../constant.js'
+import { ERRORS, ENVIRONMENT, validate_email_whitelist } from '../constant.js'
 import bcrypt from 'bcryptjs'
 import { GraphQLError } from 'graphql'
 import MAIL from '../mail.js'
@@ -18,6 +18,13 @@ export default async ({ mail, pwd, lang }, { redis }) => {
 
   if (!pwd.match(ENVIRONMENT.PWD_REGEX))
     throw new GraphQLError(ERRORS.PASSWORD_INVALID)
+
+  // Validate email against whitelist
+  try {
+    validate_email_whitelist(mail)
+  } catch (error) {
+    throw new GraphQLError(error.message)
+  }
 
   // Check if user exists
   const existing_user = await user_db.find_by_email(redis, mail)

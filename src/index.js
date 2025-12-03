@@ -93,7 +93,11 @@ http_server
         },
       }) => {
         if (!origin) return ''
-        const [found] = ORIGINS.split(';').filter((x) => origin.match(x))
+        // Anchor regex patterns to prevent injection: ^ at start, $ at end
+        const [found] = ORIGINS.split(';').filter((pattern) => {
+          const anchored = pattern.startsWith('^') ? pattern : `^${pattern}$`
+          return origin.match(new RegExp(anchored))
+        })
 
         if (found) return origin
         return ''

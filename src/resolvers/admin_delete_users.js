@@ -17,6 +17,11 @@ export default async ({ ids }, { koa_context, redis, force_logout }) => {
 
   if (!user.superadmin) throw new GraphQLError(ERRORS.UNAUTHORIZED)
 
+  // Prevent self-deletion
+  if (ids.includes(bearer.uuid)) {
+    throw new GraphQLError(ERRORS.CANNOT_DELETE_SELF)
+  }
+
   // Delete all users in the list
   for (const id of ids) {
     await user_db.delete(redis, id)

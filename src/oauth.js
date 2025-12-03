@@ -1,12 +1,26 @@
 /* global URL */
 import crypto from 'crypto'
+import { jwtVerify, createRemoteJWKSet } from 'jose'
 import Token from './token.js'
 import logger from './logger.js'
 import { master_client } from './sentinel.js'
-import { user_db, session_db } from './database.js'
+import { user_db } from './database.js'
+import { ENVIRONMENT, ERRORS, validate_email_whitelist } from './constant.js'
 
 const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } =
   process.env
+
+// Google's JWKS endpoint for JWT verification
+const GOOGLE_JWKS = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/oauth2/v3/certs')
+)
+
+// Validate OAuth configuration
+if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_SECRET) {
+  throw new Error(
+    'CRITICAL: GOOGLE_CLIENT_SECRET is required when GOOGLE_CLIENT_ID is set'
+  )
+}
 
 /**
  * Google OAuth 2.0 routes for hydre/auth
@@ -109,9 +123,12 @@ export async function handle_google_callback(context) {
 
     const { id_token } = await token_response.json()
 
-    // Decode ID token to get user info (without verification for simplicity)
-    const [, payload_b64] = id_token.split('.')
-    const payload = JSON.parse(Buffer.from(payload_b64, 'base64url').toString())
+    // Verify JWT signature and claims using jose library (CRITICAL SECURITY FIX)
+    const { payload } = await jwtVerify(id_token, GOOGLE_JWKS, {
+      issuer: 'https://accounts.google.com',
+      audience: GOOGLE_CLIENT_ID,
+    })
+
     const { email, sub: google_id, name, picture } = payload
 
     logger.info({
@@ -119,6 +136,17 @@ export async function handle_google_callback(context) {
       email,
       google_id,
     })
+
+    // Validate email against whitelist
+    try {
+      validate_email_whitelist(email)
+    } catch {
+      logger.warn({
+        msg: 'Email not in whitelist',
+        email,
+      })
+      throw new Error(ERRORS.UNAUTHORIZED)
+    }
 
     // Check if user exists using database layer
     const existing_user = await user_db.find_by_email(master_client, email)
@@ -145,32 +173,102 @@ export async function handle_google_callback(context) {
     } else {
       user_uuid = existing_user.uuid
 
+      // Prevent account takeover: only merge if auth methods match
+      if (existing_user.auth_method && existing_user.auth_method !== 'google') {
+        logger.warn({
+          msg: 'Account exists with different auth method',
+          email,
+          existing_method: existing_user.auth_method,
+        })
+        throw new Error(
+          'This email is already registered with a different authentication method. Please use your original login method.'
+        )
+      }
+
+      // Determine what changed for notification
+      const changes = []
+      if (existing_user.name !== name) changes.push('name')
+      if (existing_user.picture !== picture) changes.push('profile picture')
+
       // Update user info from Google
       await user_db.update(master_client, user_uuid, {
         name,
         picture,
         google_id,
+        auth_method: 'google', // Ensure auth_method is set
       })
 
-      logger.info({ msg: 'Updated existing user from Google', user_uuid, email })
+      // Send notification if profile changed
+      if (changes.length > 0 && ENVIRONMENT.ENABLE_EMAIL) {
+        const { MAIL } = await import('./mail.js')
+        await MAIL.send([
+          MAIL.PROFILE_UPDATED,
+          email,
+          'en',
+          undefined,
+          JSON.stringify({ changes: changes.join(', ') }),
+        ])
+      }
+
+      logger.info({
+        msg: 'Updated existing user from Google',
+        user_uuid,
+        email,
+        changes,
+      })
     }
 
-    // Create session using database layer
-    const session_uuid = crypto.randomUUID()
-    const session_hash = crypto.randomBytes(16).toString('hex')
+    // Build session data with device fingerprint (similar to GraphQL path)
+    const ip =
+      context.req.headers['x-forwarded-for']?.split(',')?.[0] || context.ip
+    const ua = context.req.headers['user-agent'] || ''
 
-    const session = {
-      uuid: session_uuid,
+    // Parse user agent for device metadata
+    const UAParser = (await import('ua-parser-js')).default
+    const parser = new UAParser(ua)
+    const { name: browserName } = parser.getBrowser()
+    const {
+      model: deviceModel,
+      type: deviceType,
+      vendor: deviceVendor,
+    } = parser.getDevice()
+    const { name: osName } = parser.getOS()
+
+    const session_fields = {
+      ip,
+      browserName,
+      deviceModel,
+      deviceType,
+      deviceVendor,
+      osName,
+    }
+
+    const session_hash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(session_fields))
+      .digest('hex')
+
+    const session_data = {
+      ...session_fields,
       hash: session_hash,
-      ip: context.req.headers['x-forwarded-for']?.split(',')?.[0] || context.ip,
     }
 
-    await session_db.create(master_client, user_uuid, session)
+    // Use shared session gate (no language for OAuth, no publish, no logged_once tracking)
+    const { create_or_update_session } = await import('./session_gate.js')
+    const { session_uuid } = await create_or_update_session({
+      redis: master_client,
+      user_uuid,
+      user_email: email,
+      session_data,
+      lang: 'en', // Default language for OAuth
+      publish: null, // No publish for OAuth
+      should_mark_logged_once: false, // OAuth doesn't track logged_once
+    })
 
     // Set auth token cookie BEFORE redirect
     // Note: Must set cookie before any response is sent
     const token = Token(context)
-    const access_token = await token.set({ uuid: user_uuid, session_id: session_uuid })
+    await token.set({ uuid: user_uuid, session: session_uuid })
 
     logger.info({
       msg: 'Created OAuth session',
@@ -178,11 +276,25 @@ export async function handle_google_callback(context) {
       session_uuid,
     })
 
+    // Validate redirect_uri against ORIGINS whitelist to prevent open redirect (SECURITY FIX)
+    const origins_regex = new RegExp(ENVIRONMENT.ORIGINS)
+    if (!origins_regex.test(redirect_uri)) {
+      logger.error({
+        msg: 'Redirect URI not in allowed ORIGINS',
+        redirect_uri,
+        origins: ENVIRONMENT.ORIGINS,
+      })
+      throw new Error('Invalid redirect URI')
+    }
+
     // Redirect back to app - headers must not be sent yet
     if (!context.headerSent) {
       context.redirect(redirect_uri)
     } else {
-      logger.error({ msg: 'Headers already sent, cannot redirect', redirect_uri })
+      logger.error({
+        msg: 'Headers already sent, cannot redirect',
+        redirect_uri,
+      })
     }
   } catch (error) {
     logger.error({ msg: 'Google OAuth callback error', error: error.message })

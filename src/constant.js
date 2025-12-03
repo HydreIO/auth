@@ -15,11 +15,11 @@ const {
   CONFIRM_ACCOUNT_TOKEN_EXPIRATION = '1d',
   ACCESS_TOKEN_COOKIE_NAME = 'virtual-fox',
   COOKIE_SECURE,
-  COOKIE_SAMESITE,
+  COOKIE_SAMESITE = 'lax',
   COOKIE_DOMAIN,
   COOKIE_PATH = '/',
   MAIL_REGEX = /^(([^\s"(),.:;<>@[\\\]]+(\.[^\s"(),.:;<>@[\\\]]+)*)|(".+"))@((\[(?:\d{1,3}\.){3}\d{1,3}])|(([\dA-Za-z-]+\.)+[A-Za-z]{2,}))$/,
-  PWD_REGEX = /^(?!.*\s)(?=.*[A-Za-z])(?=.*\d)(?=.{6,32})/,
+  PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{10,32}$/,
   MAX_SESSION_PER_USER = '10',
   SERVER_HOST = 'localhost',
   GRAPHQL_PATH = '/',
@@ -34,6 +34,7 @@ const {
   BCRYPT_ROUNDS = '12',
   JWT_ISSUER = 'hydre-auth',
   JWT_AUDIENCE = 'hydre-services',
+  ALLOWED_EMAILS = '',
 } = process.env
 
 // Validate required cryptographic keys
@@ -58,6 +59,27 @@ const computed_cookie_secure = () => {
   /* c8 ignore next 2 */
   // can't be tested
   return value === 'true'
+}
+
+// Validate COOKIE_SAMESITE
+const valid_samesite = ['strict', 'lax', 'none']
+if (
+  COOKIE_SAMESITE &&
+  !valid_samesite.includes(COOKIE_SAMESITE.toLowerCase())
+) {
+  throw new Error(
+    `COOKIE_SAMESITE must be one of: ${valid_samesite.join(', ')}. Got: ${COOKIE_SAMESITE}`
+  )
+}
+
+// Parse allowed emails into Set for O(1) lookup
+const parse_allowed_emails = () => {
+  if (!ALLOWED_EMAILS || ALLOWED_EMAILS.trim() === '') return null
+  return new Set(
+    ALLOWED_EMAILS.split(';')
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email.length > 0)
+  )
 }
 
 export const ENVIRONMENT = {
@@ -89,6 +111,7 @@ export const ENVIRONMENT = {
   BCRYPT_ROUNDS: +BCRYPT_ROUNDS,
   JWT_ISSUER,
   JWT_AUDIENCE,
+  ALLOWED_EMAILS: parse_allowed_emails(),
 }
 
 export const ERRORS = {
@@ -103,4 +126,22 @@ export const ERRORS = {
   REGISTRATION_DISABLED: 'REGISTRATION_DISABLED',
   SPAM: 'SPAM',
   MAIL_SERVICE_OFFLINE: 'MAIL_SERVICE_OFFLINE',
+  CANNOT_DELETE_SELF: 'CANNOT_DELETE_SELF',
+}
+
+/**
+ * Validates email against whitelist (if configured)
+ * @param {string} email - Email to validate
+ * @throws {Error} If email not in whitelist
+ * @returns {boolean} true if valid or whitelist disabled
+ */
+export function validate_email_whitelist(email) {
+  if (!ENVIRONMENT.ALLOWED_EMAILS) return true
+
+  const normalized_email = email.trim().toLowerCase()
+  if (!ENVIRONMENT.ALLOWED_EMAILS.has(normalized_email)) {
+    throw new Error(ERRORS.UNAUTHORIZED)
+  }
+
+  return true
 }

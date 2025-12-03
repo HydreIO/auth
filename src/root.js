@@ -12,11 +12,10 @@ import confirm_account from './resolvers/confirm_account.js'
 import delete_session from './resolvers/delete_session.js'
 import admin_delete_users from './resolvers/admin_delete_users.js'
 import admin_update_pwd from './resolvers/admin_update_pwd.js'
-import { ENVIRONMENT } from './constant.js'
 
 export default {
   ping: () => 'pong',
-  public_key: () => ENVIRONMENT.PUBLIC_KEY,
+  // SECURITY FIX: Removed public_key exposure - key distribution should be handled externally
   me,
   create_user,
   create_session,

@@ -18,6 +18,11 @@ export default async ({ id, pwd }, { koa_context, redis, force_logout }) => {
 
   if (!user.superadmin) throw new GraphQLError(ERRORS.UNAUTHORIZED)
 
+  // SECURITY FIX: Validate password against PWD_REGEX before hashing
+  if (!ENVIRONMENT.PWD_REGEX.test(pwd)) {
+    throw new GraphQLError(ERRORS.PASSWORD_INVALID)
+  }
+
   await user_db.update(redis, id, {
     hash: await bcrypt.hash(pwd, ENVIRONMENT.BCRYPT_ROUNDS),
   })

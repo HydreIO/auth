@@ -2,6 +2,7 @@ import MAIL from '../mail.js'
 import { ENVIRONMENT, ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql'
 import { user_db } from '../database.js'
+import crypto from 'crypto'
 
 export default async ({ mail, lang }, { redis }) => {
   const user = await user_db.find_by_email(redis, mail)
@@ -18,9 +19,7 @@ export default async ({ mail, lang }, { redis }) => {
     if (last_reset_code_sent + RESET_PASS_DELAY > Date.now())
       throw new GraphQLError(ERRORS.SPAM)
 
-    const reset_code = [...new Array(64)]
-      .map(() => (~~(Math.random() * 36)).toString(36))
-      .join('')
+    const reset_code = crypto.randomBytes(32).toString('hex')
 
     await user_db.update(redis, user.uuid, {
       reset_code,

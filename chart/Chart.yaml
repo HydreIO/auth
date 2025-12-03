@@ -3,4 +3,4 @@ name: hydre-auth
 description: A light GraphQL authentication server built on Redis with JWT tokens
 type: application
 version: 1.0.0
-appVersion: "4.1.2"
+appVersion: '4.1.2'

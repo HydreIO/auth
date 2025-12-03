@@ -75,12 +75,12 @@ export const user_db = {
     const user = await user_db.find_by_uuid(client, uuid)
     if (!user) return
 
+    // Delete all sessions first (includes individual session:* keys)
+    await session_db.delete_all_for_user(client, uuid)
     // Delete email index
     await client.del(`user:email:${user.mail}`)
     // Delete user object
     await client.call('JSON.DEL', `user:${uuid}`)
-    // Delete sessions set
-    await client.del(`user:${uuid}:sessions`)
   },
 
   /**
