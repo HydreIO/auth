@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import Token from './token.js'
 import logger from './logger.js'
-import { master_client } from './sentinel.js'
+import { master_client } from './io/index.js'
 import { user_db } from './database.js'
 import { ENVIRONMENT, ERRORS, validate_email_whitelist } from './constant.js'
 
