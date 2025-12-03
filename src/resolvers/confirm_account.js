@@ -9,10 +9,7 @@ const public_key = await importSPKI(ENVIRONMENT.PUBLIC_KEY, 'ES512')
 
 const is_token_valid = async (token, valid_uuid) => {
   try {
-    const { payload } = await jwtVerify(token, public_key, {
-      issuer: ENVIRONMENT.JWT_ISSUER,
-      audience: ENVIRONMENT.JWT_AUDIENCE,
-    })
+    const { payload } = await jwtVerify(token, public_key)
 
     return payload.uuid === valid_uuid
   } catch {
