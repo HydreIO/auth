@@ -32,8 +32,6 @@ const {
   REDIS_SENTINEL_PORT = 26379,
   REDIS_MASTER_NAME = 'mymaster',
   BCRYPT_ROUNDS = '12',
-  JWT_ISSUER = 'hydre-auth',
-  JWT_AUDIENCE = 'hydre-services',
   ALLOWED_EMAILS = '',
 } = process.env
 
@@ -109,8 +107,6 @@ export const ENVIRONMENT = {
   REDIS_SENTINEL_PORT: +REDIS_SENTINEL_PORT,
   REDIS_MASTER_NAME,
   BCRYPT_ROUNDS: +BCRYPT_ROUNDS,
-  JWT_ISSUER,
-  JWT_AUDIENCE,
   ALLOWED_EMAILS: parse_allowed_emails(),
 }
 

@@ -36,8 +36,6 @@ export default async ({ lang }, { redis, koa_context, force_logout }) => {
   const verification_code = await new SignJWT({ uuid: user.uuid })
     .setProtectedHeader({ alg: 'ES512' })
     .setIssuedAt()
-    .setIssuer(ENVIRONMENT.JWT_ISSUER)
-    .setAudience(ENVIRONMENT.JWT_AUDIENCE)
     .setExpirationTime(ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION)
     .sign(private_key)
 

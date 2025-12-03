@@ -10,8 +10,6 @@ const {
   COOKIE_PATH,
   COOKIE_SECURE,
   COOKIE_DOMAIN,
-  JWT_ISSUER,
-  JWT_AUDIENCE,
 } = ENVIRONMENT
 
 // Import PEM keys using jose's built-in functions
@@ -25,8 +23,6 @@ export default (koa_context) => ({
       if (!token) return {}
 
       const { payload } = await jwtVerify(token, public_key, {
-        issuer: JWT_ISSUER,
-        audience: JWT_AUDIENCE,
         ...(ignoreExpiration && { clockTolerance: Infinity }),
       })
       return payload
@@ -48,8 +44,6 @@ export default (koa_context) => ({
     const access_token = await new SignJWT(bearer)
       .setProtectedHeader({ alg: 'ES512' })
       .setIssuedAt()
-      .setIssuer(JWT_ISSUER)
-      .setAudience(JWT_AUDIENCE)
       .setExpirationTime(ACCESS_TOKEN_EXPIRATION)
       .sign(private_key)
 

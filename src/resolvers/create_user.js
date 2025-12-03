@@ -35,8 +35,6 @@ export default async ({ mail, pwd, lang }, { redis }) => {
   const verification_code = await new SignJWT({ uuid: user_uuid })
     .setProtectedHeader({ alg: 'ES512' })
     .setIssuedAt()
-    .setIssuer(ENVIRONMENT.JWT_ISSUER)
-    .setAudience(ENVIRONMENT.JWT_AUDIENCE)
     .setExpirationTime(ENVIRONMENT.CONFIRM_ACCOUNT_TOKEN_EXPIRATION)
     .sign(private_key)
 
