@@ -18,10 +18,11 @@ export default async ({ code, mail, pwd }, { redis, force_logout }) => {
   }
 
   // codes expire after a day - use timing-safe comparison to prevent timing attacks
+  // Always pad to 64 bytes to prevent timing attacks based on code length
   const code_match = user.reset_code
     ? crypto.timingSafeEqual(
-        Buffer.from(user.reset_code),
-        Buffer.from(code.padEnd(user.reset_code.length))
+        Buffer.from(code.padEnd(64, '0')),
+        Buffer.from(user.reset_code.padEnd(64, '0'))
       )
     : false
 

@@ -23,7 +23,8 @@ export async function create_or_update_session({
   should_mark_logged_once = false,
 }) {
   // Validate session fingerprint (must have BOTH device info - stronger security)
-  if (!session_data.browserName || !session_data.deviceVendor) {
+  // Check for non-empty trimmed values to prevent empty string bypass
+  if (!session_data.browserName?.trim() || !session_data.deviceVendor?.trim()) {
     throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
   }
 

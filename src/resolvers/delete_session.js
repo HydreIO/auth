@@ -1,5 +1,7 @@
 import Token from '../token.js'
 import { user_db, session_db } from '../database.js'
+import { ERRORS } from '../constant.js'
+import { GraphQLError } from 'graphql'
 
 export default async ({ id }, { koa_context, redis, force_logout }) => {
   const token = Token(koa_context)
@@ -23,6 +25,15 @@ export default async ({ id }, { koa_context, redis, force_logout }) => {
 
   // logout if the id is not provied
   if (!id) force_logout()
+
+  // IDOR protection: verify session belongs to user
+  if (id) {
+    const session = await session_db.find_by_uuid(redis, id)
+    const user_sessions = await redis.call('SMEMBERS', `user:${bearer.uuid}:sessions`)
+    if (!session || !user_sessions.includes(id)) {
+      throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
+    }
+  }
 
   // Delete the session
   await session_db.delete(redis, bearer.uuid, id ?? bearer.session)

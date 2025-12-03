@@ -55,6 +55,7 @@ export default {
   ACCOUNT_CONFIRM: 'ACCOUNT_CONFIRM',
   PASSWORD_RESET: 'PASSWORD_RESET',
   NEW_SESSION: 'NEW_SESSION',
+  PROFILE_UPDATED: 'PROFILE_UPDATED',
   send,
   initialize, // Export for testing
 }
