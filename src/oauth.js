@@ -78,9 +78,26 @@ export async function initiate_google_oauth(context) {
 export async function handle_google_callback(context) {
   const { code, state, error } = context.query
 
+  // Helper to redirect with error params
+  const redirect_with_error = (target_uri, error_code, description) => {
+    const error_url = new URL(target_uri)
+    error_url.searchParams.set('error', error_code)
+    error_url.searchParams.set('error_description', description)
+    context.redirect(error_url.toString())
+  }
+
   // Handle OAuth errors from Google
+  // Note: redirect_uri not available yet, try to recover from state
   if (error) {
     logger.error({ msg: 'Google OAuth error', error })
+    // Attempt to get redirect_uri from state for better UX
+    if (state) {
+      const stored_uri = await master_client.getdel(`oauth_state:${state}`)
+      if (stored_uri) {
+        redirect_with_error(stored_uri, 'oauth_denied', error)
+        return
+      }
+    }
     context.status = 400
     context.body = { error: `Google OAuth failed: ${error}` }
     return
@@ -119,7 +136,12 @@ export async function handle_google_callback(context) {
     if (!token_response.ok) {
       const error_data = await token_response.json()
       logger.error({ msg: 'Failed to exchange OAuth code', error: error_data })
-      throw new Error('Token exchange failed')
+      redirect_with_error(
+        redirect_uri,
+        'token_exchange_failed',
+        'Failed to complete authentication with Google'
+      )
+      return
     }
 
     const { id_token } = await token_response.json()
@@ -224,7 +246,7 @@ export async function handle_google_callback(context) {
     const ua = context.req.headers['user-agent'] || ''
 
     // Parse user agent for device metadata
-    const UAParser = (await import('ua-parser-js')).default
+    const { UAParser } = await import('ua-parser-js')
     const parser = new UAParser(ua)
     const { name: browserName } = parser.getBrowser()
     const {
@@ -276,13 +298,12 @@ export async function handle_google_callback(context) {
       session_uuid,
     })
 
-    // Validate redirect_uri against ORIGINS whitelist to prevent open redirect (SECURITY FIX)
-    const escaped_origins = ENVIRONMENT.ORIGINS.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      '\\$&'
-    )
-    const origins_regex = new RegExp(escaped_origins)
-    if (!origins_regex.test(redirect_uri)) {
+    // Validate redirect_uri against ORIGINS whitelist to prevent open redirect
+    const is_allowed = ENVIRONMENT.ORIGINS.split(';').some((pattern) => {
+      const anchored = pattern.startsWith('^') ? pattern : `^${pattern}$`
+      return new RegExp(anchored).test(redirect_uri)
+    })
+    if (!is_allowed) {
       logger.error({
         msg: 'Redirect URI not in allowed ORIGINS',
         redirect_uri,
@@ -302,7 +323,24 @@ export async function handle_google_callback(context) {
     }
   } catch (error) {
     logger.error({ msg: 'Google OAuth callback error', error: error.message })
-    context.status = 500
-    context.body = { error: 'OAuth authentication failed' }
+
+    // Map specific error messages to user-friendly descriptions
+    let error_code = 'auth_failed'
+    let error_description = 'OAuth authentication failed'
+
+    if (error.message === ERRORS.UNAUTHORIZED) {
+      error_code = 'registration_disabled'
+      error_description = 'Registration is disabled for this email'
+    } else if (error.message?.includes('different authentication method')) {
+      error_code = 'auth_method_mismatch'
+      error_description = error.message
+    } else if (error.message === 'Invalid redirect URI') {
+      // Cannot redirect to an invalid URI - fall back to JSON error
+      context.status = 400
+      context.body = { error: 'Invalid redirect URI' }
+      return
+    }
+
+    redirect_with_error(redirect_uri, error_code, error_description)
   }
 }
