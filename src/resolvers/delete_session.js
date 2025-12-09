@@ -1,5 +1,5 @@
 import Token from '../token.js'
-import { user_db, session_db, master_client } from '../database.js'
+import { user_db, session_db } from '../database.js'
 import { ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql'
 
@@ -29,11 +29,9 @@ export default async ({ id }, { koa_context, force_logout }) => {
   // IDOR protection: verify session belongs to user
   if (id) {
     const session = await session_db.find_by_uuid(id)
-    const user_sessions = await master_client.call(
-      'SMEMBERS',
-      `user:${bearer.uuid}:sessions`
-    )
-    if (!session || !user_sessions.includes(id)) {
+    const user_sessions = await user_db.get_sessions(bearer.uuid)
+    const session_uuids = user_sessions.map((s) => s.uuid)
+    if (!session || !session_uuids.includes(id)) {
       throw new GraphQLError(ERRORS.ILLEGAL_SESSION)
     }
   }
