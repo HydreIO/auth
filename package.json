@@ -4,13 +4,13 @@
   "description": "A light graphql authentication server built on Redis",
   "type": "module",
   "scripts": {
-    "test": "DISABLE_IO=true NODE_ENV=test node --test test/*.test.js",
+    "test": "NODE_ENV=test node --test test/*.test.js",
     "test:coverage": "c8 --reporter=text --reporter=html --reporter=lcov npm test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier . --check",
     "format": "prettier . --write && eslint . --fix",
     "prepare": "husky",
-    "dev": "DISABLE_IO=true node src/index.js",
+    "dev": "node src/index.js",
     "start": "node src/index.js",
     "postversion": "git push --follow-tags"
   },

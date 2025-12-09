@@ -1,5 +1,5 @@
 services:
-  redis:
-    image: redis/redis-stack-server:latest
+  falkordb:
+    image: falkordb/falkordb:latest
     ports:
       - 6379:6379

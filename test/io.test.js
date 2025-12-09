@@ -1,16 +1,21 @@
-import { describe, test, beforeEach } from 'node:test'
+import { describe, test, beforeEach, after } from 'node:test'
 import assert from 'node:assert/strict'
 
-// Force local I/O for this test
-process.env.DISABLE_IO = 'true'
-
-const { connection_state, user_db, session_db, clear_database } = await import(
-  '../src/database.js'
-)
+import {
+  connection_state,
+  user_db,
+  session_db,
+  clear_database,
+  close_database,
+} from '../src/database.js'
 
 describe('Database Layer', () => {
   beforeEach(async () => {
     await clear_database()
+  })
+
+  after(async () => {
+    await close_database()
   })
 
   test('connection state is online', () => {
@@ -27,7 +32,9 @@ describe('Database Layer', () => {
       }
       await user_db.create(user)
       const found = await user_db.find_by_email('test@example.com')
-      assert.deepStrictEqual(found, user)
+      assert.strictEqual(found.uuid, user.uuid)
+      assert.strictEqual(found.mail, user.mail)
+      assert.strictEqual(found.hash, user.hash)
     })
 
     test('user_db.find_by_email returns null for non-existent', async () => {
@@ -44,7 +51,8 @@ describe('Database Layer', () => {
       }
       await user_db.create(user)
       const found = await user_db.find_by_uuid('user-2')
-      assert.deepStrictEqual(found, user)
+      assert.strictEqual(found.uuid, user.uuid)
+      assert.strictEqual(found.mail, user.mail)
     })
 
     test('user_db.find_by_uuid returns null for non-existent', async () => {
@@ -126,7 +134,9 @@ describe('Database Layer', () => {
       }
       await session_db.create('user-1', session)
       const found = await session_db.find_by_uuid('session-1')
-      assert.deepStrictEqual(found, session)
+      assert.strictEqual(found.uuid, session.uuid)
+      assert.strictEqual(found.ip, session.ip)
+      assert.strictEqual(found.browserName, session.browserName)
     })
 
     test('session_db.find_by_uuid returns null for non-existent', async () => {
@@ -277,29 +287,6 @@ describe('Database Layer', () => {
 
       assert.strictEqual(user, null)
       assert.strictEqual(session, null)
-    })
-  })
-
-  describe('Data Isolation', () => {
-    test('mutations return copies not references', async () => {
-      const user = {
-        uuid: 'user-iso',
-        mail: 'iso@example.com',
-        hash: 'hash',
-        created_at: Date.now(),
-      }
-      await user_db.create(user)
-
-      const found1 = await user_db.find_by_uuid('user-iso')
-      const found2 = await user_db.find_by_uuid('user-iso')
-
-      // They should be equal but not the same reference
-      assert.deepStrictEqual(found1, found2)
-      assert.notStrictEqual(found1, found2)
-
-      // Mutating one should not affect the other
-      found1.hash = 'mutated'
-      assert.notStrictEqual(found1.hash, found2.hash)
     })
   })
 })

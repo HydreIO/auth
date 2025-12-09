@@ -108,24 +108,25 @@ http_server
   .use(body_parser())
   .use(router.routes())
   .use(router.allowedMethods())
-  .listen(
-    {
-      port: +PORT,
-      host: SERVER_HOST,
-    },
-    () => {
-      const base = `http://${SERVER_HOST}:${PORT}`
 
-      logger.info({
-        msg: 'Authentication server online',
-        graphql_url: `${base}${GRAPHQL_PATH}`,
-        health_url: `${base}/healthz`,
-      })
-    }
-  )
+const server = http_server.listen(
+  {
+    port: +PORT,
+    host: SERVER_HOST,
+  },
+  () => {
+    const base = `http://${SERVER_HOST}:${PORT}`
 
-http_server.on('close', () => {
+    logger.info({
+      msg: 'Authentication server online',
+      graphql_url: `${base}${GRAPHQL_PATH}`,
+      health_url: `${base}/healthz`,
+    })
+  }
+)
+
+server.on('close', () => {
   // Graph DB connection cleanup handled by FalkorDB
 })
 
-export default http_server
+export default server
