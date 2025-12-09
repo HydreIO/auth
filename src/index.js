@@ -16,7 +16,7 @@ import logger from './logger.js'
 import { initiate_google_oauth, handle_google_callback } from './oauth.js'
 
 import { ENVIRONMENT } from './constant.js'
-import { master_client, slave_client, connection_state } from './io/index.js'
+import { master_client, slave_client, connection_state } from './database.js'
 
 const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS } = ENVIRONMENT
 const directory = dirname(fileURLToPath(import.meta.url))
@@ -39,7 +39,6 @@ const router = new Router()
       formatError: (error) => new GraphQLError(error.message),
       buildContext: async (context) => {
         return {
-          redis: master_client,
           build_session: () => {
             const { headers } = context.req
             const { 'user-agent': ua, 'x-forwarded-for': ip } = headers

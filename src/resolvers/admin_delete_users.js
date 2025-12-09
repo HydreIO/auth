@@ -3,12 +3,12 @@ import { GraphQLError } from 'graphql'
 import Token from '../token.js'
 import { user_db } from '../database.js'
 
-export default async ({ ids }, { koa_context, redis, force_logout }) => {
+export default async ({ ids }, { koa_context, force_logout }) => {
   const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const user = await user_db.find_by_uuid(redis, bearer.uuid)
+  const user = await user_db.find_by_uuid(bearer.uuid)
 
   if (!user) {
     force_logout()
@@ -24,7 +24,7 @@ export default async ({ ids }, { koa_context, redis, force_logout }) => {
 
   // Delete all users in the list
   for (const id of ids) {
-    await user_db.delete(redis, id)
+    await user_db.delete(id)
   }
 
   return true

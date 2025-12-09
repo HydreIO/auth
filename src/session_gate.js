@@ -14,7 +14,6 @@ import { user_db, session_db } from './database.js'
  * Used by both GraphQL create_session resolver and OAuth callback
  */
 export async function create_or_update_session({
-  redis,
   user_uuid,
   user_email,
   session_data,
@@ -29,7 +28,7 @@ export async function create_or_update_session({
   }
 
   // Get existing sessions
-  const existing_sessions = await user_db.get_sessions(redis, user_uuid)
+  const existing_sessions = await user_db.get_sessions(user_uuid)
 
   // Check if session with same fingerprint already exists
   const matching_session = existing_sessions.find(
@@ -47,13 +46,13 @@ export async function create_or_update_session({
 
   // Mark user as logged in once if needed
   if (should_mark_logged_once && publish) {
-    await user_db.update(redis, user_uuid, { logged_once: true })
+    await user_db.update(user_uuid, { logged_once: true })
     await publish(user_uuid)
   }
 
   if (matching_session) {
     // Session exists - just update last usage timestamp
-    await session_db.update(redis, matching_session.uuid, {
+    await session_db.update(matching_session.uuid, {
       last_used: current_timestamp,
     })
 
@@ -69,7 +68,7 @@ export async function create_or_update_session({
   while (existing_sessions.length >= ENVIRONMENT.MAX_SESSION_PER_USER) {
     const deprecated_session = existing_sessions.shift()
     if (deprecated_session) {
-      await session_db.delete(redis, user_uuid, deprecated_session.uuid)
+      await session_db.delete(user_uuid, deprecated_session.uuid)
     }
   }
 
@@ -106,7 +105,7 @@ export async function create_or_update_session({
   }
 
   // Create new session
-  await session_db.create(redis, user_uuid, session)
+  await session_db.create(user_uuid, session)
 
   return {
     session_uuid,

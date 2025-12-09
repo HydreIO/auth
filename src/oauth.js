@@ -3,7 +3,6 @@ import crypto from 'crypto'
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 import Token from './token.js'
 import logger from './logger.js'
-import { master_client } from './io/index.js'
 import { user_db } from './database.js'
 import { ENVIRONMENT, ERRORS, validate_email_whitelist } from './constant.js'
 import MAIL from './mail.js'
@@ -25,31 +24,27 @@ if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_SECRET) {
 
 /**
  * Google OAuth 2.0 routes for hydre/auth
- * Handles OAuth flow: initiate → Google → callback → session creation
+ * Handles OAuth flow: initiate -> Google -> callback -> session creation
+ *
+ * State/CSRF protection is handled by the frontend via sessionStorage.
+ * The backend just builds the OAuth URL and exchanges codes for tokens.
  */
 
 /**
  * Initiate Google OAuth flow
- * GET /oauth/google?redirect_uri=<app_url>
+ * GET /oauth/google?redirect_uri=<app_url>&state=<frontend_state>
+ *
+ * The frontend generates and stores state in sessionStorage for CSRF protection.
+ * We pass it through to Google and back to the frontend for verification.
  */
 export async function initiate_google_oauth(context) {
-  const { redirect_uri } = context.query
+  const { redirect_uri, state } = context.query
 
   if (!redirect_uri) {
     context.status = 400
     context.body = { error: 'redirect_uri query parameter required' }
     return
   }
-
-  // Generate state token to prevent CSRF
-  const state = crypto.randomBytes(32).toString('hex')
-
-  // Store state + redirect_uri in Redis (expires in 10 minutes)
-  await master_client.setex(
-    `oauth_state:${state}`,
-    600, // 10 minutes TTL
-    redirect_uri
-  )
 
   // Build Google OAuth URL
   const google_auth_url = new URL(
@@ -59,12 +54,16 @@ export async function initiate_google_oauth(context) {
   google_auth_url.searchParams.set('redirect_uri', GOOGLE_REDIRECT_URI)
   google_auth_url.searchParams.set('response_type', 'code')
   google_auth_url.searchParams.set('scope', 'openid email profile')
-  google_auth_url.searchParams.set('state', state)
+
+  // Pass through frontend-provided state for CSRF protection
+  if (state) {
+    google_auth_url.searchParams.set('state', state)
+  }
 
   logger.info({
     msg: 'Initiating Google OAuth',
-    state,
     redirect_uri,
+    has_state: !!state,
   })
 
   // Redirect to Google
@@ -73,49 +72,59 @@ export async function initiate_google_oauth(context) {
 
 /**
  * Handle Google OAuth callback
- * GET /oauth/google/callback?code=<auth_code>&state=<state>
+ * GET /oauth/google/callback?code=<auth_code>&state=<state>&redirect_uri=<app_url>
+ *
+ * The frontend verifies state against sessionStorage.
+ * We just exchange the code for tokens and create the session.
  */
 export async function handle_google_callback(context) {
-  const { code, state, error } = context.query
+  const { code, state, error, redirect_uri } = context.query
 
   // Helper to redirect with error params
   const redirect_with_error = (target_uri, error_code, description) => {
     const error_url = new URL(target_uri)
     error_url.searchParams.set('error', error_code)
     error_url.searchParams.set('error_description', description)
+    if (state) {
+      error_url.searchParams.set('state', state)
+    }
     context.redirect(error_url.toString())
   }
 
+  // Validate redirect_uri is provided
+  if (!redirect_uri) {
+    context.status = 400
+    context.body = { error: 'redirect_uri query parameter required' }
+    return
+  }
+
+  // Validate redirect_uri against ORIGINS whitelist to prevent open redirect
+  const is_allowed = ENVIRONMENT.ORIGINS.split(';').some((pattern) => {
+    const anchored = pattern.startsWith('^') ? pattern : `^${pattern}$`
+    return new RegExp(anchored).test(redirect_uri)
+  })
+
+  if (!is_allowed) {
+    logger.error({
+      msg: 'Redirect URI not in allowed ORIGINS',
+      redirect_uri,
+      origins: ENVIRONMENT.ORIGINS,
+    })
+    context.status = 400
+    context.body = { error: 'Invalid redirect URI' }
+    return
+  }
+
   // Handle OAuth errors from Google
-  // Note: redirect_uri not available yet, try to recover from state
   if (error) {
     logger.error({ msg: 'Google OAuth error', error })
-    // Attempt to get redirect_uri from state for better UX
-    if (state) {
-      const stored_uri = await master_client.getdel(`oauth_state:${state}`)
-      if (stored_uri) {
-        redirect_with_error(stored_uri, 'oauth_denied', error)
-        return
-      }
-    }
-    context.status = 400
-    context.body = { error: `Google OAuth failed: ${error}` }
+    redirect_with_error(redirect_uri, 'oauth_denied', error)
     return
   }
 
-  if (!code || !state) {
+  if (!code) {
     context.status = 400
-    context.body = { error: 'Missing code or state parameter' }
-    return
-  }
-
-  // Verify state and get original redirect_uri
-  const redirect_uri = await master_client.getdel(`oauth_state:${state}`)
-
-  if (!redirect_uri) {
-    logger.warn({ msg: 'Invalid or expired OAuth state', state })
-    context.status = 400
-    context.body = { error: 'Invalid or expired state parameter' }
+    context.body = { error: 'Missing code parameter' }
     return
   }
 
@@ -172,7 +181,7 @@ export async function handle_google_callback(context) {
     }
 
     // Check if user exists using database layer
-    const existing_user = await user_db.find_by_email(master_client, email)
+    const existing_user = await user_db.find_by_email(email)
 
     let user_uuid
 
@@ -190,7 +199,7 @@ export async function handle_google_callback(context) {
         auth_method: 'google',
       }
 
-      await user_db.create(master_client, new_user)
+      await user_db.create(new_user)
 
       logger.info({ msg: 'Created new Google OAuth user', user_uuid, email })
     } else {
@@ -214,7 +223,7 @@ export async function handle_google_callback(context) {
       if (existing_user.picture !== picture) changes.push('profile picture')
 
       // Update user info from Google
-      await user_db.update(master_client, user_uuid, {
+      await user_db.update(user_uuid, {
         name,
         picture,
         google_id,
@@ -278,7 +287,6 @@ export async function handle_google_callback(context) {
     // Use shared session gate (no language for OAuth, no publish, no logged_once tracking)
     const { create_or_update_session } = await import('./session_gate.js')
     const { session_uuid } = await create_or_update_session({
-      redis: master_client,
       user_uuid,
       user_email: email,
       session_data,
@@ -298,23 +306,15 @@ export async function handle_google_callback(context) {
       session_uuid,
     })
 
-    // Validate redirect_uri against ORIGINS whitelist to prevent open redirect
-    const is_allowed = ENVIRONMENT.ORIGINS.split(';').some((pattern) => {
-      const anchored = pattern.startsWith('^') ? pattern : `^${pattern}$`
-      return new RegExp(anchored).test(redirect_uri)
-    })
-    if (!is_allowed) {
-      logger.error({
-        msg: 'Redirect URI not in allowed ORIGINS',
-        redirect_uri,
-        origins: ENVIRONMENT.ORIGINS,
-      })
-      throw new Error('Invalid redirect URI')
+    // Build redirect URL with state if provided
+    const success_url = new URL(redirect_uri)
+    if (state) {
+      success_url.searchParams.set('state', state)
     }
 
     // Redirect back to app - headers must not be sent yet
     if (!context.headerSent) {
-      context.redirect(redirect_uri)
+      context.redirect(success_url.toString())
     } else {
       logger.error({
         msg: 'Headers already sent, cannot redirect',

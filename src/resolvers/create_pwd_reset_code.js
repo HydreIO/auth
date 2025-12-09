@@ -4,8 +4,8 @@ import { GraphQLError } from 'graphql'
 import { user_db } from '../database.js'
 import crypto from 'crypto'
 
-export default async ({ mail, lang }, { redis }) => {
-  const user = await user_db.find_by_email(redis, mail)
+export default async ({ mail, lang }) => {
+  const user = await user_db.find_by_email(mail)
 
   if (user) {
     // No-op if email is disabled (can't send reset code)
@@ -21,7 +21,7 @@ export default async ({ mail, lang }, { redis }) => {
 
     const reset_code = crypto.randomBytes(32).toString('hex')
 
-    await user_db.update(redis, user.uuid, {
+    await user_db.update(user.uuid, {
       reset_code,
       last_reset_code_sent: Date.now(),
     })

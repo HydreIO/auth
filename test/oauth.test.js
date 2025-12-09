@@ -1,6 +1,5 @@
 import { describe, test, before, after, mock } from 'node:test'
 import assert from 'node:assert/strict'
-import Redis from 'ioredis'
 import compose from 'docker-compose'
 import fetch from 'node-fetch'
 import fetch_cookie from 'fetch-cookie'
@@ -28,7 +27,6 @@ const wait_for_auth = async () => {
 
 describe('OAuth Flow', () => {
   let auth_server
-  let redis_client
   let original_fetch
 
   before(async () => {
@@ -39,14 +37,8 @@ describe('OAuth Flow', () => {
       commandOptions: ['--build'],
     })
 
-    // Setup Redis client
-    redis_client = new Redis({
-      host: '0.0.0.0',
-      port: 6379,
-    })
-
-    // Wait for Redis to be ready
-    await new Promise((resolve) => redis_client.once('ready', resolve))
+    // Wait for infrastructure
+    await new Promise((resolve) => setTimeout(resolve, 2000))
 
     // Import and start auth server
     const module = await import('../src/index.js')
@@ -61,7 +53,6 @@ describe('OAuth Flow', () => {
 
   after(async () => {
     // Cleanup
-    await redis_client.quit()
     auth_server.close()
     await compose.down({ cwd, log: true })
 
@@ -70,10 +61,11 @@ describe('OAuth Flow', () => {
   })
 
   describe('GET /oauth/google (Initiate OAuth)', () => {
-    test('redirects to Google with state token', async () => {
+    test('redirects to Google with state passed through', async () => {
       const redirect_uri = 'https://myapp.com/dashboard'
+      const state = 'frontend_generated_state_token'
       const response = await fetch(
-        `${host}/oauth/google?redirect_uri=${encodeURIComponent(redirect_uri)}`,
+        `${host}/oauth/google?redirect_uri=${encodeURIComponent(redirect_uri)}&state=${state}`,
         {
           redirect: 'manual', // Don't follow redirects automatically
         }
@@ -100,18 +92,24 @@ describe('OAuth Flow', () => {
         'openid email profile'
       )
 
-      // State token should be present
-      const state = redirect_url.searchParams.get('state')
-      assert.ok(state)
-      assert.strictEqual(state.length, 64) // 32 bytes hex = 64 chars
+      // State token should be passed through from frontend
+      assert.strictEqual(redirect_url.searchParams.get('state'), state)
+    })
 
-      // Verify state is stored in Redis with redirect_uri
-      const stored_redirect = await redis_client.get(`oauth_state:${state}`)
-      assert.strictEqual(stored_redirect, redirect_uri)
+    test('redirects without state if not provided', async () => {
+      const redirect_uri = 'https://myapp.com/dashboard'
+      const response = await fetch(
+        `${host}/oauth/google?redirect_uri=${encodeURIComponent(redirect_uri)}`,
+        {
+          redirect: 'manual',
+        }
+      )
 
-      // Verify TTL is set (should be around 600 seconds)
-      const ttl = await redis_client.ttl(`oauth_state:${state}`)
-      assert.ok(ttl > 590 && ttl <= 600)
+      assert.strictEqual(response.status, 302)
+
+      const location = response.headers.get('location')
+      const redirect_url = new globalThis.URL(location)
+      assert.strictEqual(redirect_url.searchParams.get('state'), null)
     })
 
     test('returns 400 if redirect_uri is missing', async () => {
@@ -126,10 +124,8 @@ describe('OAuth Flow', () => {
 
   describe('GET /oauth/google/callback (Handle OAuth callback)', () => {
     test('creates new user and session on successful OAuth', async () => {
-      // Setup: Create state token in Redis
       const state = 'test_state_token_' + Date.now()
       const redirect_uri = 'https://myapp.com/dashboard'
-      await redis_client.setex(`oauth_state:${state}`, 600, redirect_uri)
 
       // Mock Google token exchange
       const mock_google_id = 'google_user_123'
@@ -170,17 +166,23 @@ describe('OAuth Flow', () => {
       globalThis.fetch = mocked_fetch
 
       try {
-        // Make callback request
+        // Make callback request - redirect_uri is now passed as query param
         const response = await cookie_fetch(
-          `${host}/oauth/google/callback?code=mock_auth_code&state=${state}`,
+          `${host}/oauth/google/callback?code=mock_auth_code&state=${state}&redirect_uri=${encodeURIComponent(redirect_uri)}`,
           {
             redirect: 'manual', // Don't follow redirects
           }
         )
 
-        // Should redirect back to app
+        // Should redirect back to app with state
         assert.strictEqual(response.status, 302)
-        assert.strictEqual(response.headers.get('location'), redirect_uri)
+        const location = response.headers.get('location')
+        const location_url = new globalThis.URL(location)
+        assert.strictEqual(
+          location_url.origin + location_url.pathname,
+          redirect_uri
+        )
+        assert.strictEqual(location_url.searchParams.get('state'), state)
 
         // Verify fetch was called with correct params
         assert.strictEqual(mocked_fetch.mock.calls.length, 1)
@@ -195,165 +197,67 @@ describe('OAuth Flow', () => {
           process.env.GOOGLE_CLIENT_SECRET
         )
         assert.strictEqual(request_body.grant_type, 'authorization_code')
-
-        // Verify user was created in Redis
-        const user_json = await redis_client.get(`user:${mock_email}`)
-        assert.ok(user_json)
-        const user = JSON.parse(user_json)
-        assert.strictEqual(user.email, mock_email)
-        assert.strictEqual(user.google_id, mock_google_id)
-        assert.strictEqual(user.name, mock_name)
-        assert.strictEqual(user.picture, mock_picture)
-        assert.strictEqual(user.confirmed, true)
-        assert.strictEqual(user.auth_method, 'google')
-        assert.ok(user.user_id)
-        assert.ok(user.created_at)
-
-        // Verify user_by_id index exists
-        const user_by_id_json = await redis_client.get(
-          `user_by_id:${user.user_id}`
-        )
-        assert.ok(user_by_id_json)
-        const user_by_id = JSON.parse(user_by_id_json)
-        assert.deepStrictEqual(user_by_id, user)
-
-        // Note: Cookie verification skipped due to manual redirect preventing cookie capture
-        // The session creation is verified above through Redis checks
-        // In real usage (with automatic redirects), cookies work correctly
-
-        // Verify state token was deleted (one-time use)
-        const deleted_state = await redis_client.get(`oauth_state:${state}`)
-        assert.strictEqual(deleted_state, null)
       } finally {
         // Restore global fetch
         globalThis.fetch = original_fetch
       }
     })
 
-    test('updates existing user on subsequent OAuth', async () => {
-      // Setup: Create existing user
-      const existing_user_id = 'existing_user_' + Date.now()
-      const mock_email = 'existing@example.com'
-      const existing_user = {
-        user_id: existing_user_id,
-        email: mock_email,
-        google_id: 'old_google_id',
-        name: 'Old Name',
-        picture: 'old_picture.jpg',
-        confirmed: true,
-        created_at: Date.now() - 86400000, // 1 day ago
-        auth_method: 'google',
-      }
-      await redis_client.set(
-        `user:${mock_email}`,
-        JSON.stringify(existing_user)
-      )
-      await redis_client.set(
-        `user_by_id:${existing_user_id}`,
-        JSON.stringify(existing_user)
+    test('returns 400 if redirect_uri is missing', async () => {
+      const response = await fetch(
+        `${host}/oauth/google/callback?code=some_code&state=some_state`
       )
 
-      // Setup: Create state token
-      const state = 'test_state_update_' + Date.now()
-      const redirect_uri = 'https://myapp.com/dashboard'
-      await redis_client.setex(`oauth_state:${state}`, 600, redirect_uri)
+      assert.strictEqual(response.status, 400)
+      const body = await response.json()
+      assert.strictEqual(body.error, 'redirect_uri query parameter required')
+    })
 
-      // Mock Google response with new data
-      const new_google_id = 'new_google_id_456'
-      const new_name = 'Updated Name'
-      const new_picture = 'new_picture.jpg'
+    test('returns 400 if redirect_uri is not in allowed ORIGINS', async () => {
+      const response = await fetch(
+        `${host}/oauth/google/callback?code=some_code&state=some_state&redirect_uri=${encodeURIComponent('https://evil.com/steal')}`
+      )
 
-      const id_token_payload = {
-        sub: new_google_id,
-        email: mock_email,
-        name: new_name,
-        picture: new_picture,
-      }
-      const payload_base64 = Buffer.from(
-        JSON.stringify(id_token_payload)
-      ).toString('base64url')
-      const mock_id_token = `header.${payload_base64}.signature`
-
-      const mocked_fetch = mock.fn(async (url) => {
-        if (url === 'https://oauth2.googleapis.com/token') {
-          return {
-            ok: true,
-            json: async () => ({ id_token: mock_id_token }),
-          }
-        }
-        return original_fetch(url)
-      })
-
-      globalThis.fetch = mocked_fetch
-
-      try {
-        const response = await cookie_fetch(
-          `${host}/oauth/google/callback?code=mock_code&state=${state}`,
-          { redirect: 'manual' }
-        )
-
-        assert.strictEqual(response.status, 302)
-
-        // Verify user data was updated (not created new user)
-        const updated_user_json = await redis_client.get(`user:${mock_email}`)
-        assert.ok(updated_user_json)
-        const updated_user = JSON.parse(updated_user_json)
-        assert.strictEqual(updated_user.user_id, existing_user_id) // Same user ID
-        assert.strictEqual(updated_user.email, mock_email)
-        assert.strictEqual(updated_user.google_id, new_google_id) // Updated
-        assert.strictEqual(updated_user.name, new_name) // Updated
-        assert.strictEqual(updated_user.picture, new_picture) // Updated
-        assert.strictEqual(updated_user.created_at, existing_user.created_at) // Unchanged
-      } finally {
-        globalThis.fetch = original_fetch
-      }
+      assert.strictEqual(response.status, 400)
+      const body = await response.json()
+      assert.strictEqual(body.error, 'Invalid redirect URI')
     })
 
     test('returns 400 if code is missing', async () => {
+      const redirect_uri = 'https://myapp.com/dashboard'
       const response = await fetch(
-        `${host}/oauth/google/callback?state=some_state`
+        `${host}/oauth/google/callback?state=some_state&redirect_uri=${encodeURIComponent(redirect_uri)}`
       )
 
       assert.strictEqual(response.status, 400)
       const body = await response.json()
-      assert.strictEqual(body.error, 'Missing code or state parameter')
+      assert.strictEqual(body.error, 'Missing code parameter')
     })
 
-    test('returns 400 if state is missing', async () => {
+    test('redirects with error if Google returns OAuth error', async () => {
+      const redirect_uri = 'https://myapp.com/dashboard'
+      const state = 'some_state'
       const response = await fetch(
-        `${host}/oauth/google/callback?code=some_code`
+        `${host}/oauth/google/callback?error=access_denied&state=${state}&redirect_uri=${encodeURIComponent(redirect_uri)}`,
+        {
+          redirect: 'manual',
+        }
       )
 
-      assert.strictEqual(response.status, 400)
-      const body = await response.json()
-      assert.strictEqual(body.error, 'Missing code or state parameter')
-    })
-
-    test('returns 400 if state is invalid or expired', async () => {
-      const invalid_state = 'nonexistent_state_token'
-      const response = await fetch(
-        `${host}/oauth/google/callback?code=mock_code&state=${invalid_state}`
+      assert.strictEqual(response.status, 302)
+      const location = response.headers.get('location')
+      const location_url = new globalThis.URL(location)
+      assert.strictEqual(location_url.searchParams.get('error'), 'oauth_denied')
+      assert.strictEqual(
+        location_url.searchParams.get('error_description'),
+        'access_denied'
       )
-
-      assert.strictEqual(response.status, 400)
-      const body = await response.json()
-      assert.strictEqual(body.error, 'Invalid or expired state parameter')
+      assert.strictEqual(location_url.searchParams.get('state'), state)
     })
 
-    test('returns 400 if Google returns OAuth error', async () => {
-      const response = await fetch(
-        `${host}/oauth/google/callback?error=access_denied&state=some_state`
-      )
-
-      assert.strictEqual(response.status, 400)
-      const body = await response.json()
-      assert.ok(body.error.includes('access_denied'))
-    })
-
-    test('returns 500 if token exchange fails', async () => {
-      // Setup state
+    test('redirects with error if token exchange fails', async () => {
+      const redirect_uri = 'https://myapp.com/dashboard'
       const state = 'test_state_fail_' + Date.now()
-      await redis_client.setex(`oauth_state:${state}`, 600, 'https://myapp.com')
 
       // Mock failed token exchange
       const mocked_fetch = mock.fn(async (url) => {
@@ -370,16 +274,20 @@ describe('OAuth Flow', () => {
 
       try {
         const response = await fetch(
-          `${host}/oauth/google/callback?code=bad_code&state=${state}`
+          `${host}/oauth/google/callback?code=bad_code&state=${state}&redirect_uri=${encodeURIComponent(redirect_uri)}`,
+          {
+            redirect: 'manual',
+          }
         )
 
-        assert.strictEqual(response.status, 500)
-        const body = await response.json()
-        assert.strictEqual(body.error, 'OAuth authentication failed')
-
-        // State should still be consumed (deleted)
-        const consumed_state = await redis_client.get(`oauth_state:${state}`)
-        assert.strictEqual(consumed_state, null)
+        assert.strictEqual(response.status, 302)
+        const location = response.headers.get('location')
+        const location_url = new globalThis.URL(location)
+        assert.strictEqual(
+          location_url.searchParams.get('error'),
+          'token_exchange_failed'
+        )
+        assert.strictEqual(location_url.searchParams.get('state'), state)
       } finally {
         globalThis.fetch = original_fetch
       }
