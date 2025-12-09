@@ -19,7 +19,7 @@ const {
   COOKIE_DOMAIN,
   COOKIE_PATH = '/',
   MAIL_REGEX = /^(([^\s"(),.:;<>@[\\\]]+(\.[^\s"(),.:;<>@[\\\]]+)*)|(".+"))@((\[(?:\d{1,3}\.){3}\d{1,3}])|(([\dA-Za-z-]+\.)+[A-Za-z]{2,}))$/,
-  PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{10,32}$/,
+  PWD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d@$!%*?&#]{6,64}$/,
   MAX_SESSION_PER_USER = '10',
   SERVER_HOST = 'localhost',
   GRAPHQL_PATH = '/',
