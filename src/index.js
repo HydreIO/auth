@@ -16,7 +16,7 @@ import logger from './logger.js'
 import { initiate_google_oauth, handle_google_callback } from './oauth.js'
 
 import { ENVIRONMENT } from './constant.js'
-import { master_client, slave_client, connection_state } from './database.js'
+import { connection_state } from './database.js'
 
 const { PORT, GRAPHQL_PATH, SERVER_HOST, ORIGINS } = ENVIRONMENT
 const directory = dirname(fileURLToPath(import.meta.url))
@@ -67,7 +67,7 @@ const router = new Router()
                 .digest('hex'),
             }
           },
-          publish: (id) => master_client.publish('__auth__', id),
+          publish: () => {}, // Graph DB doesn't need pub/sub
           koa_context: context,
           force_logout: () => {
             Token(context).rm()
@@ -125,8 +125,7 @@ http_server
   )
 
 http_server.on('close', () => {
-  master_client.quit()
-  slave_client.quit()
+  // Graph DB connection cleanup handled by FalkorDB
 })
 
 export default http_server

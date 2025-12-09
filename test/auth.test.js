@@ -1,7 +1,7 @@
 import { describe, test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { GraphQLClient } from 'graphql-request'
-import Redis from 'ioredis'
+import { FalkorDB } from 'falkordb'
 import compose from 'docker-compose'
 import zmq from 'zeromq'
 import fetch from 'node-fetch'
@@ -74,7 +74,7 @@ const request = async (client, query, variables) => {
 
 describe('Authentication Server', () => {
   let auth_server
-  let redis_client
+  let falkor_db
   let mail_socket
   let gql
 
@@ -86,14 +86,10 @@ describe('Authentication Server', () => {
       commandOptions: ['--build'],
     })
 
-    // Setup Redis client
-    redis_client = new Redis({
-      host: '0.0.0.0',
-      port: 6379,
+    // Setup FalkorDB client
+    falkor_db = await FalkorDB.connect({
+      socket: { host: '0.0.0.0', port: 6379 },
     })
-
-    // Wait for Redis to be ready
-    await new Promise((resolve) => redis_client.once('ready', resolve))
 
     // Setup mail socket
     mail_socket = new zmq.Pull()
@@ -113,7 +109,7 @@ describe('Authentication Server', () => {
   after(async () => {
     // Cleanup
     if (auth_server) auth_server.close()
-    if (redis_client) await redis_client.quit()
+    if (falkor_db) await falkor_db.close()
     if (mail_socket) await mail_socket.close()
 
     // Tear down Docker Compose
