@@ -9,7 +9,7 @@ import { user_db } from '../database.js'
 // Import private key using jose
 const private_key = await importPKCS8(ENVIRONMENT.PRIVATE_KEY, 'ES512')
 
-export default async ({ mail, pwd, lang }, { redis }) => {
+export default async ({ mail, pwd, lang }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -27,7 +27,7 @@ export default async ({ mail, pwd, lang }, { redis }) => {
   }
 
   // Check if user exists
-  const existing_user = await user_db.find_by_email(redis, mail)
+  const existing_user = await user_db.find_by_email(mail)
   if (existing_user) throw new GraphQLError(ERRORS.MAIL_USED)
 
   // Create verification code
@@ -49,7 +49,7 @@ export default async ({ mail, pwd, lang }, { redis }) => {
     member_since: Date.now(),
   }
 
-  await user_db.create(redis, user)
+  await user_db.create(user)
 
   // Only send verification email if email is enabled
   if (ENVIRONMENT.ENABLE_EMAIL) {

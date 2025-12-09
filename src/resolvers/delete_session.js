@@ -1,9 +1,9 @@
 import Token from '../token.js'
-import { user_db, session_db } from '../database.js'
+import { user_db, session_db, master_client } from '../database.js'
 import { ERRORS } from '../constant.js'
 import { GraphQLError } from 'graphql'
 
-export default async ({ id }, { koa_context, redis, force_logout }) => {
+export default async ({ id }, { koa_context, force_logout }) => {
   const token = Token(koa_context)
   const bearer = await token.get()
 
@@ -12,7 +12,7 @@ export default async ({ id }, { koa_context, redis, force_logout }) => {
     return true
   }
 
-  const user = await user_db.find_by_uuid(redis, bearer.uuid)
+  const user = await user_db.find_by_uuid(bearer.uuid)
 
   // particular case where an user would have been deleted
   // while still being logged
@@ -28,8 +28,8 @@ export default async ({ id }, { koa_context, redis, force_logout }) => {
 
   // IDOR protection: verify session belongs to user
   if (id) {
-    const session = await session_db.find_by_uuid(redis, id)
-    const user_sessions = await redis.call(
+    const session = await session_db.find_by_uuid(id)
+    const user_sessions = await master_client.call(
       'SMEMBERS',
       `user:${bearer.uuid}:sessions`
     )
@@ -39,7 +39,7 @@ export default async ({ id }, { koa_context, redis, force_logout }) => {
   }
 
   // Delete the session
-  await session_db.delete(redis, bearer.uuid, id ?? bearer.session)
+  await session_db.delete(bearer.uuid, id ?? bearer.session)
 
   return true
 }

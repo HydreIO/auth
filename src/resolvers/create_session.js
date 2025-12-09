@@ -7,7 +7,7 @@ import { create_or_update_session } from '../session_gate.js'
 
 export default async (
   { mail, pwd, remember, lang },
-  { build_session, publish, koa_context, redis, force_logout }
+  { build_session, publish, koa_context, force_logout }
 ) => {
   if (!mail.match(ENVIRONMENT.MAIL_REGEX))
     throw new GraphQLError(ERRORS.MAIL_INVALID)
@@ -23,7 +23,7 @@ export default async (
   }
 
   // Find user
-  const user = await user_db.find_by_email(redis, mail)
+  const user = await user_db.find_by_email(mail)
 
   // Check if user has password (for invited users)
   if (user && !user.hash) throw new GraphQLError(ERRORS.NO_PASSWORD)
@@ -44,7 +44,6 @@ export default async (
 
   // Use shared session gate
   const { session_uuid, is_new_session } = await create_or_update_session({
-    redis,
     user_uuid: user.uuid,
     user_email: mail,
     session_data: built_session,

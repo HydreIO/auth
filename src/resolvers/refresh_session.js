@@ -3,14 +3,14 @@ import { GraphQLError } from 'graphql'
 import Token from '../token.js'
 import { user_db, session_db } from '../database.js'
 
-export default async (_, { koa_context, redis, force_logout }) => {
+export default async (_, { koa_context, force_logout }) => {
   const token = Token(koa_context)
   const bearer = await token.get(true)
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
   // Find user and session
-  const user = await user_db.find_by_uuid(redis, bearer.uuid)
+  const user = await user_db.find_by_uuid(bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -28,7 +28,7 @@ export default async (_, { koa_context, redis, force_logout }) => {
   }
 
   // Check if session still exists
-  const session = await session_db.find_by_uuid(redis, bearer.session)
+  const session = await session_db.find_by_uuid(bearer.session)
 
   // the session may have been revoked and in that case we forbid the refresh
   // this is the only place we check for session validation

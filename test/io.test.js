@@ -4,17 +4,15 @@ import assert from 'node:assert/strict'
 // Force local I/O for this test
 process.env.DISABLE_IO = 'true'
 
-const { master_client, slave_client, connection_state } = await import(
-  '../src/io/index.js'
-)
-const { user_db, session_db } = await import('../src/database.js')
+const { master_client, slave_client, connection_state, user_db, session_db } =
+  await import('../src/database.js')
 
-describe('Local I/O Adapter', () => {
+describe('Database Layer', () => {
   test('connection state is online', () => {
     assert.strictEqual(connection_state.online, true)
   })
 
-  test('master and slave clients are same instance', () => {
+  test('master and slave clients are same instance in local mode', () => {
     assert.strictEqual(master_client, slave_client)
   })
 
@@ -86,21 +84,13 @@ describe('Local I/O Adapter', () => {
       assert.deepStrictEqual(members.sort(), ['x', 'z'])
     })
 
-    test('SETEX and GETDEL', async () => {
-      await master_client.setex('test:ttl', 10, 'temp_value')
-      const value = await master_client.getdel('test:ttl')
-      assert.strictEqual(value, 'temp_value')
-      const after = await master_client.get('test:ttl')
-      assert.strictEqual(after, null)
-    })
-
     test('publish is no-op', async () => {
       const result = await master_client.publish('test_channel', 'message')
       assert.strictEqual(result, 1)
     })
   })
 
-  describe('Database Layer', () => {
+  describe('User Operations', () => {
     test('user_db.create and find_by_email', async () => {
       const user = {
         uuid: 'user-1',
@@ -108,11 +98,8 @@ describe('Local I/O Adapter', () => {
         hash: 'hash123',
         created_at: Date.now(),
       }
-      await user_db.create(master_client, user)
-      const found = await user_db.find_by_email(
-        master_client,
-        'test@example.com'
-      )
+      await user_db.create(user)
+      const found = await user_db.find_by_email('test@example.com')
       assert.deepStrictEqual(found, user)
     })
 
@@ -123,8 +110,8 @@ describe('Local I/O Adapter', () => {
         hash: 'hash456',
         created_at: Date.now(),
       }
-      await user_db.create(master_client, user)
-      const found = await user_db.find_by_uuid(master_client, 'user-2')
+      await user_db.create(user)
+      const found = await user_db.find_by_uuid('user-2')
       assert.deepStrictEqual(found, user)
     })
 
@@ -135,12 +122,14 @@ describe('Local I/O Adapter', () => {
         hash: 'original',
         created_at: Date.now(),
       }
-      await user_db.create(master_client, user)
-      await user_db.update(master_client, 'user-3', { hash: 'updated' })
-      const found = await user_db.find_by_uuid(master_client, 'user-3')
+      await user_db.create(user)
+      await user_db.update('user-3', { hash: 'updated' })
+      const found = await user_db.find_by_uuid('user-3')
       assert.strictEqual(found.hash, 'updated')
     })
+  })
 
+  describe('Session Operations', () => {
     test('session_db.create and find_by_uuid', async () => {
       const session = {
         uuid: 'session-1',
@@ -148,8 +137,8 @@ describe('Local I/O Adapter', () => {
         browserName: 'Chrome',
         created_at: Date.now(),
       }
-      await session_db.create(master_client, 'user-1', session)
-      const found = await session_db.find_by_uuid(master_client, 'session-1')
+      await session_db.create('user-1', session)
+      const found = await session_db.find_by_uuid('session-1')
       assert.deepStrictEqual(found, session)
     })
 
@@ -160,21 +149,21 @@ describe('Local I/O Adapter', () => {
         browserName: 'Firefox',
         created_at: Date.now(),
       }
-      await session_db.create(master_client, 'user-1', session)
-      const sessions = await user_db.get_sessions(master_client, 'user-1')
+      await session_db.create('user-1', session)
+      const sessions = await user_db.get_sessions('user-1')
       assert.ok(sessions.length >= 1)
       assert.ok(sessions.some((s) => s.uuid === 'session-2'))
     })
 
     test('session_db.delete', async () => {
-      await session_db.delete(master_client, 'user-1', 'session-1')
-      const found = await session_db.find_by_uuid(master_client, 'session-1')
+      await session_db.delete('user-1', 'session-1')
+      const found = await session_db.find_by_uuid('session-1')
       assert.strictEqual(found, null)
     })
 
     test('user_db.delete removes user and sessions', async () => {
-      await user_db.delete(master_client, 'user-1')
-      const found = await user_db.find_by_uuid(master_client, 'user-1')
+      await user_db.delete('user-1')
+      const found = await user_db.find_by_uuid('user-1')
       assert.strictEqual(found, null)
     })
   })

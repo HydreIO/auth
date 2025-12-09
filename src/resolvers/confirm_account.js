@@ -17,12 +17,12 @@ const is_token_valid = async (token, valid_uuid) => {
   }
 }
 
-export default async ({ code }, { koa_context, redis, force_logout }) => {
+export default async ({ code }, { koa_context, force_logout }) => {
   const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const user = await user_db.find_by_uuid(redis, bearer.uuid)
+  const user = await user_db.find_by_uuid(bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -35,6 +35,6 @@ export default async ({ code }, { koa_context, redis, force_logout }) => {
   if (!(await is_token_valid(code, bearer.uuid)))
     throw new GraphQLError(ERRORS.INVALID_CODE)
 
-  await user_db.update(redis, bearer.uuid, { verified: true })
+  await user_db.update(bearer.uuid, { verified: true })
   return true
 }

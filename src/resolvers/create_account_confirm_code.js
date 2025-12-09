@@ -8,12 +8,12 @@ import { user_db } from '../database.js'
 // Import private key using jose
 const private_key = await importPKCS8(ENVIRONMENT.PRIVATE_KEY, 'ES512')
 
-export default async ({ lang }, { redis, koa_context, force_logout }) => {
+export default async ({ lang }, { koa_context, force_logout }) => {
   const bearer = await Token(koa_context).get()
 
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
-  const user = await user_db.find_by_uuid(redis, bearer.uuid)
+  const user = await user_db.find_by_uuid(bearer.uuid)
 
   /* c8 ignore next 5 */
   // redundant testing as the same code is already tested elsewhere
@@ -49,7 +49,7 @@ export default async ({ lang }, { redis, koa_context, force_logout }) => {
     }),
   ])
 
-  await user_db.update(redis, user.uuid, {
+  await user_db.update(user.uuid, {
     last_verification_code_sent: Date.now(),
   })
 

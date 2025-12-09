@@ -5,7 +5,7 @@ import { v4 as uuid4 } from 'uuid'
 import { user_db } from '../database.js'
 import crypto from 'crypto'
 
-export default async ({ mail }, { koa_context, redis }) => {
+export default async ({ mail }, { koa_context }) => {
   if (!ENVIRONMENT.ALLOW_REGISTRATION)
     throw new GraphQLError(ERRORS.REGISTRATION_DISABLED)
 
@@ -24,13 +24,13 @@ export default async ({ mail }, { koa_context, redis }) => {
   if (!bearer.uuid) throw new GraphQLError(ERRORS.USER_NOT_FOUND)
 
   // Authorization: Only admins can invite users
-  const inviter = await user_db.find_by_uuid(redis, bearer.uuid)
+  const inviter = await user_db.find_by_uuid(bearer.uuid)
   if (!inviter || !inviter.superadmin) {
     throw new GraphQLError(ERRORS.UNAUTHORIZED)
   }
 
   // Check if user already exists
-  const existing_user = await user_db.find_by_email(redis, mail)
+  const existing_user = await user_db.find_by_email(mail)
 
   if (existing_user) throw new GraphQLError(ERRORS.MAIL_USED)
 
@@ -46,6 +46,6 @@ export default async ({ mail }, { koa_context, redis }) => {
     member_since: Date.now(),
   }
 
-  await user_db.create(redis, user)
+  await user_db.create(user)
   return user.uuid
 }
