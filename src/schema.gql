@@ -177,5 +177,6 @@ type User {
   mail: String!
   sessions: [Session!]!
   verified: Boolean!
+  superadmin: Boolean!
   member_since: String!
 }
