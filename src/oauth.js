@@ -22,6 +22,93 @@ if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_SECRET) {
   )
 }
 
+// ============= SECURITY HELPERS =============
+
+/**
+ * Validates redirect_uri against ORIGINS whitelist using URL parsing (not regex)
+ * This prevents open redirect attacks by comparing scheme + host + port
+ * @param {string} redirect_uri - The redirect URI to validate
+ * @returns {boolean} - Whether the URI is allowed
+ */
+function validate_origin(redirect_uri) {
+  try {
+    const target = new URL(redirect_uri)
+    const target_origin = target.origin // scheme + host + port
+
+    return ENVIRONMENT.ORIGINS.split(';').some((allowed) => {
+      // If it starts with ^, use regex (for backwards compat)
+      if (allowed.startsWith('^')) {
+        return new RegExp(allowed).test(redirect_uri)
+      }
+      // Otherwise, compare origins (scheme + host + port)
+      try {
+        const allowed_url = new URL(allowed)
+        return target_origin === allowed_url.origin
+      } catch {
+        // If allowed is not a valid URL, try exact prefix match
+        return redirect_uri.startsWith(allowed)
+      }
+    })
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Signs state payload with HMAC-SHA256 using server's private key
+ * Prevents state tampering by attackers
+ * @param {object} payload - The state payload to sign
+ * @returns {string} - Base64url encoded signed state
+ */
+function sign_state(payload) {
+  const payload_json = JSON.stringify(payload)
+  const payload_b64 = Buffer.from(payload_json).toString('base64url')
+
+  // Create HMAC signature using first 32 bytes of private key hash
+  const key = crypto
+    .createHash('sha256')
+    .update(ENVIRONMENT.PRIVATE_KEY)
+    .digest()
+  const signature = crypto
+    .createHmac('sha256', key)
+    .update(payload_b64)
+    .digest('base64url')
+
+  return `${payload_b64}.${signature}`
+}
+
+/**
+ * Verifies and decodes HMAC-signed state
+ * @param {string} signed_state - The signed state from callback
+ * @returns {object|null} - Decoded payload or null if invalid
+ */
+function verify_state(signed_state) {
+  try {
+    const [payload_b64, signature] = signed_state.split('.')
+    if (!payload_b64 || !signature) return null
+
+    // Verify signature
+    const key = crypto
+      .createHash('sha256')
+      .update(ENVIRONMENT.PRIVATE_KEY)
+      .digest()
+    const expected_sig = crypto
+      .createHmac('sha256', key)
+      .update(payload_b64)
+      .digest('base64url')
+
+    if (signature !== expected_sig) {
+      logger.warn({ msg: 'OAuth state signature mismatch' })
+      return null
+    }
+
+    return JSON.parse(Buffer.from(payload_b64, 'base64url').toString('utf8'))
+  } catch (e) {
+    logger.error({ msg: 'Failed to verify OAuth state', error: e.message })
+    return null
+  }
+}
+
 /**
  * Google OAuth 2.0 routes for hydre/auth
  * Handles OAuth flow: initiate -> Google -> callback -> session creation
@@ -46,6 +133,19 @@ export async function initiate_google_oauth(context) {
     return
   }
 
+  // SECURITY: Validate redirect_uri BEFORE redirecting to Google
+  // Prevents open redirect attacks where attacker crafts malicious redirect_uri
+  if (!validate_origin(redirect_uri)) {
+    logger.error({
+      msg: 'OAuth initiation blocked - redirect_uri not in allowed ORIGINS',
+      redirect_uri,
+      origins: ENVIRONMENT.ORIGINS,
+    })
+    context.status = 400
+    context.body = { error: 'Invalid redirect URI' }
+    return
+  }
+
   // Build Google OAuth URL
   const google_auth_url = new URL(
     'https://accounts.google.com/o/oauth2/v2/auth'
@@ -55,10 +155,10 @@ export async function initiate_google_oauth(context) {
   google_auth_url.searchParams.set('response_type', 'code')
   google_auth_url.searchParams.set('scope', 'openid email profile')
 
-  // Pass through frontend-provided state for CSRF protection
-  if (state) {
-    google_auth_url.searchParams.set('state', state)
-  }
+  // SECURITY: HMAC-sign the state to prevent tampering
+  // State contains redirect_uri - attackers could try to modify it in flight
+  const signed_state = sign_state({ redirect_uri, frontend_state: state })
+  google_auth_url.searchParams.set('state', signed_state)
 
   logger.info({
     msg: 'Initiating Google OAuth',
@@ -78,33 +178,43 @@ export async function initiate_google_oauth(context) {
  * We just exchange the code for tokens and create the session.
  */
 export async function handle_google_callback(context) {
-  const { code, state, error, redirect_uri } = context.query
+  const { code, state, error } = context.query
+
+  // SECURITY: Verify HMAC signature and decode state
+  // This prevents attackers from tampering with state (e.g., changing redirect_uri)
+  let redirect_uri = null
+  let frontend_state = null
+
+  if (state) {
+    const state_payload = verify_state(state)
+    if (state_payload) {
+      redirect_uri = state_payload.redirect_uri
+      frontend_state = state_payload.frontend_state
+    }
+    // If verify_state returns null, logging already happened inside it
+  }
 
   // Helper to redirect with error params
   const redirect_with_error = (target_uri, error_code, description) => {
     const error_url = new URL(target_uri)
     error_url.searchParams.set('error', error_code)
     error_url.searchParams.set('error_description', description)
-    if (state) {
-      error_url.searchParams.set('state', state)
+    if (frontend_state) {
+      error_url.searchParams.set('state', frontend_state)
     }
     context.redirect(error_url.toString())
   }
 
-  // Validate redirect_uri is provided
+  // Validate redirect_uri was decoded from state
   if (!redirect_uri) {
     context.status = 400
-    context.body = { error: 'redirect_uri query parameter required' }
+    context.body = { error: 'Missing or invalid OAuth state' }
     return
   }
 
-  // Validate redirect_uri against ORIGINS whitelist to prevent open redirect
-  const is_allowed = ENVIRONMENT.ORIGINS.split(';').some((pattern) => {
-    const anchored = pattern.startsWith('^') ? pattern : `^${pattern}$`
-    return new RegExp(anchored).test(redirect_uri)
-  })
-
-  if (!is_allowed) {
+  // SECURITY: Validate redirect_uri using URL parsing (not regex)
+  // Double-check even though initiate validated - defense in depth
+  if (!validate_origin(redirect_uri)) {
     logger.error({
       msg: 'Redirect URI not in allowed ORIGINS',
       redirect_uri,
@@ -306,10 +416,10 @@ export async function handle_google_callback(context) {
       session_uuid,
     })
 
-    // Build redirect URL with state if provided
+    // Build redirect URL with frontend_state if provided
     const success_url = new URL(redirect_uri)
-    if (state) {
-      success_url.searchParams.set('state', state)
+    if (frontend_state) {
+      success_url.searchParams.set('state', frontend_state)
     }
 
     // Redirect back to app - headers must not be sent yet
