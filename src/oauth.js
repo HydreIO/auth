@@ -306,6 +306,7 @@ export async function handle_google_callback(context) {
         name,
         picture,
         verified: true, // OAuth users are auto-verified (email confirmed by Google)
+        activated: false, // New users need admin approval
         member_since: Date.now(),
         auth_method: 'google',
       }
