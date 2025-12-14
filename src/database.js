@@ -8,7 +8,7 @@ import { ENVIRONMENT } from './constant.js'
 
 const { REDIS_HOST } = ENVIRONMENT
 const REDIS_PORT = process.env.REDIS_PORT ?? 6379
-const GRAPH_NAME = process.env.GRAPH_NAME ?? 'auth'
+const GRAPH_NAME = process.env.GRAPH_NAME ?? 'global'
 
 // Connection state for health checks
 export const connection_state = {
