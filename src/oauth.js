@@ -154,6 +154,7 @@ export async function initiate_google_oauth(context) {
   google_auth_url.searchParams.set('redirect_uri', GOOGLE_REDIRECT_URI)
   google_auth_url.searchParams.set('response_type', 'code')
   google_auth_url.searchParams.set('scope', 'openid email profile')
+  google_auth_url.searchParams.set('prompt', 'select_account')
 
   // SECURITY: HMAC-sign the state to prevent tampering
   // State contains redirect_uri - attackers could try to modify it in flight
