@@ -7,13 +7,23 @@ import { user_db } from './database.js'
 import { ENVIRONMENT, ERRORS, validate_email_whitelist } from './constant.js'
 import MAIL from './mail.js'
 
-const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } =
-  process.env
+const {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+  // Configurable OAuth endpoints (defaults to Google)
+  GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth',
+  GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token',
+  GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs',
+  GOOGLE_USERINFO_URL, // Optional - only used if provided
+  // For E2E testing: skip JWKS verification when using mock OAuth
+  SKIP_OAUTH_JWT_VERIFICATION = 'false',
+} = process.env
 
-// Google's JWKS endpoint for JWT verification
-const GOOGLE_JWKS = createRemoteJWKSet(
-  new URL('https://www.googleapis.com/oauth2/v3/certs')
-)
+// Google's JWKS endpoint for JWT verification (configurable for testing)
+const GOOGLE_JWKS = SKIP_OAUTH_JWT_VERIFICATION === 'true'
+  ? null
+  : createRemoteJWKSet(new URL(GOOGLE_JWKS_URL))
 
 // Validate OAuth configuration
 if (GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_SECRET) {
@@ -146,10 +156,8 @@ export async function initiate_google_oauth(context) {
     return
   }
 
-  // Build Google OAuth URL
-  const google_auth_url = new URL(
-    'https://accounts.google.com/o/oauth2/v2/auth'
-  )
+  // Build Google OAuth URL (configurable for testing)
+  const google_auth_url = new URL(GOOGLE_AUTH_URL)
   google_auth_url.searchParams.set('client_id', GOOGLE_CLIENT_ID)
   google_auth_url.searchParams.set('redirect_uri', GOOGLE_REDIRECT_URI)
   google_auth_url.searchParams.set('response_type', 'code')
@@ -240,17 +248,17 @@ export async function handle_google_callback(context) {
   }
 
   try {
-    // Exchange auth code for tokens
-    const token_response = await fetch('https://oauth2.googleapis.com/token', {
+    // Exchange auth code for tokens (configurable URL for testing)
+    const token_response = await fetch(GOOGLE_TOKEN_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
         redirect_uri: GOOGLE_REDIRECT_URI,
         grant_type: 'authorization_code',
-      }),
+      }).toString(),
     })
 
     if (!token_response.ok) {
@@ -266,11 +274,21 @@ export async function handle_google_callback(context) {
 
     const { id_token } = await token_response.json()
 
-    // Verify JWT signature and claims using jose library (CRITICAL SECURITY FIX)
-    const { payload } = await jwtVerify(id_token, GOOGLE_JWKS, {
-      issuer: 'https://accounts.google.com',
-      audience: GOOGLE_CLIENT_ID,
-    })
+    let payload
+
+    if (SKIP_OAUTH_JWT_VERIFICATION === 'true') {
+      // For E2E testing: decode JWT without verification (mock tokens)
+      const [, payload_b64] = id_token.split('.')
+      payload = JSON.parse(Buffer.from(payload_b64, 'base64url').toString('utf8'))
+      logger.warn({ msg: 'Skipping JWT verification (E2E mode)' })
+    } else {
+      // Production: Verify JWT signature and claims using jose library
+      const { payload: verified_payload } = await jwtVerify(id_token, GOOGLE_JWKS, {
+        issuer: 'https://accounts.google.com',
+        audience: GOOGLE_CLIENT_ID,
+      })
+      payload = verified_payload
+    }
 
     const { email, sub: google_id, name, picture } = payload
 
