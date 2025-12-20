@@ -3,6 +3,8 @@ image:
   tag: 'latest'
   pullPolicy: Always
 
+imagePullSecrets: []
+
 replicaCount: 1
 
 service:
